@@ -1,4 +1,5 @@
 exports.AjaxFetch = require('./AjaxFetch.js');
+exports.AppConfig = require('./AppConfig.js');
 exports.EmailValidator = require('./EmailValidator.js');
 exports.Environment = require('./Environment.js');
 exports.File = require('./File.js');
