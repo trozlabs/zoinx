@@ -1,0 +1,11 @@
+{
+    "name": "test-cjs",
+    "type": "commonjs",
+    "main": "index.cjs",
+    "scripts": {
+        "start": "rm -rf package-lock.json ./node_modules && npm install --force && node index.cjs"
+    },
+    "dependencies": {
+        "zoinx": "file:../../"
+    }
+}

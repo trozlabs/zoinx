@@ -1,0 +1,28 @@
+'use strict'
+
+const { Domain } = require('@core');
+const mongoose = global.mongoosePool;
+const { randomUUID } = require('crypto');
+
+const schema = mongoose.Schema(
+    {
+
+    },
+    {
+    timestamps: {
+        createdAt: 'create_timestamp',
+        updatedAt: 'updated_timestamp'
+     }
+});
+
+module.exports = class <%= className %>Domain extends Domain {
+
+    constructor() {
+        super(mongoose.model('<%= className %>', schema, '<%= schemaName %>'));
+    }
+
+    list() {
+        return this.getDomain().find().sort('name').select('-__v');
+    }
+
+}

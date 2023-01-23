@@ -1,0 +1,105 @@
+const { ResponseObj, APIError, Route, Controller } = require('@core');
+const { Filter } = require('@util');
+const TestProxy = require('@testproxy');
+
+const routeLabel = '<%= className %>';
+
+module.exports = TestProxy(class PicklistController extends Controller {
+
+    static testConfig = {
+        'get': {
+            input: ['req=><object>', 'res=><object>'],
+            output: ['record=><object>']
+        },
+        'post': {
+            input: ['req=><object>', 'res=><object>'],
+            output: ['record=><object>']
+        },
+        'put': {
+            input: ['req=><object>', 'res=><object>'],
+            output: ['record=><object>']
+        },
+        'delete': {
+            input: ['req=><object>', 'res=><object>'],
+            output: ['record=><object>']
+        },
+        'find': {
+            input: ['req=><object>', 'res=><object>'],
+            output: ['record=><object>']
+        }
+    }
+
+    route = '/<%= name %>';
+    routes = [
+        new Route({ method: 'get',      path: '/find',      handler: 'find'         }),
+        new Route({ method: 'get',      path: '/:id?',      handler: 'get'          }),
+        new Route({ method: 'put',      path: '/:id',       handler: 'put'          }),
+        new Route({ method: 'delete',   path: '/:id',       handler: 'delete'       }),
+        new Route({ method: 'post',     path: '/',          handler: 'post'         })
+    ]
+
+    constructor(config) {
+        super(config);
+        this.init(this);
+    }
+
+    async get(req, res) {
+        // throw new APIError(400, 'Some helpful user facing error', 'The real reason we had an error');
+        let rtn = await this.service.get(req.app, req.params.id);
+        return rtn;
+    }
+
+    async post(req, res) {
+        if (!req.body || Object.keys(req.body).length < 1) {
+            throw new APIError(500, 'No document sent to save.');
+        }
+
+        let rtn = await this.service.save(req.app, req.params.id, req.body, req.session);
+
+        if (!rtn) {
+            throw new APIError(`Failed to create \$\{routeLabel\}.`);
+        }
+        else if (rtn.stack) {
+            throw new APIError(`\$\{rtn.message\} \$\{routeLabel\}.`);
+        }
+
+        rtn = ResponseObj.omitProperties(rtn, '_doc', ['__v']);
+        return rtn;
+    }
+
+    async put(req, res) {
+        if (!req.body || Object.keys(req.body).length < 1) {
+            throw new APIError(400, 'No changes sent to save.');
+        }
+
+        let rtn = await this.service.save(req.app, req.params.id, req.body, req.session);
+        if (!rtn) {
+            throw new APIError(400, `\$\{routeLabel\} with the ID \$\{req.params.id\} was not found and could not be updated.`);
+        }
+
+        rtn = await this.service.get(req.app, req.params.id);
+        rtn = ResponseObj.omitProperties(rtn, '_doc', ['__v']);
+        return rtn;
+    }
+
+    async delete(req, res) {
+        let rtn = await this.service.remove(req.app, req.params.id);
+
+        if (!rtn) {
+            throw new APIError(400, `\$\{routeLabel\} with the ID \$\{req.params.id\} was not found and could not be deleted.`);
+        }
+        return rtn;
+    }
+
+    async find(req, res) {
+        const filterObj = new Filter(req);
+        const filters = filterObj.getFilters();
+
+        if (filters.length < 1) {
+            throw new APIError(400, 'A filter must be provided to get results.');
+        }
+
+        let rtn = await this.service.find(req.app, req, filters);
+        return rtn;
+    }
+})

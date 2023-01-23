@@ -1,0 +1,17 @@
+const { RouteDef } = require('@core');
+const path = require('path');
+
+module.exports = class <%= className %> extends RouteDef {
+
+    constructor(app) {
+        let routes = {
+            <%= className %>: {
+                base: '/<%= name %>',
+                router: path.join(__dirname, './route'),
+                enabled: true
+            }
+        };
+        super(app, routes);
+    }
+
+};

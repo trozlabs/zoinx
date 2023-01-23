@@ -1,0 +1,99 @@
+/*
+fields: '[{"field": "object_type", "oper":"startswith", "term":"item"}]'
+ */
+
+// startwith /^string/i
+// endswith /string$/i
+// contains /.*string.*/i
+// equals /^string$/i
+// = /^string$/
+// = -> eq
+// != -> ne
+// > -> gt
+// < -> lt
+// >= -> gte
+// <= -> lte
+// in -> in
+// !in -> !in
+
+const _ = require('lodash');
+
+module.exports = class Filter {
+    #queryFilters = [];
+    #dbType = 'mongo';
+    #filters = [];
+
+    constructor(req, dbType) {
+        if (req && req.query?.fields) this.#queryFilters = JSON.parse(req.query.fields);
+        else if (req && req.query?.filters) this.#queryFilters = JSON.parse(req.query.filters);
+        if (dbType) this.#dbType = dbType;
+
+        if (this.#queryFilters.length > 0) this.parseFilters();
+    }
+
+    getFilters() {
+        return this.#filters;
+    }
+
+    createNewFilters(filterArray) {
+        if (_.isArray(filterArray)) {
+            this.#queryFilters = filterArray;
+            this.parseFilters();
+            return this.getFilters();
+        }
+    }
+
+    parseFilters() {
+        console.log(this.#queryFilters);
+        for (var i = 0; i < this.#queryFilters.length; i++) {
+            if (this.#dbType === 'mongo') {
+                let tmpObj = {
+                    propName: this.#queryFilters[i].field,
+                    isNum: false,
+                    regex: null,
+                    oper: null,
+                    term: null
+                };
+
+                if (isNaN(this.#queryFilters[i].term)) {
+                    if (_.isEmpty(this.#queryFilters[i].oper)) this.#queryFilters[i].oper = '=';
+                    if (this.#queryFilters[i].oper.toLowerCase() === 'equals') {
+                        tmpObj.regex = new RegExp(`^${this.#queryFilters[i].term}$`, 'i');
+                    } else if (this.#queryFilters[i].oper.toLowerCase() === '=') {
+                        tmpObj.regex = new RegExp(`^${this.#queryFilters[i].term}$`);
+                    } else if (this.#queryFilters[i].oper.toLowerCase() === 'startswith') {
+                        tmpObj.regex = new RegExp(`^${this.#queryFilters[i].term}`, 'i');
+                    } else if (this.#queryFilters[i].oper.toLowerCase() === 'endswith') {
+                        tmpObj.regex = new RegExp(`${this.#queryFilters[i].term}$`, 'i');
+                    } else if (this.#queryFilters[i].oper.toLowerCase() === 'contains') {
+                        tmpObj.regex = new RegExp(`.*${this.#queryFilters[i].term}.*`, 'i');
+                    } else if (this.#queryFilters[i].oper.toLowerCase() === '!contains') {
+                        tmpObj.regex = new RegExp(`^((?!${this.#queryFilters[i].term}).)*$`, 'i');
+                    } else if (this.#queryFilters[i].oper.toLowerCase() === 'in' || this.#queryFilters[i].oper.toLowerCase() === '!in') {
+                        tmpObj.oper = this.#queryFilters[i].oper.toLowerCase();
+                        tmpObj.term = this.#queryFilters[i].term.split(',');
+                    }
+
+                    this.#filters.push(tmpObj);
+                } else if (_.isBoolean(this.#queryFilters[i].term)) {
+                    tmpObj.term = this.#queryFilters[i].term;
+                    tmpObj.oper = '=';
+                    this.#filters.push(tmpObj);
+                }
+                // numbers
+                else {
+                    tmpObj.isNum = true;
+                    tmpObj.term = this.#queryFilters[i].term;
+
+                    if (_.isEmpty(this.#queryFilters[i].oper)) this.#queryFilters[i].oper = '=';
+                    if (this.#queryFilters[i].oper.toLowerCase() === 'eq') {
+                        tmpObj.oper = '=';
+                    } else {
+                        tmpObj.oper = this.#queryFilters[i].oper;
+                    }
+                    this.#filters.push(tmpObj);
+                }
+            }
+        }
+    }
+};

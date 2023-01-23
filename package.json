@@ -1,0 +1,62 @@
+{
+    "name": "zoinx",
+    "version": "0.0.1",
+    "description": "zoinx module library",
+    "main": "src/index.js",
+    "module": "src/index.js",
+    "bin": {},
+    "scripts": {
+        "format": "prettier --write \"**/*.{js,ts,tsx,json,md}\"",
+        "test": "npm run test:cjs && npm run test:mjs",
+        "test:cjs": "cd test/cjs && npm install && npm start && cd ../..",
+        "test:mjs": "cd test/mjs && npm install && npm start && cd ../..",
+        "postinstall": "npm run format && npm run test"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "exports": {
+        ".": {
+            "import": "./src/index.js",
+            "require": "./src/index.js"
+        },
+        "./cli": {
+            "import": "./src/cli/index.js",
+            "require": "./src/cli/index.js"
+        },
+        "./generator": {
+            "import": "./src/generator/index.js",
+            "require": "./src/generator/index.js"
+        },
+        "./enums": {
+            "import": "./src/enums/index.js",
+            "require": "./src/enums/index.js"
+        },
+        "./util": {
+            "import": "./src/util/index.js",
+            "require": "./src/util/index.js"
+        },
+        "./log": {
+            "import": "./src/log/index.js",
+            "require": "./src/log/index.js"
+        },
+        "./core": {
+            "import": "./src/core/index.js",
+            "require": "./src/core/index.js"
+        },
+        "./database": {
+            "import": "./src/database/index.js",
+            "require": "./src/database/index.js"
+        }
+    },
+    "devDependencies": {
+        "prettier": "2.8.3"
+    },
+    "dependencies": {
+        "lodash": "^4.17.21",
+        "node-fetch": "^2.6.6"
+    },
+    "peerDependencies": {
+        "mongoose": "latest"
+    }
+}
