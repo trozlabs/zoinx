@@ -22,6 +22,14 @@ module.exports = class Database {
         return new this(config).mongoosePool;
     }
 
+    static create4Cli(config) {
+        return new this(config);
+    }
+
+    async close() {
+        await this.mongoosePool.disconnect();
+    }
+
     constructor(config) {
 
         let host, port, name, user, password, maxPoolSize, dbOptions;
