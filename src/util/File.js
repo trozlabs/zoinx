@@ -1,6 +1,4 @@
-const path = require('path');
 const fs = require('fs');
-const fspm = fs.promises;
 
 const constants = {
     /**
@@ -95,11 +93,6 @@ const constants = {
     WXP: 'wx+'
 };
 
-// async write(path, data = '', options = {}) {
-//     Log.debug(__filename, 'write', arguments);
-//     const files = await fs.promises.writeFile(path, data, options);
-// }
-
 class Util {
     static async list(path) {
         const files = await fs.promises.readdir(path);
@@ -120,10 +113,6 @@ class Util {
             return callback(err, hasAccess);
         });
     }
-}
-
-class Reader {
-    // TODO:
 }
 
 class Writer {
@@ -164,4 +153,4 @@ class Writer {
     }
 }
 
-module.exports = { Util, Reader, Writer, constants };
+module.exports = { constants, Util, Writer };

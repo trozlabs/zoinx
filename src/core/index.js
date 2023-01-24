@@ -1,7 +1,7 @@
 exports.APIError = require('./APIError.js');
 exports.APIResponse = require('./APIResponse.js');
 exports.Controller = require('./Controller.js');
-exports.Domian = require('./Domain.js');
+exports.Domain = require('./Domain.js');
 exports.handler = require('./handler.js');
 exports.index = require('./index.js');
 exports.Model = require('./Model.js');

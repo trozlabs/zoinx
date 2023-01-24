@@ -3,7 +3,7 @@
     "type": "module",
     "module": "index.mjs",
     "scripts": {
-        "start": "rm -rf package-lock.json ./node_modules && npm install --force && node index.mjs"
+        "start": "rm -rf ./package-lock.json ./node_modules && npm install && node index.mjs"
     },
     "dependencies": {
         "zoinx": "file:../../"

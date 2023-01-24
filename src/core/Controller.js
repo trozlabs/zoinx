@@ -1,5 +1,5 @@
 // sibling
-const Log = require('../log');
+const { Log } = require('../log');
 // local
 const Route = require('./Route');
 const APIError = require('./APIError');
