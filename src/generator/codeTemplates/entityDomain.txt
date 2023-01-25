@@ -1,6 +1,6 @@
 'use strict'
 
-const { Domain } = require('@core');
+const { Domain } = require('zoinx/core');
 const mongoose = global.mongoosePool;
 const { randomUUID } = require('crypto');
 

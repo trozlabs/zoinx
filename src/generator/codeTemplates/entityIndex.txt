@@ -1,4 +1,4 @@
-const { RouteDef } = require('@core');
+const { RouteDef } = require('zoinx/core');
 const path = require('path');
 
 module.exports = class <%= className %> extends RouteDef {

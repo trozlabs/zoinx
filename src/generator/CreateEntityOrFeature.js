@@ -5,7 +5,7 @@ const os = require('os');
 // external
 const _ = require('lodash');
 // siblings
-const Log = require('../log');
+const { Log } = require('../log');
 
 function readonlyDecorator(target, property, descriptor) {
     console.log("Target: ")
@@ -23,7 +23,7 @@ function readonlyDecorator(target, property, descriptor) {
     return descriptor
 }
 
-class CreateEntityOrFeature {
+module.exports = class CreateEntityOrFeature {
 
     #confObj
     #createWhat
@@ -36,8 +36,8 @@ class CreateEntityOrFeature {
 
     constructor(confObj, createWhat) {
         if (confObj) this.#confObj = confObj;
-        this.#baseEntityDir = path.join(__dirname, '../../entities');
-        this.#baseFeatureDir = path.join(__dirname, '../../features');
+        this.#baseEntityDir = path.join(process.env.PWD, '/entities');
+        this.#baseFeatureDir = path.join(process.env.PWD, '/features');
         this.#createWhat = (['entity', 'feature'].includes(createWhat.toLowerCase())) ? createWhat.toLowerCase() : 'entity';
 
         this.#templates = ['index', 'route', 'service', 'domain', 'statics', 'controller'];
@@ -175,9 +175,9 @@ class CreateEntityOrFeature {
             if (!_.isEmpty(dirName) && !_.isEmpty(fileName)) {
 
                 if (!fs.existsSync(dir))
-                    fs.mkdirSync(dir);
+                    await fs.mkdirSync(dir, { recursive: true });
 
-                fs.writeFile(fullPath, fileContents, { flag: 'w+' }, err => {
+                await fs.writeFile(fullPath, fileContents, { flag: 'w+' }, err => {
                     if (err) {
                         Log.error(err);
                     } else {
@@ -228,4 +228,4 @@ class CreateEntityOrFeature {
     }
 }
 
-module.exports = { CreateEntityOrFeature }
+// module.exports = { CreateEntityOrFeature }

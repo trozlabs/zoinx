@@ -1,14 +1,11 @@
-const { Service } = require('@core');
+const { Service } = require('zoinx/core');
 const path = require("path");
 
 module.exports = class <%= className %>Service extends Service {
 
-    constructor(app) {
+    constructor() {
         const domainPath = path.join(__dirname, './domain');
-        super(app, domainPath);
+        super(domainPath);
     }
 
-    get app() {
-        return this.getApp();
-    }
 }

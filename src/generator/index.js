@@ -1,1 +1,1 @@
-exports.CreateEntityOrFeature = require('./CreateEntityOrFeature.js');
+exports.CreateEntityOrFeature = require('./CreateEntityOrFeature');
