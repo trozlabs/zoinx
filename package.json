@@ -2,8 +2,8 @@
     "name": "zoinx",
     "version": "0.0.1",
     "description": "zoinx module library",
-    "main": "src/index.js",
-    "module": "src/index.js",
+    "main": "./src/index.js",
+    "module": "./src/index.js",
     "bin": {},
     "scripts": {
         "format": "prettier --write \"**/*.{js,ts,tsx,json,md}\"",
@@ -14,6 +14,10 @@
     "keywords": [],
     "author": "",
     "license": "ISC",
+    "files": [
+        "src",
+        "package.json"
+    ],
     "repository": {
         "type": "git",
         "url": "git+https://github.com/trozlabs/zoinx.git"
@@ -54,7 +58,8 @@
         "./database": {
             "import": "./src/database/index.js",
             "require": "./src/database/index.js"
-        }
+        },
+        "./package.json": "./package.json"
     },
     "devDependencies": {
         "prettier": "2.8.3"
@@ -64,6 +69,8 @@
         "node-fetch": "^2.6.6"
     },
     "peerDependencies": {
+    },
+    "optionalDependencies": {
         "mongoose": "latest"
     }
 }
