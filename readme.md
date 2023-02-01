@@ -64,7 +64,7 @@ There are 2 big concepts in this framework: Entities & Features.
 
 Entities can be thought of as a full CRUD stack where there is an API route a
 corresponding Service and Domain. The Domain file is responsible for defining
-the MongoDB Schema. A collection with the a Schema name, provided in the
+the MongoDB Schema. A collection with the Schema name, provided in the
 options, will be created if the application server is run.
 
 Features can be treated as an Entity but features define a broader set of
@@ -93,10 +93,11 @@ depending on configuration. The files created are:
 4. `domain.js`   - Used to define the Schema used in Mongo to store data
    into collections. Domains are not strictly needed for
    services to be functional
-5  `controller.js`   - Used to define the actual endpoints, their method and
-   the method that handles the incoming request. These methods are generally
+5. `controller.js`   - Used to define the actual endpoints, their method and
+   the function that handles the incoming request. These methods are generally
    used to verify incoming data and access perms then pass the request and
-   needed data to the service class. 
+   needed data to the service class. Permission handling can occur in the
+   route as well.
 
 
 </br>The CLI will provide a prompt in the command line where the following example
@@ -105,7 +106,7 @@ commands can be run.</br>
 `--entity` and `--feature` work in nearly identical manners, Feature
 differences will be noted.</br></br></br>
 
-```bash
+```json
 create --entity={"name": "newEntity", "className": "NewEntity", "schemaName": "test.newEntity"}
 ```
 
@@ -120,9 +121,9 @@ optional but will be set using `name` if absent.
     │   ├── route.js
     │   └── service.js
     │   └── controller.js
-    .
+    
 
-```bash
+```json
 create --entity={"name": "newEntity", "className": "NewEntity", "schemaName": "test.newEntity", "overwrite":"true"}
 ```
 
@@ -130,14 +131,14 @@ This line will overwrite all 4 existing files if the Entity already exists.
 If the first command is run twice, it will state it already exists and
 `overwrite` will need to be provided.
 
-```bash
+```json
 create --entity={"name": "newEntity", "className": "NewEntity", "schemaName": "test.newEntity", "only": "index"}
 ```
 
 This line will ONLY generate the `index` file for a specified Entity or
 Feature. Add `"overwrite":"true"` to overwrite the single file.
 
-```bash
+```json
 create --entity={"name": "newEntity", "className": "NewEntity", "schemaName": "test.newEntity", "exclude": ["domain","service"]}
 ```
 
