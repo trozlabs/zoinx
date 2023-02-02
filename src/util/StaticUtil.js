@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const Log = require('../log');
+const { Log } = require('../log');
 const fs = require('fs');
 
 module.exports = class UtilMethods {
@@ -131,10 +131,10 @@ module.exports = class UtilMethods {
         const result = modulePath.includes('/.bin/');
 
         if (logOptions) {
-            console.log('+++++++++++++++++++++++++++++++++++++++++');
-            console.log({ binaryPath, modulePath });
-            console.log(result ? 'Running as Shell Script' : 'Running as Application');
-            console.log('+++++++++++++++++++++++++++++++++++++++++');
+            Log.info('+++++++++++++++++++++++++++++++++++++++++');
+            Log.info({ binaryPath, modulePath });
+            Log.info(result ? 'Running as Shell Script' : 'Running as Application');
+            Log.info('+++++++++++++++++++++++++++++++++++++++++');
         }
 
         return result;

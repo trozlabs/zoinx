@@ -2,7 +2,7 @@
 const _ = require('lodash');
 const fetch = require('node-fetch');
 // siblings
-const Log = require('../log');
+const { Log } = require('../log');
 // local
 const { StaticUtil } = require('./StaticUtil.js');
 

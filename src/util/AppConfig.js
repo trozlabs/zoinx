@@ -16,7 +16,7 @@ module.exports = class AppConfig {
         try {
             await this.initEnv(...files);
             // global.mongoosePool = require('../../../core/database')();
-            console.log(`
+            Log.info(`
 |----------------------------------------------------------------------------|
 |         VARIABLE:         |                     VALUE:                     |
 |----------------------------------------------------------------------------|

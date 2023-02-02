@@ -1,7 +1,7 @@
 // external
 const _ = require('lodash');
 // siblings
-const Log = require('../log');
+const { Log } = require('../log');
 const { Filter, Sort, SelectInclude } = require('../util');
 
 module.exports = class Domain {

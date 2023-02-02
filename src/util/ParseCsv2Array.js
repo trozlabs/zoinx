@@ -4,7 +4,7 @@ const readline = require('readline');
 // external
 const _ = require('lodash');
 // siblings
-const Log = require('../log');
+const { Log } = require('../log');
 
 module.exports = class ParseCsv2Array {
     #hasHeader = true;
@@ -26,7 +26,7 @@ module.exports = class ParseCsv2Array {
             this.#fileStream = fs.createReadStream(this.#filePath);
             this.#reader = readline.createInterface({ input: this.#fileStream });
         } catch (e) {
-            console.error(`Failed reading data file: ${e.message}`);
+            Log.error(`Failed reading data file: ${e.message}`);
         }
     }
 
@@ -66,7 +66,7 @@ module.exports = class ParseCsv2Array {
                 else this.#dataArray.push(line.split(this.#delimiter));
             }
         } catch (e) {
-            console.error(e.message);
+            Log.error(e.message);
         }
 
         if (returnData) return this.#dataArray;
