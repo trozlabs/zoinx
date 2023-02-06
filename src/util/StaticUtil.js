@@ -139,4 +139,17 @@ module.exports = class UtilMethods {
 
         return result;
     }
+
+    static isEmail(emailAddr) {
+        let regex = new RegExp(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/, 'm');
+        if (_.isEmpty(emailAddr) || !_.isString(emailAddr)) return false;
+        return regex.test(emailAddr);
+    }
+
+    static isUUID(uuid) {
+        let regex = new RegExp(/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/, 'm');
+        if (_.isEmpty(uuid) || !_.isString(uuid)) return false;
+        return regex.test(uuid);
+    }
+
 };

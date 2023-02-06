@@ -40,8 +40,14 @@ module.exports = class Fetch {
                 if (logOptions) console.log(options);
                 const response = await fetch(options.url, options);
                 if (response.ok) {
-                    resultJsonObj = response.json();
-                } else resultJsonObj = response;
+                    try {
+                        resultJsonObj = await response.json();
+                    }
+                    catch (e) {
+                        resultJsonObj = response;
+                    }
+                }
+                else resultJsonObj = response;
             }
         } catch (ex) {
             Log.error(`execReq error calling ${options.url}.`);
