@@ -100,9 +100,17 @@ module.exports = class JSONDatabase {
         this.#schemas = schemas;
         this.#syncronizeSchemas = Boolean(syncronizeSchemas);
 
-        this.read(file);
+        this.read();
 
-        process.on('beforeExit', () => this.write());
+        process.on('beforeExit', () => {
+            this.write()
+        });
+        process.on('exit', () => {
+            this.write()
+        });
+        process.on('SIG', () => {
+            this.write()
+        });
     }
 
     /**
@@ -132,9 +140,7 @@ module.exports = class JSONDatabase {
         } finally {
             map = this.#toMap(json);
             db = this.#validateSchemas(map);
-
             console.log(`Validating schemas: ${Object.keys(schemas).join(', ')}`)
-            // console.log(db);
             this.#db = db;
         }
     }
@@ -148,7 +154,7 @@ module.exports = class JSONDatabase {
         const data = this.#toJson(db);
         const json = JSON.stringify(data, null, 4);
 
-        console.log(`Writing file: ${file} (${json.length} bytes)`);
+        // console.log(`Writing file: ${file} (${json.length} bytes)`);
 
         fs.writeFileSync(file, json, { encoding: 'utf8' });
     }
@@ -161,7 +167,7 @@ module.exports = class JSONDatabase {
      * @throws {Error}
      */
     search(schema, value) {
-        console.log(`[${this.#file}] searching '${schema}' for '${value}'`)
+        // console.log(`[${this.#file}] searching '${schema}' for '${value}'`)
         const db = this.#db;
         if (!db?.has(schema)) {
             throw new Error(`Cannot search a Schema ('${schema}') that doesn't exist.`);
@@ -169,8 +175,8 @@ module.exports = class JSONDatabase {
         const table = db.get(schema);
         const searchTarget = [ ...table.values() ];
         return searchTarget.filter(doc => {
-            const string = Object.values(doc).join(' ');
-            return string.match(new RegExp(`(${value})`, 'gmi'));
+            const value = Object.values(doc).join(' ');
+            return value.match(new RegExp(`(${value})`, 'gmi'));
         });
     }
 
@@ -182,7 +188,7 @@ module.exports = class JSONDatabase {
      * @throws {Error}
      */
     select(schema, id) {
-        console.log(`[${this.#file}] selecting '${schema}' with '${id}'`)
+        // console.log(`[${this.#file}] selecting '${schema}' with '${id}'`)
         const db = this.#db
         const table = db.get(schema);
         const doc = table.get(id);
@@ -199,7 +205,7 @@ module.exports = class JSONDatabase {
      * @throws {Error}
      */
     insert(schema, doc) {
-        console.log(`[${this.#file}] inserting '${schema}'`, doc)
+        // console.log(`[${this.#file}] inserting '${schema}'`, doc)
         
         const db = this.#db;
         if (!db?.has(schema)) {
@@ -214,7 +220,7 @@ module.exports = class JSONDatabase {
             updatedAt: new Date(),
             createdAt: new Date()
         });
-        // this.write();
+        this.write();
         return this.select(schema, id);
     }
 
@@ -227,7 +233,7 @@ module.exports = class JSONDatabase {
      * @throws {Error}
      */
     update(schema, doc) {
-        console.log(`[${this.#file}] updating '${schema}' with '${doc.id}'`)
+        // console.log(`[${this.#file}] updating '${schema}' with '${doc.id}'`)
 
         const db = this.#db;
         const table = db.get(schema);
@@ -235,7 +241,7 @@ module.exports = class JSONDatabase {
         const updated = { ...original, ...doc, updatedAt: new Date() };
 
         table.set(updated.id, updated);
-        // this.write();
+        this.write();
 
         return updated;
     }
@@ -248,13 +254,11 @@ module.exports = class JSONDatabase {
      * @throws {Error}
      */
     delete(schema, id) {
-        console.log(`[${this.#file}] deleting '${schema}' with '${id}'`)
-        
+        // console.log(`[${this.#file}] deleting '${schema}' with '${id}'`)
         const db = this.#db;
         const table = db.get(schema);
-
         table.delete(id);
-
+        this.write();
         return id;
     }
 
@@ -275,13 +279,22 @@ module.exports = class JSONDatabase {
         const schemas = this.#schemas;
         const syncronizeSchemas = this.#syncronizeSchemas;
 
-        for (const [schema] of Object.entries(schemas)) {
+        for (const [schema, docs] of Object.entries(schemas)) {
             if (!map.has(schema)) {
                 if (syncronizeSchemas) {
-                    console.warn(`> [x] ${schema}`);
                     map.set(schema, new Map());
+                    if (docs) {
+                        docs.forEach(doc => {
+                            doc.id = doc.id ?? crypto.randomUUID();
+                            doc.updatedAt = new Date();
+                            doc.createdAt = new Date();
+                            map.get(schema).set(doc.id, {
+                                ...doc
+                            })
+                        })
+                    }
                 } else {
-                    console.warn(`> [ ] ${schema}`);
+                    // console.warn(`> [ ] ${schema}`);
                     throw new Error(`${schema} schema not found`);
                 }
             }
