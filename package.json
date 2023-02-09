@@ -59,6 +59,10 @@
             "import": "./src/database/index.js",
             "require": "./src/database/index.js"
         },
+        "./shellCmds": {
+            "import": "./src/shellCmds/index.js",
+            "require": "./src/shellCmds/index.js"
+        },
         "./package.json": "./package.json"
     },
     "devDependencies": {
@@ -68,8 +72,7 @@
         "lodash": "^4.17.21",
         "node-fetch": "^2.6.6"
     },
-    "peerDependencies": {
-    },
+    "peerDependencies": {},
     "optionalDependencies": {
         "mongoose": "latest"
     }
