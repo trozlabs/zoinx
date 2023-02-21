@@ -26,10 +26,10 @@ module.exports = class APIError extends Error {
             this.summary = `Go away`;
         }
         if (this.statusCode >= 400 && this.statusCode < 500) {
-            this.summary = `You fucked up`;
+            this.summary = `You messed up`;
         }
         if (this.statusCode >= 500 && this.statusCode < 600) {
-            this.summary = `I fucked up`;
+            this.summary = `Server messed up`;
         }
     }
 
