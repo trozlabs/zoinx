@@ -63,16 +63,22 @@
             "import": "./src/shellCmds/index.js",
             "require": "./src/shellCmds/index.js"
         },
+        "./routes": {
+            "import": "./src/routes/index.js",
+            "require": "./src/routes/index.js"
+        },
         "./package.json": "./package.json"
     },
     "devDependencies": {
         "prettier": "2.8.3"
     },
     "dependencies": {
+        "express": "~4.17.3",
+        "express-async-errors": "^3.1.1",
+        "express-async-handler": "^1.2.0",
         "lodash": "^4.17.21",
         "node-fetch": "^2.6.6"
     },
-    "peerDependencies": {},
     "optionalDependencies": {
         "mongoose": "latest"
     }
