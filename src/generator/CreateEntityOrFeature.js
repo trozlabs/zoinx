@@ -36,8 +36,8 @@ module.exports = class CreateEntityOrFeature {
 
     constructor(confObj, createWhat) {
         if (confObj) this.#confObj = confObj;
-        this.#baseEntityDir = path.join(process.env.PWD, '/entities');
-        this.#baseFeatureDir = path.join(process.env.PWD, '/features');
+        this.#baseEntityDir = path.join(process.env.PWD, '/src/entities');
+        this.#baseFeatureDir = path.join(process.env.PWD, '/src/features');
         this.#createWhat = (['entity', 'feature'].includes(createWhat.toLowerCase())) ? createWhat.toLowerCase() : 'entity';
 
         this.#templates = ['index', 'route', 'service', 'domain', 'statics', 'controller'];
