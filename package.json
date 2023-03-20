@@ -67,6 +67,10 @@
             "import": "./src/routes/index.js",
             "require": "./src/routes/index.js"
         },
+        "./testing": {
+            "import": "./src/testing/index.js",
+            "require": "./src/testing/index.js"
+        },
         "./package.json": "./package.json"
     },
     "devDependencies": {
