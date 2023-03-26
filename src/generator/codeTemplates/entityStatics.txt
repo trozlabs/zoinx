@@ -1,8 +1,8 @@
 const _ = require('lodash');
 const Log = require('zoinx/log');
-const TestProxy = require('@testproxy');
+const { TestHarness } = require('zoinx/testing');
 
-module.exports = class <%= className %>Statics {
+module.exports = TestHarness(class <%= className %>Statics {
 
     static testConfig = {
         'additionFunc': {
@@ -16,4 +16,4 @@ module.exports = class <%= className %>Statics {
         return numb1 + numb2;
     })
 
-}
+});
