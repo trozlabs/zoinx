@@ -12,7 +12,7 @@ module.exports = TestHarness(class <%= className %>Statics {
     }
 
     // Example function to illustrate a pure static function
-    static additionFunc = TestProxy(function(numb1, numb2) {
+    static additionFunc = TestHarness(function(numb1, numb2) {
         return numb1 + numb2;
     })
 
