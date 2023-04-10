@@ -1,7 +1,7 @@
 let Maindomain;
 
 module.exports = class Service {
-    #app;
+
     #domain;
 
     constructor(domainPath) {
@@ -11,14 +11,6 @@ module.exports = class Service {
         } else if (domainPath && typeof domainPath === 'object') {
             this.#domain = domainPath;
         }
-    }
-
-    get app() {
-        return this.#app;
-    }
-
-    set app(app) {
-        if (app) this.#app = app;
     }
 
     get domain() {
@@ -51,7 +43,6 @@ module.exports = class Service {
     }
 
     async remove(id, session) {
-        //if (!session || !session.account) return new Error("Session data must be supplied to save.");
         let rtn = await this.domain.remove(id);
         return rtn;
     }
@@ -72,5 +63,9 @@ module.exports = class Service {
                 Object.getPrototypeOf(this)[mixin.name] = mixin;
             }
         }
+    }
+
+    async insertMany(rawObjects =[]) {
+        return await this.domain.insertMany(rawObjects, { ordered: false, populate: null });
     }
 };

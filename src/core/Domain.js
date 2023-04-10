@@ -51,7 +51,8 @@ module.exports = class Domain {
                             thisMdl.lte(parseFloat(filter.term));
                             break;
                     }
-                } else {
+                }
+                else {
                     switch (filter.oper) {
                         case 'in':
                             thisMdl.where(filter.propName).in(filter.term);
@@ -59,10 +60,26 @@ module.exports = class Domain {
                         case '!in':
                             thisMdl.where(filter.propName).nin(filter.term);
                             break;
+                        case 'between':
+                            let fromOperStr = '$gt',
+                                toOperStr = '$lt',
+                                dateRangeObj;
+
+                            if (filter.term?.from?.oper)
+                                fromOperStr = (filter.term.from.oper && filter.term.from.oper === '>=') ? '$gte' : '$gt'
+                            if (filter.term?.to?.oper)
+                                toOperStr = (filter.term.to.oper && filter.term.to.oper === '<=') ? '$lte' : '$lt'
+
+                            dateRangeObj = {
+                                [`${filter.propName}`]: { [`${fromOperStr}`]: filter.term.from.date, [`${toOperStr}`]: filter.term.to.date }
+                            }
+                            thisMdl.find(dateRangeObj);
+                            break;
                         default:
                             if (filter.regex) {
                                 thisMdl.where(filter.propName).regex(filter.regex);
-                            } else if (_.isBoolean(filter.term)) {
+                            }
+                            else if (_.isBoolean(filter.term)) {
                                 //console.log(filter.propName + '=' + filter.term);
                                 thisMdl.where(filter.propName).equals(filter.term);
                             }
@@ -72,14 +89,20 @@ module.exports = class Domain {
         }
 
         const sort = new Sort(req);
-        thisMdl.sort(sort.getSort());
+        if (sort)
+            thisMdl.sort(sort.getSort());
 
-        if (req.query.offset) {
+        if (req?.query.offset) {
             if (!isNaN(req.query.offset)) thisMdl.skip(parseInt(req.query.offset));
         }
-        if (req.query.limit) {
+        else
+            thisMdl.skip(0);
+
+        if (req?.query.limit) {
             if (!isNaN(req.query.limit)) thisMdl.limit(parseInt(req.query.limit));
         }
+        else
+            thisMdl.limit(50);
 
         const select = new SelectInclude(req);
         thisMdl.select(select.getSelect());
@@ -110,4 +133,16 @@ module.exports = class Domain {
     remove(id) {
         return this.#Domain.findByIdAndRemove(id);
     }
+
+    async insertMany(rawObjects=[]) {
+        try {
+            if (!_.isEmpty(rawObjects) && _.isArray(rawObjects) && rawObjects.length > 0) {
+                return await this.#Domain.insertMany(rawObjects);
+            }
+        }
+        catch (e) {
+            return Promise.reject(e.message);
+        }
+    }
+
 };

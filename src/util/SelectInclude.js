@@ -25,7 +25,7 @@ module.exports = class SelectInclude {
 
     parseSelect() {
         let tmpSelect = '';
-        for (var i = 0; i < this.#selectInclude.length; i++) {
+        for (let i = 0; i < this.#selectInclude.length; i++) {
             if (this.#dbType === 'mongo') {
                 if (this.#selectInclude[i].exclude) tmpSelect = '-';
                 tmpSelect += this.#selectInclude[i].property + ' ';

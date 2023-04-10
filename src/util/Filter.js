@@ -6,6 +6,7 @@ fields: '[{"field": "object_type", "oper":"startswith", "term":"item"}]'
 // endswith /string$/i
 // contains /.*string.*/i
 // equals /^string$/i
+// between dates
 // = /^string$/
 // = -> eq
 // != -> ne
@@ -44,7 +45,7 @@ module.exports = class Filter {
     }
 
     parseFilters() {
-        console.log(this.#queryFilters);
+        // console.log(this.#queryFilters);
         for (var i = 0; i < this.#queryFilters.length; i++) {
             if (this.#dbType === 'mongo') {
                 let tmpObj = {
@@ -59,23 +60,34 @@ module.exports = class Filter {
                     if (_.isEmpty(this.#queryFilters[i].oper)) this.#queryFilters[i].oper = '=';
                     if (this.#queryFilters[i].oper.toLowerCase() === 'equals') {
                         tmpObj.regex = new RegExp(`^${this.#queryFilters[i].term}$`, 'i');
-                    } else if (this.#queryFilters[i].oper.toLowerCase() === '=') {
+                    }
+                    else if (this.#queryFilters[i].oper.toLowerCase() === '=') {
                         tmpObj.regex = new RegExp(`^${this.#queryFilters[i].term}$`);
-                    } else if (this.#queryFilters[i].oper.toLowerCase() === 'startswith') {
+                    }
+                    else if (this.#queryFilters[i].oper.toLowerCase() === 'startswith') {
                         tmpObj.regex = new RegExp(`^${this.#queryFilters[i].term}`, 'i');
-                    } else if (this.#queryFilters[i].oper.toLowerCase() === 'endswith') {
+                    }
+                    else if (this.#queryFilters[i].oper.toLowerCase() === 'endswith') {
                         tmpObj.regex = new RegExp(`${this.#queryFilters[i].term}$`, 'i');
-                    } else if (this.#queryFilters[i].oper.toLowerCase() === 'contains') {
+                    }
+                    else if (this.#queryFilters[i].oper.toLowerCase() === 'contains') {
                         tmpObj.regex = new RegExp(`.*${this.#queryFilters[i].term}.*`, 'i');
-                    } else if (this.#queryFilters[i].oper.toLowerCase() === '!contains') {
+                    }
+                    else if (this.#queryFilters[i].oper.toLowerCase() === '!contains') {
                         tmpObj.regex = new RegExp(`^((?!${this.#queryFilters[i].term}).)*$`, 'i');
-                    } else if (this.#queryFilters[i].oper.toLowerCase() === 'in' || this.#queryFilters[i].oper.toLowerCase() === '!in') {
+                    }
+                    else if (this.#queryFilters[i].oper.toLowerCase() === 'between') {
+                        tmpObj.oper = this.#queryFilters[i].oper.toLowerCase();
+                        tmpObj.term = this.#queryFilters[i].term;
+                    }
+                    else if (this.#queryFilters[i].oper.toLowerCase() === 'in' || this.#queryFilters[i].oper.toLowerCase() === '!in') {
                         tmpObj.oper = this.#queryFilters[i].oper.toLowerCase();
                         tmpObj.term = this.#queryFilters[i].term.split(',');
                     }
 
                     this.#filters.push(tmpObj);
-                } else if (_.isBoolean(this.#queryFilters[i].term)) {
+                }
+                else if (_.isBoolean(this.#queryFilters[i].term)) {
                     tmpObj.term = this.#queryFilters[i].term;
                     tmpObj.oper = '=';
                     this.#filters.push(tmpObj);
