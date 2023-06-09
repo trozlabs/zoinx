@@ -4,13 +4,14 @@ module.exports = class Sort {
     #sort = '';
 
     constructor(req, dbType) {
-        if (req && req.query.sort) this.#querySort = JSON.parse(req.query.sort);
+        if (req && req.query?.sort) this.#querySort = JSON.parse(req.query.sort);
+        else this.#querySort = []
         if (dbType) this.#dbType = dbType;
         this.parseSort();
     }
 
     getSort() {
-        return this.#sort.trim();
+        return this.#sort?.trim();
     }
 
     parseSort() {

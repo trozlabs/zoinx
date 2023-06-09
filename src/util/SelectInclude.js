@@ -8,7 +8,7 @@ module.exports = class SelectInclude {
     #select = '';
 
     constructor(req, dbType) {
-        if (req && req.query.select) {
+        if (req && req.query?.select) {
             this.#selectInclude = JSON.parse(req.query.select);
             if (typeof this.#selectInclude[0].exclude === 'string') {
                 if (this.#selectInclude[0].exclude.toLowerCase() === 'true') this.#selectInclude[0].exclude = true;

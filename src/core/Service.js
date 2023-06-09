@@ -53,7 +53,7 @@ module.exports = class Service {
 
     async count(req, filters) {
         const result = await this.domain.find(req, filters, true);
-        return { count: result};
+        return { count: result };
     }
 
     async distinctList(propName) {

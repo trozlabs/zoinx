@@ -93,13 +93,13 @@ module.exports = class Domain {
         if (sort)
             thisMdl.sort(sort.getSort());
 
-        if (req?.query.offset) {
+        if (req?.query?.offset) {
             if (!isNaN(req.query.offset)) thisMdl.skip(parseInt(req.query.offset));
         }
         else
             thisMdl.skip(0);
 
-        if (req?.query.limit) {
+        if (req?.query?.limit) {
             if (!isNaN(req.query.limit)) thisMdl.limit(parseInt(req.query.limit));
         }
         else

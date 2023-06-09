@@ -25,9 +25,15 @@ module.exports = class Filter {
     #filters = [];
 
     constructor(req, dbType) {
-        if (req && req.query?.fields) this.#queryFilters = JSON.parse(req.query.fields);
-        else if (req && req.query?.filters) this.#queryFilters = JSON.parse(req.query.filters);
-        if (dbType) this.#dbType = dbType;
+        if (_.isArray(req)) {
+            if (!req[0]?.field || !req[0]?.term) req = [];
+            this.#queryFilters = req;
+        }
+        else {
+            if (req && req.query?.fields) this.#queryFilters = JSON.parse(req.query.fields);
+            else if (req && req.query?.filters) this.#queryFilters = JSON.parse(req.query.filters);
+            if (dbType) this.#dbType = dbType;
+        }
 
         if (this.#queryFilters.length > 0) this.parseFilters();
     }
@@ -36,11 +42,11 @@ module.exports = class Filter {
         return this.#filters;
     }
 
-    createNewFilters(filterArray) {
+    createNewFilters(filterArray, returnFilters=false) {
         if (_.isArray(filterArray)) {
             this.#queryFilters = filterArray;
             this.parseFilters();
-            return this.getFilters();
+            if (returnFilters) return this.getFilters();
         }
     }
 
