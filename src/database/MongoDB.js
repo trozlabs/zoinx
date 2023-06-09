@@ -19,7 +19,9 @@ module.exports = class Database {
     }
 
     static create(config) {
-        return new this(config).mongoosePool;
+        const instance = new this(config)
+        const pool = instance.mongoosePool;
+        return pool;
     }
 
     static create4Cli(config) {
@@ -82,5 +84,6 @@ module.exports = class Database {
         this.client = this.connections[0].client;
         this.db = this.client.db();
         this.mongoosePool = mongoose;
+        global.mongoosePool = this.mongoosePool;
     }
 }
