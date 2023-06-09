@@ -152,4 +152,20 @@ module.exports = class UtilMethods {
         return regex.test(uuid);
     }
 
+    static StringToBoolean(value=false) {
+        if (!_.isBoolean(value)) {
+            if (_.isEmpty(value) || !_.isString(value))
+                value = false;
+            if (['true', 'false'].includes(value.toLowerCase())) {
+                try {
+                    value = JSON.parse(value);
+                }
+                catch (e) {
+                    value = false;
+                }
+            }
+        }
+        return value;
+    }
+
 };

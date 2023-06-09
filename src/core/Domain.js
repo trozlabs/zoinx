@@ -2,7 +2,7 @@
 const _ = require('lodash');
 // siblings
 const { Log } = require('../log');
-const { Filter, Sort, SelectInclude } = require('../util');
+const { Filter, Sort, SelectInclude, StaticUtil} = require('../util');
 
 module.exports = class Domain {
     #Domain;
@@ -24,10 +24,11 @@ module.exports = class Domain {
         return this.#Domain.find().select(this.#defaultExclude);
     }
 
-    find(req, filters) {
+    find(req, filters, count=false) {
+        count = StaticUtil.StringToBoolean(count);
         if (_.isEmpty(filters)) filters = new Filter(req).getFilters();
 
-        let thisMdl = this.#Domain.find();
+        let thisMdl = (count) ? this.#Domain.count() : this.#Domain.find();
         if (filters.length > 0) {
             for (let filter of filters) {
                 if (filter.isNum) {
