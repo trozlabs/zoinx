@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-// regex borrowed/stoken from dotenv
+// regex borrowed from dotenv
 const ENV_VAR_REGEX = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/mg
 
 /**
@@ -16,9 +16,11 @@ const ENV_VAR_REGEX = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(
  * Env.load('.env', '.env.local');
  */
 class Env {
-    instance = null;
+
+    static instance = null;
+
     /**
-     * Load environment variables from a file[s].
+     * Load environment variables from file[s].
      */
     static {
         this.instance = this.instance || new this().load(
@@ -41,9 +43,14 @@ class Env {
      * @returns {Env} instance
      * @constructor
      */
-    constructor() {
-        if (this.instance) return this.instance;
+    constructor(defaults = {}) {
+        if (this.constructor.instance) {
+            return this.constructor.instance;
+        }
     }
+
+    variables = {};
+
     /**
      * Get an environment variable.
      * @param {string|undefined?} name - optionally the name of the environment variable.
@@ -52,6 +59,7 @@ class Env {
     get(name) {
         return name ? process.env[name] : process.env;
     }
+
     /**
      * Parse a string from an environment variable.
      * @param {string} name - The name of the environment variable.
@@ -60,6 +68,7 @@ class Env {
     string(name) {
         return String(process.env[name]);
     }
+
     /**
      * Parse a number from an environment variable.
      * @param {string} name - The name of the environment variable.
@@ -68,9 +77,10 @@ class Env {
     number(name) {
         return Number(process.env[name]);
     }
+
     /**
      * Parse a boolean from an environment variable.
-     * Accepted values are: 1, true, TRUE, y, Y
+     * Accepted values are: 1, true, TRUE, T, t, y, Y
      * @param {string} name - The name of the environment variable.
      * @returns {boolean} The parsed boolean.
      */
@@ -78,10 +88,13 @@ class Env {
         if (process.env[name] === '1') return true;
         if (process.env[name] === 'TRUE') return true;
         if (process.env[name] === 'true') return true;
+        if (process.env[name] === 'T') return true;
+        if (process.env[name] === 't') return true;
         if (process.env[name] === 'Y') return true;
         if (process.env[name] === 'y') return true;
         else return false;
     }
+
     /**
      * Parse a comma-separated list from an environment variable.
      * @param {string} name - The name of the environment variable.
@@ -90,6 +103,7 @@ class Env {
     array(name) {
         return process.env[name]?.trim().split(/,|\s+|\s/) ?? [];
     }
+
     /**
      * Parse a JSON string from an environment variable.
      * @param {string} name - The name of the environment variable.
@@ -113,6 +127,7 @@ class Env {
 
     #parseFile(file) {
         let filepath, envFile;
+
         try {
             filepath = path.resolve(process.cwd(), file);
             envFile = fs.readFileSync(filepath, { encoding: 'utf8' });
@@ -127,19 +142,35 @@ class Env {
     
         while ((match = ENV_VAR_REGEX.exec(envFile)) !== null) {
             let [ line, name, value ] = match;
-            process.env[name] = this.#stripQuotes(value);
+            this.variables[name] = this.#stripQuotes(value);
+
             if (value?.includes('${')) {
-                process.env[name] = this.#expandVariable(value);
+                const expandedValue = this.#expandVariable(value);
+                if (expandedValue !== undefined) {
+                    this.variables[name] = expandedValue;
+                }
             }
         }
+
+        // console.log('env', JSON.stringify(this.variables, null, 2));
+
+        this.variables = Object.assign(process.env, this.variables);
     }
+
     #expandVariable(string) {
-        const [ variable, fallback ] = string?.replace('${', '').replace('}', '').split(':-') ?? [];
+        const regex = /\${(.*?)}/g;
+        const [ expandable ] = string.match(regex);
+        const [ variable, fallback ] = expandable?.replace('${', '').replace('}', '').split(':-') ?? [];
         const defaultValue = this.#stripQuotes(fallback);
-        const result = process.env[variable] ?? defaultValue;
+        const value = this.variables[variable] ?? process.env[variable] ?? defaultValue;
+        const result = string.replace(regex, value === 'undefined' ? undefined : value);
+
+        // console.log({ string, expandable, fallback, variable, value, result });
+
         return result;
     }
+
     #stripQuotes(string) {
         return string?.replace(/(^"|"$)|(^'|'$)/g, '');
-    }    
+    }
 }
