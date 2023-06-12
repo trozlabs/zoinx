@@ -12,8 +12,8 @@ const ENV_VAR_REGEX = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(
  * const { env }= require('zoinx/util');
  * 
  * to load additional files not already loaded by default
- * @example 
- * Env.load('.env', '.env.local');
+ * @example
+ * Env.load('.env.custom', '.env.custom.local');
  */
 class Env {
 
@@ -25,13 +25,13 @@ class Env {
     static {
         this.instance = this.instance || new this().load(
             '.env',
-            '.env.local',
-            '.env.development',
-            '.env.development.local',
-            '.env.testing',
-            '.env.testing.local',
-            '.env.production',
-            '.env.production.local'
+            // '.env.development',
+            // '.env.testing',
+            // '.env.production',
+            // '.env.local',
+            // '.env.development.local',
+            // '.env.testing.local',
+            // '.env.production.local'
         );
         module.exports = this.instance;
         module.exports.load = this.instance.load;
@@ -43,7 +43,7 @@ class Env {
      * @returns {Env} instance
      * @constructor
      */
-    constructor(defaults = {}) {
+    constructor() {
         if (this.constructor.instance) {
             return this.constructor.instance;
         }
@@ -120,28 +120,49 @@ class Env {
      */
     load(...files) {
         files.forEach(async (file) => {
-            this.#parseFile(file);
+            const vars = this.#parseFile(file);
+            if (vars) {
+                Object.assign(process.env, this.variables);
+            }
         });
         return this;
     }
 
+    /**
+     * Loads a file by name and parses it for environment variables.
+     * @method
+     * @private
+     * @param {string} file
+     */
     #parseFile(file) {
         let filepath, envFile;
-
+        
         try {
             filepath = path.resolve(process.cwd(), file);
-            envFile = fs.readFileSync(filepath, { encoding: 'utf8' });
-        } catch(e) {
-            if (process.env.DEBUG == 'true') {
-                console.debug(`Checked for ${filepath} but it doesn't exist.`);
+
+            try {
+                envFile = fs.readFileSync(filepath, { encoding: 'utf8' });
+            }
+            catch (e) {
+                throw new Error(`Checked for ${filepath} but it doesn't exist.`);
+            }
+
+            if (!envFile) {
+                throw new Error(`File ${filepath} is empty.`);
+            }
+        }
+        catch(e) {
+            if (process.env.DEBUG) {
+                console.warn(`WARNING: ${e.message}`);
             }
             return;
         }
 
-        var match;
-    
+
+        let match;
         while ((match = ENV_VAR_REGEX.exec(envFile)) !== null) {
             let [ line, name, value ] = match;
+
             this.variables[name] = this.#stripQuotes(value);
 
             if (value?.includes('${')) {
@@ -152,11 +173,24 @@ class Env {
             }
         }
 
-        // console.log('env', JSON.stringify(this.variables, null, 2));
-
-        this.variables = Object.assign(process.env, this.variables);
+        return this.variables;
     }
 
+    /**
+     * Expand a variable in a string. Works like bash variables.
+     * @method
+     * @private
+     * @param {string} string - The string to expand.
+     * @returns {any} result 
+     * @example
+     * ```js
+     * process.env.FOO = 'bar';
+     * #expandVariable('${FOO}') // bar
+     *
+     * process.env.ENV = undefined;
+     * #expandVariable('zoinx-${ENV:-bar}') // zoinx-bar
+     * ```
+     */
     #expandVariable(string) {
         const regex = /\${(.*?)}/g;
         const [ expandable ] = string.match(regex);
@@ -170,6 +204,13 @@ class Env {
         return result;
     }
 
+    /**
+     * Strip quotes from a string.
+     * @method
+     * @private
+     * @param {string} string - The string to strip quotes from.
+     * @returns {string} The string without quotes.
+     */
     #stripQuotes(string) {
         return string?.replace(/(^"|"$)|(^'|'$)/g, '');
     }

@@ -5,7 +5,6 @@ npm install trozlabs/zoinx
 ```
 
 ```js
-
 const zoinx = require('zoinx');
 
 const cli = require('zoinx/cli');
@@ -15,9 +14,7 @@ const core = require('zoinx/core');
 const enums = require('zoinx/enums');
 const database = require('zoinx/database');
 const generator = require('zoinx/generator');
-
 ```
-
 
 ## zoinx/database
 
@@ -56,7 +53,6 @@ user1 = db.update('users', {
 db.delete('users', user1.id);
 
 ```
-
 
 ## Template Code Generation
 
@@ -150,3 +146,47 @@ Add `"overwrite":"true"` to overwrite the generated files.
 
 - [Compass](https://www.mongodb.com/products/compass): A MongoDB Client
 - [Insomnia](https://insomnia.rest/download) A REST Client
+
+## `env`
+
+.env file.
+
+```sh
+ENV=dev
+DEBUG=true
+PORT=3000
+MONGO_URI=mongodb://localhost:27017/test
+LIST=one,two,three
+OBJ_1={ "one": 1, "two": 2, "three": 3 }
+OBJ_2='
+{
+    "one": 1, 
+    "two": 2, 
+    "three": 3 
+}'
+```
+
+Usage:
+
+```js
+const { env } = require('zoinx/util');
+
+env.load(
+    // '.env', // default file loaded and not required
+    '.env.local',
+    '.env.development',
+    '.env.development.local',
+    '.env.testing',
+    '.env.testing.local',
+    '.env.production',
+    '.env.production.local'
+);
+
+env.get('ENV');
+env.boolean('DEBUG');
+env.number('PORT');
+env.string('MONGO_URI');
+env.array('LIST');
+env.object('OBJ_1');
+env.object('OBJ_2');
+```
