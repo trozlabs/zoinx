@@ -64,17 +64,17 @@ module.exports = class Domain {
                         case 'between':
                             let fromOperStr = '$gt',
                                 toOperStr = '$lt',
-                                dateRangeObj;
+                                valueRangeObj;
 
                             if (filter.term?.from?.oper)
                                 fromOperStr = (filter.term.from.oper && filter.term.from.oper === '>=') ? '$gte' : '$gt'
                             if (filter.term?.to?.oper)
                                 toOperStr = (filter.term.to.oper && filter.term.to.oper === '<=') ? '$lte' : '$lt'
 
-                            dateRangeObj = {
-                                [`${filter.propName}`]: { [`${fromOperStr}`]: filter.term.from.date, [`${toOperStr}`]: filter.term.to.date }
+                            valueRangeObj = {
+                                [`${filter.propName}`]: { [`${fromOperStr}`]: filter.term.from.term, [`${toOperStr}`]: filter.term.to.term }
                             }
-                            thisMdl.find(dateRangeObj);
+                            thisMdl.find(valueRangeObj);
                             break;
                         default:
                             if (filter.regex) {
