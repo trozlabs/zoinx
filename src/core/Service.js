@@ -47,11 +47,11 @@ module.exports = class Service {
         return rtn;
     }
 
-    async find(req, filters) {
-        return await this.domain.find(req, filters);
+    async find(req, filters=[], sorters=[]) {
+        return await this.domain.find(req, filters, sorters);
     }
 
-    async count(req, filters) {
+    async count(req, filters=[]) {
         const result = await this.domain.find(req, filters, true);
         return { count: result };
     }

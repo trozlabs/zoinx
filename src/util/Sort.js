@@ -1,11 +1,19 @@
+const _ = require("lodash");
 module.exports = class Sort {
     #querySort = [];
     #dbType = 'mongo';
     #sort = '';
 
     constructor(req, dbType) {
-        if (req && req.query?.sort) this.#querySort = JSON.parse(req.query.sort);
-        else this.#querySort = []
+        if (_.isArray(req)) {
+            if (!req[0]?.property || !req[0]?.direction) req = [];
+            this.#querySort = req;
+        }
+        else {
+            if (req && req.query?.sort) this.#querySort = JSON.parse(req.query.sort);
+            else this.#querySort = []
+        }
+
         if (dbType) this.#dbType = dbType;
         this.parseSort();
     }

@@ -24,7 +24,7 @@ module.exports = class Domain {
         return this.#Domain.find().select(this.#defaultExclude);
     }
 
-    find(req, filters, count=false) {
+    find(req, filters, sorters, count=false) {
         count = StaticUtil.StringToBoolean(count);
         if (_.isEmpty(filters)) filters = new Filter(req).getFilters();
 
@@ -89,7 +89,12 @@ module.exports = class Domain {
             }
         }
 
-        const sort = new Sort(req);
+        let sort;
+        if (!_.isEmpty(sorters) && _.isArray(sorters))
+            sort = new Sort(sorters);
+        else
+            sort = new Sort(req);
+
         if (sort)
             thisMdl.sort(sort.getSort());
 
