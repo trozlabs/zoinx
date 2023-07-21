@@ -5,4 +5,5 @@ exports.core = require('./core/index.js');
 exports.enums = require('./enums/index.js');
 exports.database = require('./database/index.js');
 exports.generator = require('./generator/index.js');
-exports.shellcmd = require('./shellCmds/index');
+exports.shellcmd = require('./shellCmds/index.js');
+exports.inspect = require('./inspect/index.js');
