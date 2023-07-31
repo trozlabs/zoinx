@@ -2,7 +2,6 @@
 const { Log } = require('../log');
 // local
 const env = require('./Env');
-// const InitDefaultData = require('../../../docker/mongodb/init');
 
 module.exports = class AppConfig {
     static get(key) {

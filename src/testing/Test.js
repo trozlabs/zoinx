@@ -28,7 +28,7 @@ module.exports = class RunTest {
         try {
             if (!_.isUndefined(clazz) && !_.isNull(clazz) && !_.isEmpty(passedArguments)) {
                 newFuncRec = this.createMethodTest(clazz, func, passedArguments, errorStack, methodInput, methodOutput, testConfig);
-                newFuncRec.setValue('notes', notes);
+                newFuncRec.set('notes', notes);
             }
             else Log.info('Class and arguments must be supplied to setup test.');
         }
@@ -133,7 +133,7 @@ module.exports = class RunTest {
             return false;
         }
 
-        let testId = testRec.getValue('id');
+        let testId = testRec.get('id');
         if (testId === '-1' || _.isEmpty(testId) || _.isUndefined(testId)) {
             Log.error('No ID found to operate func test on.');
             return false;
@@ -185,7 +185,7 @@ module.exports = class RunTest {
                     UtilMethods.setFuncTestPassed(testRec);
                     if (!testRec.get('passed')) {
                         testRec.set('resultMessage', '********** Function Contract for ' + testRec.get('methodName') + ' passed ' + testRec.get('paramsPassedTestCount') + ' of ' + testRec.get('paramsCount') + ' tests. **********');
-                        UtilMethods.logTestResult(testRec.getValue('className'), testRec.get('methodName'), testRec.get('resultMessage'));
+                        UtilMethods.logTestResult(testRec.get('className'), testRec.get('methodName'), testRec.get('resultMessage'));
                     }
                 }
                 else if (testRec.get('distinctParamNames').length < 1) {

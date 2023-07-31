@@ -18,7 +18,7 @@ module.exports = class Model {
                 if (field.name === 'id') field.value = randomUUID();
             });
         }
-        me.setFieldNames();
+        me.#setFieldNames();
     }
 
     setFieldsFromObject(jsonInputObj) {
@@ -38,10 +38,10 @@ module.exports = class Model {
     }
 
     get(fieldName) {
-        return this.getValue(fieldName);
+        return this.#getValue(fieldName);
     }
 
-    getValue(fieldName) {
+    #getValue(fieldName) {
         let value = undefined;
         for (let i = 0; i < this.fields.length; i++) {
             if (this.fields[i].name === fieldName) {
@@ -53,10 +53,10 @@ module.exports = class Model {
     }
 
     set(fieldName, value) {
-        return this.setValue(fieldName, value);
+        return this.#setValue(fieldName, value);
     }
 
-    setValue(fieldName, value) {
+    #setValue(fieldName, value) {
         let me = this;
 
         for (let i = 0; i < me.fields.length; i++) {
@@ -109,10 +109,10 @@ module.exports = class Model {
     }
 
     getData() {
-        return this.getJsonObj();
+        return this.#getJsonObj();
     }
 
-    getJsonObj(genEmpty = false) {
+    #getJsonObj(genEmpty = false) {
         let jsonObj = {};
         this.fields.forEach((field) => {
             let value = field.value;
@@ -143,7 +143,7 @@ module.exports = class Model {
         return this.#fieldNames;
     }
 
-    setFieldNames(asObject = false) {
+    #setFieldNames(asObject = false) {
         if (asObject) {
             const fields = {};
             this.getFields().forEach((field) => (fields[field.name] = field.column));
