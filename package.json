@@ -4,12 +4,15 @@
     "description": "zoinx module library",
     "main": "./src/index.js",
     "module": "./src/index.js",
+    "types": "./src/types.d.ts",
     "bin": {},
     "scripts": {
         "format": "prettier --write \"**/*.{js,ts,tsx,json,md}\"",
         "test": "npm run test:cjs && npm run test:mjs",
         "test:cjs": "cd test/cjs && npm install && npm start && cd ../..",
-        "test:mjs": "cd test/mjs && npm install && npm start && cd ../.."
+        "test:mjs": "cd test/mjs && npm install && npm start && cd ../..",
+        "develop:cjs": "npm install && nodemon --trace-warnings --inspect=0.0.0.0 test/cjs/index.cjs",
+        "develop:mjs": "npm install && nodemon --trace-warnings --inspect=0.0.0.0 test/cjs/index.mjs"
     },
     "keywords": [],
     "author": "",
@@ -70,6 +73,10 @@
         "./testing": {
             "import": "./src/testing/index.js",
             "require": "./src/testing/index.js"
+        },
+        "./inspect": {
+            "import": "./src/inspect/index.js",
+            "require": "./src/inspect/index.js"
         },
         "./package.json": "./package.json"
     },

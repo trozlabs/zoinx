@@ -1,0 +1,1 @@
+const inspect = require('../../src/inspect');

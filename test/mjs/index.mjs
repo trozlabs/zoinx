@@ -27,3 +27,18 @@ console.log({
 });
 
 process.exit(0);
+
+
+const { Type } = require('zoinx/util');
+
+Type.toBoolean('Y')
+Type.toBoolean('Yes')
+Type.toBoolean('YES')
+Type.toBoolean('yes')
+Type.toBoolean('y')
+Type.toBoolean('Y')
+Type.toBoolean('N')
+Type.toBoolean('No')
+Type.toBoolean('NO')
+Type.toBoolean('F')
+Type.toBoolean('false')
