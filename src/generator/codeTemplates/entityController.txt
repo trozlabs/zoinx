@@ -8,24 +8,39 @@ module.exports = TestHarness(class <%= className %> extends Controller {
 
     static testConfig = {
         'get': {
-            input: ['req=><object>', 'res=><object>'],
-            output: ['record=><object>']
+            input: [
+                'req=><object<IncomingMessage> required=:[{"client.server": "object"}, {"params": "object"}]>',
+                'res=><object<ServerResponse> required=:[{"socket.server": "object"}]>'
+            ],
+            output: ['result=><array>']
         },
         'post': {
-            input: ['req=><object>', 'res=><object>'],
-            output: ['record=><object>']
+            input: [
+                'req=><object<IncomingMessage> required=:[{"client.server": "object"}, {"body": "object"}]>',
+                'res=><object<ServerResponse> required=:[{"socket.server": "object"}]>'
+            ],
+            output: ['record=><array>']
         },
         'put': {
-            input: ['req=><object>', 'res=><object>'],
-            output: ['record=><object>']
+            input: [
+                'req=><object<IncomingMessage> required=:[{"client.server": "object"}, {"body": "object"}]>',
+                'res=><object<ServerResponse> required=:[{"socket.server": "object"}]>'
+            ],
+            output: ['record=><array>']
         },
         'delete': {
-            input: ['req=><object>', 'res=><object>'],
-            output: ['record=><object>']
+            input: [
+                'req=><object<IncomingMessage> required=:[{"client.server": "object"}, {"params": "object"}]>',
+                'res=><object<ServerResponse> required=:[{"socket.server": "object"}]>'
+            ],
+            output: ['record=><array>']
         },
         'find': {
-            input: ['req=><object>', 'res=><object>'],
-            output: ['record=><object>']
+            input: [
+                'req=><object<IncomingMessage> required=:[{"client.server": "object"}, {"params": "object"}]>',
+                'res=><object<ServerResponse> required=:[{"socket.server": "object"}]>'
+            ],
+            output: ['record=><array>']
         }
     }
 

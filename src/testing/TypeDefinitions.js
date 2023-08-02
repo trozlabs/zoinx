@@ -115,6 +115,8 @@ module.exports = class TypeDefinitions {
         else if (this.objects.includes(type.split(':')[0].toLowerCase())) returnObj.typeAccepted = true;
         else if (this.otherTypes.includes(type.split(':')[0].toLowerCase())) returnObj.typeAccepted = true;
 
+        if (!_.isEmpty(subType) && subType !== 'N/A' && !this.objects.includes(subType)) returnObj.subTypeAccepted = true;
+
         if (!returnObj.typeAccepted) Log.error(`Datatype is not an accepted type for function testing: ${type}. ${testObj}`);
         return returnObj;
     }

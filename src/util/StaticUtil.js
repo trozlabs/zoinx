@@ -31,6 +31,7 @@ module.exports = class UtilMethods {
     }
 
     //this.queryObject(this.getJsonWithoutCirculars(automation.data, 8), {property: 'id'})
+    //UtilMethods.queryObject(UtilMethods.getJsonWithoutCirculars(passedArguments[0],8), {property: paramConfig[0].required[0].propName})
     static queryObject(obj, options) {
         options = Object.assign({ value: undefined, property: undefined, fn: undefined, results: [], path: [], depth: 1 }, options || {});
 

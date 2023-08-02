@@ -591,6 +591,38 @@ module.exports = class UtilMethods {
         return _.isArray(obj) ? 'array' : typeof(obj);
     }
 
+    static findObjectProperty(obj, propertyName, propertyValue) {
+        const objKeys = new Set(Object.keys(obj));
+        for (const key in objKeys) {
+            try {
+                if (obj.hasOwnProperty(key)) {
+                    const value = obj[key];
+
+                    // If the current property matches the search criteria, return it
+                    if (key === propertyName && propertyValue === 'object') { //value === propertyValue) {
+                        return obj;
+                    }
+
+                    // If the current property is an object, recursively search within it
+                    if (typeof value === 'object' && value !== null) {
+                        const result = this.findObjectProperty(value, propertyName, propertyValue);
+                        if (result) {
+                            return result;
+                        }
+                    }
+                }
+            }
+            catch (e) {
+                Log.error(e.message);
+            }
+        }
+
+        // Return null if the property and value are not found in the object
+        return null;
+    }
+
+    //this.queryObject(this.getJsonWithoutCirculars(automation.data, 8), {property: 'id'})
+    //UtilMethods.queryObject(UtilMethods.getJsonWithoutCirculars(passedArguments[0],8), {property: paramConfig[0].required[0].propName})
     static queryObject (obj, options) {
         options = Object.assign({ value: undefined, property: undefined, fn: undefined, results: [], path: [], depth: 1 }, (options || {}));
 

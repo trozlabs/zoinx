@@ -18,7 +18,8 @@ module.exports = class TestRunner {
         'man':                      {fn: 'horizontalLine', desc:'Show help content'},
         'help':                     {fn: 'displayHelp', desc:'Show help content'},
         'exit':                     {fn: 'exit', desc:'Kill TestRunner'},
-        'verify-test-config':       {fn: 'verifyTestConfig', desc:'Verify Object Config'}
+        'verify-test-config':       {fn: 'verifyTestConfig', desc:'Verify Object Config'},
+        'vtc':                      {fn: 'verifyTestConfig', desc:'Verify Object Config (alias)'}
     }
 
     #process
@@ -150,7 +151,7 @@ module.exports = class TestRunner {
             console.error('No test config provided to parse');
         }
         end = Date.now();
-        console.log(`ran in ${end - start} millis`);
+        console.log(`Parsed in ${end - start} millis`);
         await this.horizontalLine();
     }
 
