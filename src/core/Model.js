@@ -2,6 +2,7 @@
 const { randomUUID } = require('crypto');
 // external
 const _ = require('lodash');
+const { Log } = require('../log');
 
 module.exports = class Model {
     #fieldNames = [];
@@ -10,10 +11,11 @@ module.exports = class Model {
 
     init(jsonInputObj) {
         let me = this;
-        //console.log(jsonInputObj);
+
         if (!_.isEmpty(jsonInputObj) && _.isObjectLike(jsonInputObj)) {
             me.setFieldsFromObject(jsonInputObj);
-        } else {
+        }
+        else {
             me.fields.forEach((field) => {
                 if (field.name === 'id') field.value = randomUUID();
             });
@@ -26,6 +28,7 @@ module.exports = class Model {
 
         for (let i = 0; i < me.fields.length; i++) {
             let value = jsonInputObj[me.fields[i].name];
+
             if (this.fields[i].name === 'id' && _.isUndefined(value)) value = randomUUID();
             else {
                 value = me.getValueDataTyped(me.fields[i].type, value);
@@ -33,7 +36,6 @@ module.exports = class Model {
             }
 
             this.fields[i].value = value;
-            //this.setValue(this.fields[i].name, jsonInputObj[this.fields[i].name]);
         }
     }
 
@@ -112,6 +114,10 @@ module.exports = class Model {
         return this.#getJsonObj();
     }
 
+    toJsonObj() {
+        return this.#getJsonObj();
+    }
+
     #getJsonObj(genEmpty = false) {
         let jsonObj = {};
         this.fields.forEach((field) => {
@@ -154,41 +160,3 @@ module.exports = class Model {
 
     fields = [];
 };
-
-/*
-    static getFields() {
-        return new this().getFields();
-    }
-    static getFieldNames(asObject = false) {
-        return new this().getFieldNames(asObject);
-    }
-
-    initFields() {
-        console.debug(`${this.#self.name}.initFields()`);
-        const fields = new Map();
-
-        for (let prop in this) {
-            if (this.#redacted.includes(prop)) continue;
-            // apply defaults to each field when not specified.
-            const cfg = Object.assign({
-                name: prop,
-                column: prop,
-                database: this.getDatabase(),
-                table: this.getTable()
-            }, this[prop]);
-
-            const field = (cfg instanceof Field) ? cfg : new Field(cfg);
-
-            field.name = field.name ? field.name : prop;
-            field.index = fields.size;
-
-            fields.set(field.name, field);
-
-            Reflect.defineProperty(this, prop, {
-                get: this.getter(prop),
-                set: this.setter(prop),
-            });
-        }
-        this.#fields = fields;
-    }
- */
