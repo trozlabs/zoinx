@@ -212,9 +212,7 @@ module.exports = class RunTest {
             paramDetails = [],
             currentParamName = '',
             passedArgIdx = -1,
-            successCount = 0,
-            testObject,
-            typeAccepted;
+            testObject;
 
         for (let i=0; i<paramConfig.length; i++) {
             if (paramConfig[i].name !== currentParamName) {
@@ -224,10 +222,10 @@ module.exports = class RunTest {
 
             //see if param is required
             //see if param is correct type
-            //see if param has correct value, if configed
+            //see if param has correct value, if configured
 
             testObject = passedArguments[passedArgIdx];
-            let paramTest = {
+            let paramTest = new TestParamDetails({
                 jsType: paramConfig[i].type,
                 subType: paramConfig[i].subType,
                 name: currentParamName,
@@ -236,100 +234,46 @@ module.exports = class RunTest {
                 passed: false,
                 typePassed: false,
                 subTypePassed: true
-            };
+            });
 
-            if ((!_.isUndefined(testObject) && !_.isNull(testObject)) || paramTest.isOptional ) {
+            if ((!_.isUndefined(testObject) && !_.isNull(testObject)) || paramTest.get('isOptional') ) {
 
                 // Use static def typeTests to easily test declared data type
-                let tmpFn = TypeDefinitions.typeTests[paramTest.jsType].typeFn;
-                if (_.isString(tmpFn)) paramTest.typePassed = require(tmpFn)(testObject);
-                else paramTest.typePassed = tmpFn(testObject);
+                let tmpFn = TypeDefinitions.typeTests[paramTest.get('jsType')].typeFn;
+                if (_.isString(tmpFn)) paramTest.set('typePassed', require(tmpFn)(testObject));
+                else paramTest.set('typePassed', tmpFn(testObject));
 
-                //See if testObject is in acceptedValues array
-                if (TypeDefinitions.primitives.includes(paramTest.jsType)) {
-
-                    if (paramTest.typePassed && !paramTest.isOptional) {
-                        paramTest.passed = true;
-                    }
-
-                    if (paramConfig[i].acceptedValues.length > 0) {
-                        if (!paramConfig[i].acceptedValues.includes(testObject)) {
-                            paramTest.passed = false;
-                        }
-                    }
-
-                    //See if testObject is in rejectedValues array
-                    if (paramConfig[i].rejectedValues.length > 0) {
-                        if (paramConfig[i].rejectedValues.includes(testObject)) {
-                            paramTest.passed = false;
-                        }
-                    }
-
+                if (TypeDefinitions.primitives.includes(paramTest.get('jsType'))) {
+                    me.testPrimitive(paramConfig[i], paramTest, passedArguments[i], testObject);
                 }
-                else if (TypeDefinitions.objects.includes(paramTest.jsType)) {
-                    typeAccepted = TypeDefinitions.getTypeAccepted(`${paramTest.jsType}=:${paramTest.subType}`, testObject);
-                    paramTest.typePassed = typeAccepted.typeAccepted;
-                    paramTest.passed = false;
-
-                    try {
-                        let successCount = 0;
-
-                        for (let j=0; j<paramConfig[i].required.length; j++) {
-                            let objectPath = paramConfig[i].required[j].propName.split('.'),
-                                objectRef = passedArguments[i];
-
-                            for (let k=0; k<objectPath.length; k++) {
-                                if (!_.isEmpty(objectRef[objectPath[k]]) || objectRef.hasOwnProperty(objectPath[k]))
-                                    objectRef = objectRef[objectPath[k]];
-                                else {
-                                    objectRef = undefined;
-                                    break;
-                                }
-                            }
-
-                            paramConfig[i].required[j].objectRef = objectRef;
-                            if (objectRef !== undefined)
-                                successCount++;
-                        }
-
-                        if (successCount === paramConfig[i].required.length) {
-                            paramTest.passed = true;
-                            //console.log(paramConfig);
-                        }
-                    }
-                    catch (e) {
-                        console.error(e.message);
-                    }
+                else if (TypeDefinitions.objects.includes(paramTest.get('jsType'))) {
+                    me.testObject(paramConfig[i], paramTest, passedArguments[i], testObject);
                 }
-                else if (TypeDefinitions.otherTypes.includes(paramTest.jsType)) {
-                    typeAccepted = TypeDefinitions.getTypeAccepted(`${paramTest.jsType}=:${paramTest.subType}`, testObject);
-                    paramConfig[i].subType = typeAccepted.subType;
-                    paramTest.typePassed = typeAccepted.typeAccepted;
-                    paramTest.subTypePassed = typeAccepted.subTypeAccepted;
-                    paramTest.passed = (typeAccepted.typeAccepted && typeAccepted.subTypeAccepted);
+                else if (TypeDefinitions.otherTypes.includes(paramTest.get('jsType'))) {
+                    me.testOthers(paramConfig[i], paramTest, passedArguments[i], testObject);
                 }
 
                 if (UtilMethods.areRejectedInAccepted(paramConfig[i])) {
                     UtilMethods.logTestResult(clazz, passedArguments, 'Rejected values were found in accepted values from test config.');
-                    paramTest.passed = false;
+                    paramTest.set('passed', false);
                 }
 
-                if (paramTest.isOptional) paramTest.passed = true;
+                if (paramTest.get('isOptional')) paramTest.set('passed', true);
             }
 
-            paramTest.testParamConfigStr = paramConfig[i].testParamConfigStr;
+            paramTest.set('testParamConfigStr', paramConfig[i].testParamConfigStr);
             // Set the final booleans to help best understand what was tested
-            paramTest.isEmpty = _.isEmpty(testObject);
-            paramTest.isElement = _.isElement(testObject);
-            paramTest.isTextNode = UtilMethods.isTextNode(testObject);
-            paramTest.isIterable = UtilMethods.isIterable(testObject);
-            paramTest.isFunction = _.isFunction(testObject);
-            paramTest.successCount = (_.isBoolean(paramTest.passed) && paramTest.passed) ? 1 : 0;
+            paramTest.set('isEmpty', _.isEmpty(testObject));
+            paramTest.set('isElement', _.isElement(testObject));
+            paramTest.set('isTextNode', UtilMethods.isTextNode(testObject));
+            paramTest.set('isIterable', UtilMethods.isIterable(testObject));
+            paramTest.set('isFunction', _.isFunction(testObject));
+            paramTest.set('successCount', (_.isBoolean(paramTest.get('passed')) && paramTest.get('passed')) ? 1 : 0);
 
-            paramDetails.push(new TestParamDetails(paramTest));
+            paramDetails.push(paramTest);
         }
 
-        // This similar to a few lines up but its for the entire set not just 1 test.
+        // This similar to a few lines up, but it is for the entire set not just 1 test.
         funcDetails.set('paramsPassedTestCount', paramDetails.reduce((accumulator, currentVal) => {
             if (currentVal.get('successCount') > 0) accumulator += 1;
             return accumulator;
@@ -421,57 +365,81 @@ module.exports = class RunTest {
         funcDetails.set('executionPassed', execTest.passed);
     }
 
-    static testObject(testConfig, testObject) {
-        let testResult = {};
+    static testPrimitive(paramConfig, paramTest, passedArgument, testObject) {
+        try {
+            if (paramTest.get('typePassed') && !paramTest.get('isOptional')) {
+                paramTest.set('passed', true);
+            }
 
-        if (_.isEmpty(testConfig) || testConfig.constructor.name !== 'Object' || _.isEmpty(testConfig?.constructor?.type) || testConfig.constructor.type !== 'parsedTestConfig') {
-            console.warn('Test config is empty or invalid');
-            return testResult;
-        }
-
-        // parsedConfig.constructor.type = 'parsedTestConfig';
-        // console.log(testConfig);
-        // console.log(testObject);
-        // console.log(testObject.data);
-
-        if (_.isObject(testObject)) {
-
-            if (testConfig.type.toLowerCase() === testObject.constructor.name.toLowerCase()) {
-                if (testConfig.required.length > 0) {
-                    let requiredPassed = this.testRequired(testConfig.required, testObject);
+            if (paramConfig.acceptedValues.length > 0) {
+                if (!paramConfig.acceptedValues.includes(testObject)) {
+                    paramTest.set('passed', false);
                 }
             }
-            else {
-                console.warn('Test object is not of type object');
-                return ;
+
+            //See if testObject is in rejectedValues array
+            if (paramConfig.rejectedValues.length > 0) {
+                if (paramConfig.rejectedValues.includes(testObject)) {
+                    paramTest.get('passed', false);
+                }
             }
         }
-
-        return testResult;
-
-/*
-{
-  name: 'authObj',
-  type: 'object',
-  subType: 'N/A',
-  optional: false,
-  required: [
-    {
-      propName: 'data[0].response.csrf_token.csrf_token',
-      values: [],
-      regex: undefined,
-      type: 'string',
-      isOr: false
+        catch (e) {
+            console.error(e.message);
+        }
     }
-  ],
-  acceptedValues: [],
-  rejectedValues: [],
-  expectedOut: [],
-  testParamConfigStr: 'authObj=><object required=:[{"data[0].response.csrf_token.csrf_token": "string"}]>'
-}
 
- */
+    static testObject(paramConfig, paramTest, passedArgument, testObject) {
+        let typeAccepted;
 
+        typeAccepted = TypeDefinitions.getTypeAccepted(`${paramTest.get("jsType")}=:${paramTest.get("subType")}`, testObject);
+        paramTest.set('typePassed', typeAccepted.typeAccepted);
+        paramTest.set('passed', false);
+
+        try {
+            let successCount = 0;
+
+            for (let j=0; j<paramConfig.required.length; j++) {
+                let objectPath = paramConfig.required[j].propName.split('.'),
+                    objectRef = passedArgument;
+
+                for (let k=0; k<objectPath.length; k++) {
+                    if (!_.isEmpty(objectRef[objectPath[k]]) || objectRef.hasOwnProperty(objectPath[k]))
+                        objectRef = objectRef[objectPath[k]];
+                    else {
+                        objectRef = undefined;
+                        break;
+                    }
+                }
+
+                paramConfig.required[j].objectRef = objectRef;
+                if (objectRef !== undefined)
+                    successCount++;
+            }
+
+            if (successCount === paramConfig.required.length) {
+                paramTest.set('passed', true);
+            }
+        }
+        catch (e) {
+            console.error(e.message);
+        }
+
+    }
+
+    static testOthers(paramConfig, paramTest, passedArgument, testObject) {
+        let typeAccepted;
+
+        try {
+            typeAccepted = TypeDefinitions.getTypeAccepted(`${paramTest.get("jsType")}=:${paramTest.get("subType")}`, testObject);
+            paramConfig.subType = typeAccepted.subType;
+            paramTest.set('typePassed', typeAccepted.typeAccepted);
+            paramTest.set('subTypePassed', typeAccepted.subTypeAccepted);
+            paramTest.set('passed', (typeAccepted.typeAccepted && typeAccepted.subTypeAccepted));
+        }
+        catch (e) {
+            console.error(e.message);
+        }
     }
 
     static testRequired(required, testObject) {
