@@ -7,3 +7,4 @@ exports.database = require('./database/index.js');
 exports.generator = require('./generator/index.js');
 exports.shellcmd = require('./shellCmds/index.js');
 exports.inspect = require('./inspect/index.js');
+exports.middle = require('./middleware/index.js');
