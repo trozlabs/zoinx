@@ -1,10 +1,10 @@
 // sibling
 const { Log } = require('../log');
 
-const auth = (req, res, next) => {
+const VerifyAuth = (req, res, next) => {
     Log.info('WHAAAAAAAAAAAAAAAAAA?');
 
     next();
 }
 
-module.exports = auth;
+module.exports = VerifyAuth;
