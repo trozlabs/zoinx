@@ -12,7 +12,8 @@ const GateKeeper = async (req, res, next) => {
 
     try {
         let tokenStr = '',
-            principal = '';
+            principal = '',
+            jwtToken;
 
         if (authHeader.includes('Bearer')) {
             tokenStr = authHeader.replace(/^Bearer /, '');
@@ -34,7 +35,10 @@ const GateKeeper = async (req, res, next) => {
         }
     }
     catch (e) {
-        throw new APIError(401);
+        if (!_.isEmpty(e.statusCode))
+            throw e;
+        else
+            throw new APIError(401, e.message);
     }
 
     next();
@@ -80,7 +84,12 @@ async function validateJwtToken(tokenStr) {
         });
     }
     catch (e) {
-        Log.error(e);
+        if (e.name.toLowerCase() === 'tokenexpirederror') {
+            throw new APIError(401, `Access has expired, please login again.`);
+        }
+        else {
+            throw new APIError(401, e.message);
+        }
     }
     return decoded;
 }
