@@ -1,2 +1,2 @@
-exports.GateKeeper = require('./GateKeeper.js');
+exports.GateKeeperMS = require('./GateKeeperMS.js');
 exports.VerifyAuth = require('./VerifyAuth.js');

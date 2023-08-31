@@ -1,3 +1,11 @@
 const NodeCache = require("node-cache");
 
-module.exports = new NodeCache({ stdTTL: 10 });
+module.exports = class AppCache extends NodeCache{
+
+    constructor() {
+        super({ stdTTL: 600 });
+    }
+
+
+
+}

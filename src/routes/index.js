@@ -16,7 +16,7 @@ const router = express.Router();
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-    res.render('index', { title: 'Express' });
+    res.render('index', { title: 'Zoinx' });
 });
 
 // can be used as single entries but not encouraged.
@@ -28,6 +28,24 @@ const routes = {
 };
 
 const defs = [];
+
+async function addZoinxRoutes(app, routeGroups=[]) {
+    const directories = ['./validatedAuths'];
+
+    try {
+        for (let i = 0; i < directories.length; i++) {
+            const router = require(`${directories[i]}/index.js`);
+            routeGroups.push(new router(app));
+        }
+
+        routeGroups.forEach((route) => {
+            Object.assign(routes, route.getRoutes());
+        });
+    }
+    catch (e) {
+        Log.error(e.message);
+    }
+}
 
 async function addRoutes(app, routes = {}, srcPath) {
 
@@ -62,6 +80,7 @@ async function addRoutes(app, routes = {}, srcPath) {
                 }
             }
 
+            await addZoinxRoutes(app, routeGroups);
             routeGroups.forEach((route) => {
                 Object.assign(routes, route.getRoutes());
             });

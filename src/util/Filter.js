@@ -2,27 +2,27 @@
 fields: '[{"field": "object_type", "oper":"startswith", "term":"item"}]'
  */
 
-// startwith /^string/i
-// endswith /string$/i
-// contains /.*string.*/i
-// equals /^string$/i
-// between dates
-// = /^string$/
-// = -> eq
-// != -> ne
-// > -> gt
-// < -> lt
-// >= -> gte
-// <= -> lte
-// in -> in
-// !in -> !in
-
 const _ = require('lodash');
 
 module.exports = class Filter {
     #queryFilters = [];
     #dbType = 'mongo';
     #filters = [];
+    #operMap = {
+        'startswith': /^string/i,
+        'endswith': /string$/i,
+        'contains': /.*string.*/i,
+        'equals': /^string$/i,
+        'between': 'gt:lt',
+        '=': 'eq',
+        '!=': 'ne',
+        '>': 'gt',
+        '<': 'lt',
+        '>=': 'gte',
+        "<=": 'ltq',
+        'in': 'in',
+        '!in': '!in'
+    };
 
     constructor(req, dbType) {
         if (_.isArray(req)) {
@@ -97,6 +97,12 @@ module.exports = class Filter {
                 else if (_.isBoolean(this.#queryFilters[i].term)) {
                     tmpObj.term = this.#queryFilters[i].term;
                     tmpObj.oper = '=';
+                    this.#filters.push(tmpObj);
+                }
+                // dates
+                else if (_.isDate(this.#queryFilters[i].term)) {
+                    tmpObj.term = this.#queryFilters[i].term;
+                    tmpObj.oper = this.#operMap[this.#queryFilters[i].oper];
                     this.#filters.push(tmpObj);
                 }
                 // numbers
