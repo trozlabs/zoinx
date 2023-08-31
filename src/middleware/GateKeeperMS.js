@@ -23,11 +23,13 @@ const GateKeeperMS = async (req, res, next) => {
         if (_.isEmpty(global.AuthCache.get(parsedToken.payload.oid))) {
 
             if (!_.isEmpty(parsedToken)) {
-                jwtToken = await validateJwtToken(parsedToken, authHeader);
-                if (!_.isEmpty(jwtToken) && await validateJwtAudienceId(parsedToken)) {
-                    principal = jwtToken?.preferred_username ?? 'user';
-                    Log.info(`Token successfully decoded for user: ${principal}`);
-                    await saveVerifiedAuth(req, parsedToken, authHeader);
+                if (await validateJwtAudienceId(parsedToken)) {
+                    jwtToken = await validateJwtToken(parsedToken, authHeader);
+                    if (!_.isEmpty(jwtToken)) {
+                        principal = jwtToken?.preferred_username ?? 'user';
+                        Log.info(`Token successfully decoded for user: ${principal}`);
+                        await saveVerifiedAuth(req, parsedToken, authHeader);
+                    }
                 }
                 else {
                     throw new APIError(401, `Incorrect audience id`, `Incorrect audience id`);
