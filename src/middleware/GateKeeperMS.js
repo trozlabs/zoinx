@@ -24,17 +24,22 @@ const GateKeeperMS = async (req, res, next) => {
 
             if (!_.isEmpty(parsedToken)) {
                 jwtToken = await validateJwtToken(parsedToken, authHeader);
-                if (!_.isEmpty(jwtToken)) {
+                if (!_.isEmpty(jwtToken) && await validateJwtAudienceId(parsedToken)) {
                     principal = jwtToken?.preferred_username ?? 'user';
                     Log.info(`Token successfully decoded for user: ${principal}`);
                     await saveVerifiedAuth(req, parsedToken, authHeader);
                 }
-            } else if (authHeader.includes('Basic')) {
+                else {
+                    throw new APIError(401, `Incorrect audience id`, `Incorrect audience id`);
+                }
+            }
+            else if (authHeader.includes('Basic')) {
                 if (!await isBasicAuthHeaderValid(authHeader)) {
                     console.log('Invalid Basic auth header. Header is: ' + authHeader);
                     throw new APIError(401, `Invalid Basic Auth header: ${authHeader}`, `Invalid authorization: ${req.url}`);
                 }
-            } else {
+            }
+            else {
                 console.log('Invalid auth header. Auth header is: ' + authHeader);
                 throw new APIError(401, `Invalid authorization header: ${authHeader}`, `Invalid authorization: ${req.url}`);
             }
@@ -112,6 +117,13 @@ async function isBasicAuthHeaderValid(authHeader) {
     const valid = authUsername === username && authPassword === password;
     console.log('Basic auth header validated and the result is: ' + valid);
     return valid;
+}
+
+async function validateJwtAudienceId(parsedToken) {
+    let validAudience = false;
+    if (!_.isEmpty(parsedToken))
+        validAudience = parsedToken?.payload?.aud === process.env.AZURE_AUDIENCE_ID;
+    return validAudience;
 }
 
 async function fillAuthCacheFromStore() {
