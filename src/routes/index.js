@@ -30,7 +30,7 @@ const routes = {
 const defs = [];
 
 async function addZoinxRoutes(app, routeGroups=[]) {
-    const directories = ['./validatedAuths'];
+    const directories = ['./validatedAuths', './routeRoles'];
 
     try {
         for (let i = 0; i < directories.length; i++) {

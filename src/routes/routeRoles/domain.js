@@ -5,34 +5,21 @@ const mongoose = global.mongoosePool;
 
 const schema = mongoose.Schema(
     {
-        user_oid: {
+        enabled: {
+            type: Boolean,
+            default: true
+        },
+        role_method: {
+            type: Array,
+            required: true
+        },
+        route_path: {
             type: String,
             required: true,
             index: true
         },
-        expires: {
-            type: Date,
-            required: true,
-            index: true
-        },
-        preferred_username: {
-            type: String,
-            required: true
-        },
-        ip_address: {
-            type: String,
-            required: true
-        },
-        user_agent: {
-            type: String,
-            required: true
-        },
-        jwt_token: {
-            type: String,
-            required: true
-        },
-        jwt_parsed: {
-            type: Object,
+        role_names: {
+            type: Array,
             required: true
         },
         created_user: {
@@ -58,10 +45,10 @@ const schema = mongoose.Schema(
      }
 });
 
-module.exports = class CurrentAuthsDomain extends Domain {
+module.exports = class RouteRolesDomain extends Domain {
 
     constructor() {
-        super(mongoose.model('CurrentAuths', schema, 'security.currentAuths'));
+        super(mongoose.model('RouteRoles', schema, 'security.routeRoles'));
     }
 
     list() {

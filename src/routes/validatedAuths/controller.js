@@ -5,7 +5,7 @@ const { VerifyAuth } = require('../../middleware');
 
 const routeLabel = 'ValidatedAuths';
 
-module.exports = TestHarness(class ValidatedAuthsCtrl extends Controller {
+module.exports = TestHarness(class ValidatedAuthsCtrlr extends Controller {
 
     static testConfig = {
         'get': {

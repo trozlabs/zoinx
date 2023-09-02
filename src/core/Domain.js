@@ -53,6 +53,31 @@ module.exports = class Domain {
                             break;
                     }
                 }
+                else if (filter.isDate) {
+                    let fromOperStr = '$gt',
+                        toOperStr = '$lt',
+                        valueRangeObj;
+
+                    switch (filter.oper) {
+                        case 'between':
+                            if (filter.term?.from?.oper)
+                                fromOperStr = (filter.term.from.oper && filter.term.from.oper === '>=') ? '$gte' : '$gt'
+                            if (filter.term?.to?.oper)
+                                toOperStr = (filter.term.to.oper && filter.term.to.oper === '<=') ? '$lte' : '$lt'
+
+                            valueRangeObj = {
+                                [`${filter.propName}`]: { [`${fromOperStr}`]: filter.term.from.term.toISOString(), [`${toOperStr}`]: filter.term.to.term.toISOString() }
+                            }
+                            thisMdl.find(valueRangeObj);
+                            break;
+                        default:
+                            valueRangeObj = {
+                                [`${filter.propName}`]: { [`${filter.oper}`]: filter.term.toISOString() }
+                            }
+                            thisMdl.find(valueRangeObj);
+                            break;
+                    }
+                }
                 else {
                     switch (filter.oper) {
                         case 'in':
@@ -76,6 +101,7 @@ module.exports = class Domain {
                             }
                             thisMdl.find(valueRangeObj);
                             break;
+
                         default:
                             if (filter.regex) {
                                 thisMdl.where(filter.propName).regex(filter.regex);

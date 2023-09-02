@@ -16,10 +16,10 @@ module.exports = class Filter {
         'between': 'gt:lt',
         '=': 'eq',
         '!=': 'ne',
-        '>': 'gt',
-        '<': 'lt',
-        '>=': 'gte',
-        "<=": 'ltq',
+        '>': '$gt',
+        '<': '$lt',
+        '>=': '$gte',
+        "<=": '$lte',
         'in': 'in',
         '!in': '!in'
     };
@@ -58,6 +58,7 @@ module.exports = class Filter {
                 let tmpObj = {
                     propName: this.#queryFilters[i].field,
                     isNum: false,
+                    isDate: false,
                     regex: null,
                     oper: null,
                     term: null
@@ -101,9 +102,15 @@ module.exports = class Filter {
                 }
                 // dates
                 else if (_.isDate(this.#queryFilters[i].term)) {
-                    tmpObj.term = this.#queryFilters[i].term;
-                    tmpObj.oper = this.#operMap[this.#queryFilters[i].oper];
-                    this.#filters.push(tmpObj);
+                    tmpObj.isDate = true;
+                    if (this.#queryFilters[i].oper.toLowerCase() === 'between') {
+                        console.log('Implement between date filter');
+                    }
+                    else {
+                        tmpObj.term = this.#queryFilters[i].term;
+                        tmpObj.oper = this.#operMap[this.#queryFilters[i].oper];
+                        this.#filters.push(tmpObj);
+                    }
                 }
                 // numbers
                 else {
