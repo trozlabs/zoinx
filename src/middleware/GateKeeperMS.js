@@ -4,9 +4,11 @@ const AppCache = require('../core/AppCache');
 const _ = require('lodash');
 const jwt = require("jsonwebtoken");
 const jwksClient = require("jwks-rsa");
+const laService = require('../routes/localAccts/service');
 const vaService = require('../routes/validatedAuths/service');
 const rrService = require('../routes//routeRoles/service');
 const {Filter} = require("zoinx/util");
+const bcrypt = require('bcrypt');
 
 const GateKeeperMS = async (req, res, next) => {
 
@@ -20,7 +22,7 @@ const GateKeeperMS = async (req, res, next) => {
         let principal = '',
             jwtToken;
 
-        if (_.isEmpty(global.AuthCache.get(parsedToken.payload.oid))) {
+        if (!_.isEmpty(parsedToken) && _.isEmpty(global.AuthCache.get(parsedToken.payload.oid))) {
 
             if (!_.isEmpty(parsedToken)) {
                 if (await validateJwtAudienceId(parsedToken)) {
@@ -35,22 +37,34 @@ const GateKeeperMS = async (req, res, next) => {
                     next(new APIError(401, `Incorrect audience id`, `Incorrect audience id`));
                 }
             }
-            else if (authHeader.includes('Basic')) {
-                if (!await isBasicAuthHeaderValid(authHeader)) {
-                    console.log('Invalid Basic auth header. Header is: ' + authHeader);
-                    next(new APIError(401, `Invalid Basic Auth header: ${authHeader}`, `Invalid authorization: ${req.url}`));
+            else {
+                next(new APIError(401, `Invalid authorization header: ${authHeader}`, `Invalid authorization: ${req.url}`));
+            }
+        }
+        else if (_.isEmpty(parsedToken) && authHeader.includes('Basic')) {
+            let basicAuthResult = await isBasicAuthHeaderValid(authHeader);
+            if (basicAuthResult.valid) {
+                Log.info('Successful basic auth login');
+                if (_.isEmpty(req.verfiedAuth)) {
+                    req.verfiedAuth = {};
+                    req.verfiedAuth.roles = [];
                 }
+                req.verfiedAuth.roles.push(basicAuthResult.role);
+                //save the root accessed to db.
             }
             else {
-                console.log('Invalid auth header. Auth header is: ' + authHeader);
-                next(new APIError(401, `Invalid authorization header: ${authHeader}`, `Invalid authorization: ${req.url}`));
+                next(new APIError(401, `Invalid Basic auth credentials: ${req.url}`, `Invalid Basic auth credentials: ${req.url}`));
             }
         }
         else {
             req.verfiedAuth = {};
             req.verfiedAuth.oid = parsedToken.payload.oid;
-            req.verfiedAuth.roles = ['SAP_READ', 'BINGO']; //parsedToken.payload.roles;
-            // console.log(`${parsedToken.payload.oid} found in cache`);
+            if (!_.isEmpty(process.env.AZURE_TEST_ROLES)) {
+                req.verfiedAuth.roles = JSON.parse(process.env.AZURE_TEST_ROLES);
+            }
+            else {
+                req.verfiedAuth.roles = parsedToken.payload.roles;
+            }
         }
         //maybe put found cached auth in req object
     }
@@ -117,22 +131,38 @@ async function validateJwtToken(decodedToken, authHeader) {
 }
 
 async function isBasicAuthHeaderValid(authHeader) {
+    let rtn = {
+        valid: false,
+        role: undefined
+    };
+
     // Check if the auth header is present and in the correct format
-    if (!authHeader || !authHeader.startsWith('Basic ')) {
+    if (_.isEmpty(authHeader) || !authHeader.startsWith('Basic ')) {
         return false;
     }
 
-    // Decode the auth header and extract the username and password
-    const credentials = Buffer.from(authHeader.slice('Basic '.length), 'base64').toString();
-    const [authUsername, authPassword] = credentials.split(':');
+    try {
+        // Decode the auth header and extract the username and password
+        const credentials = Buffer.from(authHeader.slice('Basic '.length), 'base64').toString();
+        const [authUsername, authPassword] = credentials.split(':');
+        let filterArry = [
+                {field: 'username', term: authUsername}
+            ],
+            filters = new Filter(filterArry);
 
-    const username = ''; //process.env.client_id;
-    const password = ''; //process.env.client_secret;
+        const localAcctsService = new laService();
+        const results = await localAcctsService.find({}, filters.getFilters());
 
-    // Compare the extracted credentials to the expected values
-    const valid = authUsername === username && authPassword === password;
-    console.log('Basic auth header validated and the result is: ' + valid);
-    return valid;
+        if (results.length === 1) {
+            rtn.valid = await bcrypt.compare(authPassword, results[0].get('password'));
+            rtn.role = authUsername;
+        }
+    }
+    catch (e) {
+        Log.error(e.message);
+    }
+
+    return rtn;
 }
 
 async function validateJwtAudienceId(parsedToken) {
@@ -152,7 +182,7 @@ async function fillAuthCacheFromStore() {
         const verifiedAuthsService = new vaService(),
             results = await verifiedAuthsService.find({}, filters.getFilters());
 
-        if (results.length >= 0) {
+        if (results.length > 0) {
             let result, ttl;
             for (let i=0; i<results.length; i++) {
                 result = results[i];
@@ -176,13 +206,13 @@ async function fillRouteCacheFromStore() {
         const routeRolesService = new rrService(),
             results = await routeRolesService.find({}, filters.getFilters());
 
-        if (results.length >= 0) {
-            global.RouteCache.flushAll();
-            global.RouteCache.flushStats();
+        if (results.length > 0) {
+            await global.RouteCache.flushAll();
+            await global.RouteCache.flushStats();
             let result;
             for (let i=0; i<results.length; i++) {
                 result = results[i];
-                global.RouteCache.set(`${result.get('route_method')}=>${result.get('route_path')}`, result.get('role_names'), 0);
+                await global.RouteCache.set(`${result.get('route_method')}=>${result.get('route_path')}`, result.get('role_names'), 0);
             }
         }
     }
@@ -240,8 +270,8 @@ async function parseAuthHeader(authHeader) {
 
     try {
         if (!_.isEmpty(authHeader)) {
-            tokenStr = authHeader.replace(/^Bearer /, '');
-            parsedToken = jwt.decode(tokenStr, {
+            tokenStr = await authHeader.replace(/^Bearer /, '');
+            parsedToken = await jwt.decode(tokenStr, {
                 complete: true
             });
         }

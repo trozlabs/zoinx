@@ -45,7 +45,7 @@ module.exports = TestHarness(class RouteRolesCtrlr extends Controller {
         }
     }
 
-    route = '/RouteRoles';
+    route = '/routeRoles';
     routes = [
         new Route({ method: 'get',      path: '/find',      before: [VerifyAuth],       handler: 'find'         }),
         new Route({ method: 'get',      path: '/:id?',      before: [VerifyAuth],       handler: 'get'          }),

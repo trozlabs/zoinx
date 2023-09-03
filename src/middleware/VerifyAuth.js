@@ -3,7 +3,7 @@ const { Log } = require('../log');
 const APIError = require('../core/APIError');
 const _ = require('lodash');
 
-const VerifyAuth = (req, res, next) => {
+const VerifyAuth = async (req, res, next) => {
 
     try {
         const routePerms = global.RouteCache.get(`${req.method.toLowerCase()}=>${req.baseUrl}${req.route.path}`);

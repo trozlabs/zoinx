@@ -24,6 +24,7 @@ const schema = mongoose.Schema(
         },
         created_user: {
             type: String,
+            default: 'SYSTEM',
             required: true,
             immutable: true,
             minlength: 3,
@@ -32,6 +33,7 @@ const schema = mongoose.Schema(
         },
         updated_user: {
             type: String,
+            default: 'SYSTEM',
             required: true,
             minlength: 3,
             maxlength: 50,
