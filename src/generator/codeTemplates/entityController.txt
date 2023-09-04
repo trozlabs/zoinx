@@ -46,11 +46,11 @@ module.exports = TestHarness(class <%= className %> extends Controller {
 
     route = '/<%= name %>';
     routes = [
-        new Route({ method: 'get',      path: '/find',      handler: 'find'         }),
-        new Route({ method: 'get',      path: '/:id?',      handler: 'get'          }),
-        new Route({ method: 'put',      path: '/:id',       handler: 'put'          }),
-        new Route({ method: 'delete',   path: '/:id',       handler: 'delete'       }),
-        new Route({ method: 'post',     path: '/',          handler: 'post'         })
+        new Route({ method: 'get',      path: '/find',      before: [VerifyAuth],      handler: 'find' }),
+        new Route({ method: 'get',      path: '/:id?',      before: [VerifyAuth],      handler: 'get' }),
+        new Route({ method: 'put',      path: '/:id',       before: [VerifyAuth],      handler: 'put' }),
+        new Route({ method: 'delete',   path: '/:id',       before: [VerifyAuth],      handler: 'delete' }),
+        new Route({ method: 'post',     path: '/',          before: [VerifyAuth],      handler: 'post' })
     ]
 
     constructor(config) {

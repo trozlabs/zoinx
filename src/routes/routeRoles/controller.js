@@ -1,7 +1,7 @@
 const { ResponseObj, APIError, Route, Controller, AppCache } = require('../../core');
 const { Filter } = require('../../util');
 const { TestHarness } = require('../../testing');
-const { VerifyAuth } = require('../../middleware');
+const { GateKeeperMS, VerifyAuth } = require('../../middleware');
 
 const routeLabel = 'RouteRoles';
 
@@ -47,11 +47,12 @@ module.exports = TestHarness(class RouteRolesCtrlr extends Controller {
 
     route = '/routeRoles';
     routes = [
-        new Route({ method: 'get',      path: '/find',      before: [VerifyAuth],       handler: 'find'         }),
-        new Route({ method: 'get',      path: '/:id?',      before: [VerifyAuth],       handler: 'get'          }),
-        new Route({ method: 'put',      path: '/:id',       before: [VerifyAuth],       handler: 'put'          }),
-        new Route({ method: 'delete',   path: '/:id',       before: [VerifyAuth],       handler: 'delete'       }),
-        new Route({ method: 'post',     path: '/',          before: [VerifyAuth],       handler: 'post'         })
+        new Route({ method: 'get',      path: '/find',      before: [VerifyAuth],       handler: 'find' }),
+        new Route({ method: 'get',      path: '/refresh',   before: [VerifyAuth],       handler: 'refresh' }),
+        new Route({ method: 'get',      path: '/:id?',      before: [VerifyAuth],       handler: 'get' }),
+        new Route({ method: 'put',      path: '/:id',       before: [VerifyAuth],       handler: 'put' }),
+        new Route({ method: 'delete',   path: '/:id',       before: [VerifyAuth],       handler: 'delete' }),
+        new Route({ method: 'post',     path: '/',          before: [VerifyAuth],       handler: 'post' })
     ]
 
     constructor(config) {
@@ -61,6 +62,11 @@ module.exports = TestHarness(class RouteRolesCtrlr extends Controller {
 
     async get(req, res) {
         let rtn = await this.service.get(req.params.id);
+        return rtn;
+    }
+
+    async refresh(req, res) {
+        let rtn = await this.service.fillRouteCacheFromStore();
         return rtn;
     }
 

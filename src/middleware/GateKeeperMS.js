@@ -9,13 +9,14 @@ const vaService = require('../routes/validatedAuths/service');
 const rrService = require('../routes//routeRoles/service');
 const {Filter} = require("zoinx/util");
 const bcrypt = require('bcrypt');
+const {static} = require("express");
 
 const GateKeeperMS = async (req, res, next) => {
 
     if (_.isEmpty(global.AuthCache)) await setupSecurityCaches();
 
     const authHeader = req.headers.authorization;
-    if (_.isEmpty(authHeader)) throw new APIError(401, `No authorization bearer was provided for: ${req.url}`, `No credentials provided for: ${req.url}`);
+    if (_.isEmpty(authHeader)) next(new APIError(401, `No authorization bearer was provided for: ${req.url}`, `No credentials provided for: ${req.url}`));
 
     try {
         const parsedToken = await parseAuthHeader(authHeader);
@@ -203,17 +204,8 @@ async function fillRouteCacheFromStore() {
 
     try {
         const routeRolesService = new rrService(),
-            results = await routeRolesService.find({}, filters.getFilters());
-
-        if (results.length > 0) {
-            await global.RouteCache.flushAll();
-            await global.RouteCache.flushStats();
-            let result;
-            for (let i=0; i<results.length; i++) {
-                result = results[i];
-                await global.RouteCache.set(`${result.get('route_method')}=>${result.get('route_path')}`, result.get('role_names'), 0);
-            }
-        }
+            results = await routeRolesService.fillRouteCacheFromStore();
+        Log.info(results);
     }
     catch (e) {
         console.log(e.message);
