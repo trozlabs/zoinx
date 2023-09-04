@@ -4,6 +4,7 @@ const { Log } = require('../log');
 const Route = require('./Route');
 const APIError = require('./APIError');
 const APIResponse = require('./APIResponse');
+const _ = require('lodash');
 
 module.exports = class Controller {
     defaultRoutes = [
@@ -74,6 +75,9 @@ module.exports = class Controller {
             route.router = this.router[method](path, before, wrappedBoundRouteHandler);
             route.handler = wrappedBoundRouteHandler;
             route.controller = this;
+
+            if (_.isEmpty(route.router.roleHandles)) route.router.roleHandles = [];
+            route.router.roleHandles.push({'route_method': method, 'route_path': `${this.route}${path}`});
 
             this.routes.push(route);
 

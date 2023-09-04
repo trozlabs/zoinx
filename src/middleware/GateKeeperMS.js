@@ -50,7 +50,7 @@ const GateKeeperMS = async (req, res, next) => {
                     req.verfiedAuth.roles = [];
                 }
                 req.verfiedAuth.roles.push(basicAuthResult.role);
-                //save the root accessed to db.
+                // TODO save the basic auth access to db.
             }
             else {
                 next(new APIError(401, `Invalid Basic auth credentials: ${req.url}`, `Invalid Basic auth credentials: ${req.url}`));
@@ -66,7 +66,6 @@ const GateKeeperMS = async (req, res, next) => {
                 req.verfiedAuth.roles = parsedToken.payload.roles;
             }
         }
-        //maybe put found cached auth in req object
     }
     catch (e) {
         if (!_.isEmpty(e.statusCode))

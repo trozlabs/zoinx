@@ -9,14 +9,17 @@ const schema = mongoose.Schema(
             type: Boolean,
             default: true
         },
-        role_method: {
-            type: Array,
-            required: true
+        route_method: {
+            type: String,
+            required: true,
+            index: true,
+            trim: true
         },
         route_path: {
             type: String,
             required: true,
-            index: true
+            index: true,
+            trim: true
         },
         role_names: {
             type: Array,

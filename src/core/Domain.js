@@ -134,7 +134,7 @@ module.exports = class Domain {
             if (!isNaN(req.query.limit)) thisMdl.limit(parseInt(req.query.limit));
         }
         else
-            thisMdl.limit(50);
+            thisMdl.limit(500);
 
         const select = new SelectInclude(req);
         thisMdl.select(select.getSelect());

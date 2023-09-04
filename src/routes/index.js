@@ -9,6 +9,7 @@ const { StaticUtil } = require('../util');
 const express = require('express');
 const error = require('./RouteError');
 const _ = require('lodash');
+const rrService = require('./routeRoles/service');
 
 require('express-async-errors');
 
@@ -97,6 +98,8 @@ async function addRoutes(app, routes = {}, srcPath) {
                 }
             }, routes);
 
+            addMissingRouteRoles(routes);
+
             // Add Middleware functions here.
             app.use(error);
 
@@ -106,6 +109,41 @@ async function addRoutes(app, routes = {}, srcPath) {
         console.log(ex);
     }
     return routes;
+}
+
+async function addMissingRouteRoles(routes) {
+
+    try {
+        if (!_.isEmpty(routes) && _.isObject(routes)) {
+            let routeRolesService = new rrService(),
+                checkArray = [],
+                existingRouteRoles, routeKeys, roleHandles;
+
+            existingRouteRoles = await routeRolesService.find({});
+
+            routeKeys = Object.keys(routes);
+            for (let i=0; i<routeKeys.length; i++) {
+                roleHandles = routes[routeKeys[i]].router.roleHandles;
+                if (!_.isEmpty(roleHandles)) {
+                    for (let j=0; j<roleHandles.length; j++) {
+                        checkArray.push(roleHandles[j]);
+                    }
+                }
+            }
+
+            const missingRoutes = checkArray.filter(item1 => !existingRouteRoles.some(item2 => (item1.route_method === item2.get('route_method') && item1.route_path === item2.get('route_path')) ));
+            // console.log(filteredArray);
+
+            if (missingRoutes.length > 0) {
+                await routeRolesService.batchInsert(missingRoutes);
+                Log.info(`Added ${missingRoutes.length} routes to routeRoles`);
+            }
+        }
+    }
+    catch (e) {
+        Log.warn(e.message);
+    }
+
 }
 
 exports.add = addRoutes;
