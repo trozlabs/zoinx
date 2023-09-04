@@ -9,6 +9,12 @@ const schema = mongoose.Schema(
             type: Boolean,
             default: true
         },
+        base: {
+            type: String,
+            required: true,
+            index: true,
+            trim: true
+        },
         route_method: {
             type: String,
             required: true,

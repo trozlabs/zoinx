@@ -77,7 +77,7 @@ module.exports = class Controller {
             route.controller = this;
 
             if (_.isEmpty(route.router.roleHandles)) route.router.roleHandles = [];
-            route.router.roleHandles.push({'route_method': method, 'route_path': `${this.route}${path}`});
+            route.router.roleHandles.push({'base': this.route, 'route_method': method, 'route_path': `${this.route}${path}`});
 
             this.routes.push(route);
 
