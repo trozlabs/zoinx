@@ -197,11 +197,6 @@ async function fillAuthCacheFromStore() {
 }
 
 async function fillRouteCacheFromStore() {
-    let filterArry = [
-            {field: 'enabled', term: true}
-        ],
-        filters = new Filter(filterArry);
-
     try {
         const routeRolesService = new rrService(),
             results = await routeRolesService.fillRouteCacheFromStore();
