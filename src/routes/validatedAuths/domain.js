@@ -8,28 +8,33 @@ const schema = mongoose.Schema(
         user_oid: {
             type: String,
             required: true,
-            index: true
+            index: true,
+            trim: true
         },
         expires: {
             type: Date,
             required: true,
-            index: true
+            index: true,
+            trim: true
         },
         preferred_username: {
             type: String,
-            required: true
+            required: true,
+            trim: true
         },
         ip_address: {
             type: String,
-            required: true
+            required: true,
+            trim: true
         },
         user_agent: {
             type: String,
-            required: true
+            trim: true
         },
         jwt_token: {
             type: String,
-            required: true
+            required: true,
+            trim: true
         },
         jwt_parsed: {
             type: Object,
@@ -60,10 +65,10 @@ const schema = mongoose.Schema(
      }
 });
 
-module.exports = class CurrentAuthsDomain extends Domain {
+module.exports = class ValidatedAuthsDomain extends Domain {
 
     constructor() {
-        super(mongoose.model('CurrentAuths', schema, 'security.currentAuths'));
+        super(mongoose.model('ValidatedAuths', schema, 'security.validatedAuths'));
     }
 
     list() {

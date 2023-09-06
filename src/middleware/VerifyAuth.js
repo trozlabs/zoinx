@@ -14,6 +14,7 @@ const VerifyAuth = async (req, res, next) => {
         }
     }
     catch (e) {
+        Log.warn(e.message);
         next(new APIError(401, `Error verifying auth for route: ${req.baseUrl}${req.route.path}`, `Error verifying auth for route: ${req.baseUrl}${req.route.path}`));
     }
 

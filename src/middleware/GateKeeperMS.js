@@ -2,6 +2,7 @@ const { Log } = require('../log');
 const APIError = require('../core/APIError');
 const AppCache = require('../core/AppCache');
 const _ = require('lodash');
+const { randomUUID } = require("crypto");
 const jwt = require("jsonwebtoken");
 const jwksClient = require("jwks-rsa");
 const laService = require('../routes/localAccts/service');
@@ -32,6 +33,7 @@ const GateKeeperMS = async (req, res, next) => {
                         principal = jwtToken?.preferred_username ?? 'user';
                         Log.info(`Token successfully decoded for user: ${principal}`);
                         await saveVerifiedAuth(req, parsedToken, authHeader);
+                        await assignVerifiedRoles(req,parsedToken);
                     }
                 }
                 else {
@@ -46,26 +48,15 @@ const GateKeeperMS = async (req, res, next) => {
             let basicAuthResult = await isBasicAuthHeaderValid(authHeader);
             if (basicAuthResult.valid) {
                 Log.info('Successful basic auth login');
-                if (_.isEmpty(req.verfiedAuth)) {
-                    req.verfiedAuth = {};
-                    req.verfiedAuth.roles = [];
-                }
-                req.verfiedAuth.roles.push(basicAuthResult.role);
-                // TODO save the basic auth access to db.
+                await saveVerifiedAuth(req, basicAuthResult, authHeader);
+                await assignVerifiedRoles(req, undefined, basicAuthResult);
             }
             else {
                 next(new APIError(401, `Invalid Basic auth credentials: ${req.url}`, `Invalid Basic auth credentials: ${req.url}`));
             }
         }
         else {
-            req.verfiedAuth = {};
-            req.verfiedAuth.oid = parsedToken.payload.oid;
-            if (!_.isEmpty(process.env.AZURE_TEST_ROLES)) {
-                req.verfiedAuth.roles = JSON.parse(process.env.AZURE_TEST_ROLES);
-            }
-            else {
-                req.verfiedAuth.roles = parsedToken.payload.roles;
-            }
+            await assignVerifiedRoles(req,parsedToken);
         }
     }
     catch (e) {
@@ -75,6 +66,31 @@ const GateKeeperMS = async (req, res, next) => {
             next(new APIError(401, e.message));
     }
     next();
+}
+
+async function assignVerifiedRoles(req, parsedToken, basicAuthResult) {
+    try {
+        if (_.isEmpty(req.verfiedAuth))
+            req.verfiedAuth = {};
+
+        if (!_.isEmpty(basicAuthResult)) {
+            if (_.isEmpty(req.verfiedAuth.roles))
+                req.verfiedAuth.roles = [];
+
+            req.verfiedAuth.roles.push(basicAuthResult.role);
+        }
+        else {
+            req.verfiedAuth.oid = parsedToken.payload.oid;
+            if (!_.isEmpty(process.env.AZURE_TEST_ROLES)) {
+                req.verfiedAuth.roles = JSON.parse(process.env.AZURE_TEST_ROLES);
+            } else {
+                req.verfiedAuth.roles = parsedToken.payload.roles;
+            }
+        }
+    }
+    catch (e) {
+        Log.error(e.message);
+    }
 }
 
 async function setupSecurityCaches() {
@@ -224,21 +240,29 @@ async function saveVerifiedAuth(req, parsedToken, authHeader='') {
 
 async function createVerifiedObject(req, parsedToken, tokenStr) {
     let verifiedAuthObj = {},
-        expires;
+        expires = new Date(0),
+        oid, preferredUsername;
 
     try {
         if (!_.isEmpty(req) && !_.isEmpty(parsedToken)) {
 
-            expires = new Date(0)
-            expires.setUTCSeconds(parsedToken.payload.exp);
+            if (!_.isEmpty(parsedToken.payload)) {
+                expires.setUTCSeconds(parsedToken.payload.exp);
+                oid = parsedToken.payload.oid;
+                preferredUsername = parsedToken.payload.preferred_username
+            }
+            else {
+                oid = randomUUID();
+                preferredUsername = parsedToken.role;
+            }
 
-            verifiedAuthObj.user_oid = parsedToken.payload.oid;
+            verifiedAuthObj.user_oid = oid;
             verifiedAuthObj.expires = expires;
             verifiedAuthObj.jwt_token = tokenStr;
             verifiedAuthObj.jwt_parsed = parsedToken;
             verifiedAuthObj.ip_address = req.socket.remoteAddress;
-            verifiedAuthObj.user_agent = req.get('user-agent');
-            verifiedAuthObj.preferred_username = parsedToken.payload.preferred_username;
+            verifiedAuthObj.user_agent = (req.get('user-agent')) ? req.get('user-agent') : 'Umm... no user-agent?';
+            verifiedAuthObj.preferred_username = preferredUsername;
             verifiedAuthObj.updated_user = 'SYSTEM';
             verifiedAuthObj.created_user = 'SYSTEM';
         }
