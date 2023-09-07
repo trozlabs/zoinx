@@ -1,6 +1,7 @@
 const { ResponseObj, APIError, Route, Controller } = require('zoinx/core');
 const { Filter } = require('zoinx/util');
 const { TestHarness } = require('zoinx/testing');
+const { VerifyAuth } = require("zoinx/middle");
 
 const routeLabel = '<%= className %>';
 
