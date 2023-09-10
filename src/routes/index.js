@@ -117,6 +117,7 @@ async function addMissingRouteRoles(routes) {
         if (!_.isEmpty(routes) && _.isObject(routes)) {
             let routeRolesService = new rrService(),
                 checkArray = [],
+                checkArrayExisting = [],
                 existingRouteRoles, routeKeys, roleHandles;
 
             existingRouteRoles = await routeRolesService.find({});
@@ -126,17 +127,35 @@ async function addMissingRouteRoles(routes) {
                 roleHandles = routes[routeKeys[i]].router.roleHandles;
                 if (!_.isEmpty(roleHandles)) {
                     for (let j=0; j<roleHandles.length; j++) {
-                        checkArray.push(roleHandles[j]);
+                        checkArray.push(`${roleHandles[j].route_method}=>${roleHandles[j].route_path}`);
                     }
                 }
             }
 
-            const missingRoutes = checkArray.filter(item1 => !existingRouteRoles.some(item2 => (item1.route_method === item2.get('route_method') && item1.route_path === item2.get('route_path')) ));
-            // console.log(filteredArray);
+            for (i=0; i<existingRouteRoles.length; i++) {
+                checkArrayExisting.push(
+                    `${existingRouteRoles[i].get('route_method')}=>${existingRouteRoles[i].get('route_path')}`
+                );
+            }
 
-            if (missingRoutes.length > 0) {
-                await routeRolesService.batchInsert(missingRoutes);
-                Log.info(`Added ${missingRoutes.length} routes to routeRoles`);
+            const missingRouteRoles = checkArray.filter(item1 => !checkArrayExisting.some(item2 => (item1 === item2)));
+
+            if (missingRouteRoles.length > 0) {
+                await routeRolesService.batchInsert(missingRouteRoles);
+                Log.info(`Added ${missingRouteRoles.length} routes to routeRoles`);
+            }
+
+            if (checkArray.length !== existingRouteRoles.length) {
+                function findMissingRoutes(arr1, arr2) {
+                    return arr1.filter(
+                        (element) => !arr2.includes(element)
+                    );
+                }
+                let missingRoutes = findMissingRoutes(checkArrayExisting, checkArray);
+                for (i=0; i<missingRoutes.length; i++) {
+                    Log.info(`${missingRoutes[0]} has permissions assigned but no matching routes in application. Might need to delete existing permissions from DB.`);
+                }
+
             }
         }
     }

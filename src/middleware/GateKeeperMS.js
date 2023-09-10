@@ -230,7 +230,7 @@ async function saveVerifiedAuth(req, parsedToken, authHeader='') {
               verifiedObj = await createVerifiedObject(req, parsedToken, tokenStr);
 
         let saveResult = await verifiedAuthsService.save(undefined, verifiedObj),
-            ttl = parseInt(parsedToken.payload.exp - (new Date().getTime()/1000));
+            ttl = (parsedToken?.payload?.exp) ? parseInt(parsedToken.payload.exp - (new Date().getTime()/1000)) : 5;
         global.AuthCache.set(verifiedObj.user_oid, verifiedObj.jwt_parsed, ttl);
     }
     catch (e) {

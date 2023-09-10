@@ -56,6 +56,8 @@ const schema = mongoose.Schema(
      }
 });
 
+schema.index({ base : 1, route_method : 1,  route_path: 1}, { unique : true });
+
 module.exports = class RouteRolesDomain extends Domain {
 
     constructor() {
