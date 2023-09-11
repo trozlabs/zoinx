@@ -118,6 +118,7 @@ async function addMissingRouteRoles(routes) {
             let routeRolesService = new rrService(),
                 checkArray = [],
                 checkArrayExisting = [],
+                polledRouteRoles = [],
                 existingRouteRoles, routeKeys, roleHandles;
 
             existingRouteRoles = await routeRolesService.find({});
@@ -128,6 +129,7 @@ async function addMissingRouteRoles(routes) {
                 if (!_.isEmpty(roleHandles)) {
                     for (let j=0; j<roleHandles.length; j++) {
                         checkArray.push(`${roleHandles[j].route_method}=>${roleHandles[j].route_path}`);
+                        polledRouteRoles.push(roleHandles[j]);
                     }
                 }
             }
@@ -138,7 +140,7 @@ async function addMissingRouteRoles(routes) {
                 );
             }
 
-            const missingRouteRoles = checkArray.filter(item1 => !checkArrayExisting.some(item2 => (item1 === item2)));
+            const missingRouteRoles = polledRouteRoles.filter(item1 => !existingRouteRoles.some(item2 => (item1.route_method === item2.get('route_method') && item1.route_path === item2.get('route_path')) ));
 
             if (missingRouteRoles.length > 0) {
                 await routeRolesService.batchInsert(missingRouteRoles);

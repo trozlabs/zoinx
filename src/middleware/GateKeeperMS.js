@@ -10,7 +10,6 @@ const vaService = require('../routes/validatedAuths/service');
 const rrService = require('../routes//routeRoles/service');
 const {Filter} = require("zoinx/util");
 const bcrypt = require('bcrypt');
-const {static} = require("express");
 
 const GateKeeperMS = async (req, res, next) => {
 
@@ -74,6 +73,8 @@ async function assignVerifiedRoles(req, parsedToken, basicAuthResult) {
             req.verfiedAuth = {};
 
         if (!_.isEmpty(basicAuthResult)) {
+            req.verfiedAuth.oid = basicAuthResult.id;
+            req.verfiedAuth.user = `${basicAuthResult.name} (${basicAuthResult.id})`
             if (_.isEmpty(req.verfiedAuth.roles))
                 req.verfiedAuth.roles = [];
 
@@ -81,6 +82,7 @@ async function assignVerifiedRoles(req, parsedToken, basicAuthResult) {
         }
         else {
             req.verfiedAuth.oid = parsedToken.payload.oid;
+            req.verfiedAuth.user = `${parsedToken.payload.preferred_username} (${parsedToken.payload.oid})`
             if (!_.isEmpty(process.env.AZURE_TEST_ROLES)) {
                 req.verfiedAuth.roles = JSON.parse(process.env.AZURE_TEST_ROLES);
             } else {
@@ -172,6 +174,8 @@ async function isBasicAuthHeaderValid(authHeader) {
         if (results.length === 1) {
             rtn.valid = await bcrypt.compare(authPassword, results[0].get('password'));
             rtn.role = authUsername;
+            rtn.oid = results[0].id;
+            rtn.name = authUsername;
         }
     }
     catch (e) {
@@ -229,7 +233,7 @@ async function saveVerifiedAuth(req, parsedToken, authHeader='') {
         const verifiedAuthsService = new vaService(),
               verifiedObj = await createVerifiedObject(req, parsedToken, tokenStr);
 
-        let saveResult = await verifiedAuthsService.save(undefined, verifiedObj),
+        let saveResult = await verifiedAuthsService.save(undefined, verifiedObj, {user: 'SYSTEM'}),
             ttl = (parsedToken?.payload?.exp) ? parseInt(parsedToken.payload.exp - (new Date().getTime()/1000)) : 5;
         global.AuthCache.set(verifiedObj.user_oid, verifiedObj.jwt_parsed, ttl);
     }

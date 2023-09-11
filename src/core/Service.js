@@ -1,3 +1,4 @@
+const { APIError } = require("./APIError");
 let Maindomain;
 
 module.exports = class Service {
@@ -28,15 +29,15 @@ module.exports = class Service {
     }
 
     async save(id, body, session) {
-        //if (!session || !session.account) return new Error("Session data must be supplied to save.");
-
-        //body.updated_user = 'mrMistoffelees'; ///session.account.username;
+        if (!session || !session.user) return new APIError("Session data must be supplied to save.");
 
         let rtn;
         if (id) {
+            body.updated_user = session.user;
             rtn = await this.domain.save(body, id);
         } else {
-            body.create_user = body.updated_user;
+            body.updated_user = session.user;
+            body.created_user = session.user;
             rtn = await this.domain.save(body);
         }
         return rtn;

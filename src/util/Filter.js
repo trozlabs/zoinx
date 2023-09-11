@@ -56,7 +56,7 @@ module.exports = class Filter {
         for (var i = 0; i < this.#queryFilters.length; i++) {
             if (this.#dbType === 'mongo') {
                 let tmpObj = {
-                    propName: this.#queryFilters[i].field,
+                    propName: this.#queryFilters[i].field ?? this.#queryFilters[i].property,
                     isNum: false,
                     isDate: false,
                     regex: null,
