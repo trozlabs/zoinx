@@ -14,3 +14,5 @@ exports.Sort = require('./Sort.js');
 exports.StaticUtil = require('./StaticUtil.js');
 exports.Text = require('./Text.js');
 exports.Type = require('./Type.js');
+exports.Model2Avro = require('./Model2Avro.js');
+exports.Network = require('./Network.js');

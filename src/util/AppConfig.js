@@ -26,4 +26,4 @@ module.exports = class AppConfig {
             Log.warn(`Must have file path info init. Try using (__dirname, '.env') ... ${e.message}`);
         }
     }
-};
+}
