@@ -95,13 +95,6 @@ module.exports = class BaseCli {
         process.exit(0);
     }
 
-    // async displayHelp(inputStr, _interface) {
-    //     await this.horizontalLine();
-    //     console.log(inputStr);
-    //     await this.verticalSpace(1);
-    //     await this.horizontalLine();
-    // }
-
     async horizontalLine() {
         let screenWidth = process.stdout.columns,
             line = '';

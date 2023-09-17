@@ -4,7 +4,12 @@ const { Log } = require('../log');
 const Route = require('./Route');
 const APIError = require('./APIError');
 const APIResponse = require('./APIResponse');
+const Telemetry = require('../telemetry/Telemetry');
+const Network = require('../util/Network');
 const _ = require('lodash');
+const path = require('path');
+const { randomUUID } = require('crypto');
+
 
 module.exports = class Controller {
     defaultRoutes = [
@@ -90,35 +95,45 @@ module.exports = class Controller {
     }
 
     handler(fn) {
-        return (req, res) => {
-            // console.log(`${this.constructor.name}.handler(fn)((req, res) -> ${fn.name})`);
+        return async function controllerResults(req, res, next) {
+            // let ugh = require('../inspect/').parseFunction(returnResutls, arguments);
+            // console.log(require('../inspect/').parseError(new Error('zippy')));
+            const apiResponse = (res.apiResponse = new APIResponse());
+            let telemetry;
+            try {
+                let results = await fn(req, res),
+                    telemetryEvents = [],
+                    telemetryEventsService = this.service.telemetryEvents;
 
-            const apiResponse = (res.apiResonse = new APIResponse());
-
-            return new Promise((resolve, reject) => {
-                try {
-                    var results = fn(req, res);
-                    resolve(results);
-                } catch (e) {
-                    reject(e);
-                }
-            })
-                .then((data) => {
-                    apiResponse.data = data;
-                })
-                .catch((error) => {
-                    console.error(error);
-                    if (error instanceof APIError) {
-                        apiResponse.status = error.statusCode;
-                    } else {
-                        apiResponse.status = 500;
+                if (!_.isEmpty(telemetryEventsService)) {
+                    for (let i = 0; i < telemetryEventsService.length; i++) {
+                        telemetryEvents.push(telemetryEventsService[i].json);
                     }
-                    apiResponse.error = error;
-                })
-                .finally(() => {
-                    // console.log('apiResponse', apiResponse);
-                    res.status(apiResponse.statusCode).send(apiResponse.toJSON());
-                });
+                    this.service.telemetryEvents = [];
+
+                    if (!_.isEmpty(this.service.domain.telemetryEvent)) {
+                        telemetryEvents.push(this.service.domain.telemetryEvent.json);
+                    }
+
+                    req.telemetryEvents = telemetryEvents;
+                    telemetry = new Telemetry(`${this.constructor.name}.controllerResults`, req);
+                }
+                apiResponse.data = results;
+            }
+            catch (error) {
+                console.error(error);
+                if (error instanceof APIError) {
+                    apiResponse.status = error.statusCode;
+                } else {
+                    apiResponse.status = 500;
+                }
+                apiResponse.error = error;
+                apiResponse.error = error;
+            }
+            finally {
+                res.status(apiResponse.statusCode).send(apiResponse.toJSON());
+                if (telemetry) telemetry.send();
+            }
         };
     }
 

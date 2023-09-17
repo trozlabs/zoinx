@@ -59,14 +59,7 @@ module.exports = TestHarness(class ValidatedAuthsCtrlr extends Controller {
     }
 
     async find(req, res) {
-        const filterObj = new Filter(req);
-        const filters = filterObj.getFilters();
-
-        if (filters.length < 1) {
-            throw new APIError(400, 'A filter must be provided to get results.');
-        }
-
-        let rtn = await this.service.find(req, filters);
+        let rtn = await this.service.find(await this.service.getFindQueryParams(req));
         return rtn;
     }
 })

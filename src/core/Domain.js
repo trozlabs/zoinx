@@ -3,10 +3,12 @@ const _ = require('lodash');
 // siblings
 const { Log } = require('../log');
 const { Filter, Sort, SelectInclude, StaticUtil} = require('../util');
+const telemetryEvent = require('../telemetry/TelemetryEventModel');
 
 module.exports = class Domain {
     #Domain;
     #defaultExclude = '-__v';
+    #telEvent;
 
     constructor(Domain) {
         this.#Domain = Domain;
@@ -16,19 +18,49 @@ module.exports = class Domain {
         return this.#Domain;
     }
 
+    get telemetryEvent() {
+        return this.#telEvent;
+    }
+
     get(id) {
+        this.#telEvent = new telemetryEvent({
+            name: `${this.constructor.name}.get`,
+            attributes: { recordId: id }
+        });
         return this.#Domain.findById(id).select(this.#defaultExclude);
     }
 
     list() {
+        this.#telEvent = new telemetryEvent({
+            name: `${this.constructor.name}.list`,
+            attributes: { prop: 'is empty' }
+        });
         return this.#Domain.find().select(this.#defaultExclude);
     }
 
-    find(req, filters, sorters, count=false) {
-        count = StaticUtil.StringToBoolean(count);
-        if (_.isEmpty(filters)) filters = new Filter(req).getFilters();
+    find(queryParams, count=false) {
+        const { filters, sorters, select, limit, offset } = queryParams;
 
-        let thisMdl = (count) ? this.#Domain.count() : this.#Domain.find();
+        count = StaticUtil.StringToBoolean(count);
+
+        let thisMdl = (count) ? this.#Domain.count() : this.#Domain.find(),
+            action = (count) ? 'count' : 'find';
+        this.#telEvent = new telemetryEvent({
+            name: `${this.constructor.name}.${action}`,
+            attributes: queryParams
+        });
+
+        if (sorters) thisMdl.sort(sorters);
+
+        if (!isNaN(offset))  if (!isNaN(offset)) thisMdl.skip(parseInt(offset));
+        else thisMdl.skip(0);
+
+        if (!isNaN(limit)) if (!isNaN(limit)) thisMdl.limit(parseInt(limit));
+        else thisMdl.limit(500);
+
+        if (select) thisMdl.select(select);
+
+
         if (filters.length > 0) {
             for (let filter of filters) {
                 if (filter.isNum) {
@@ -115,30 +147,6 @@ module.exports = class Domain {
             }
         }
 
-        let sort;
-        if (!_.isEmpty(sorters) && _.isArray(sorters))
-            sort = new Sort(sorters);
-        else
-            sort = new Sort(req);
-
-        if (sort)
-            thisMdl.sort(sort.getSort());
-
-        if (req?.query?.offset) {
-            if (!isNaN(req.query.offset)) thisMdl.skip(parseInt(req.query.offset));
-        }
-        else
-            thisMdl.skip(0);
-
-        if (req?.query?.limit) {
-            if (!isNaN(req.query.limit)) thisMdl.limit(parseInt(req.query.limit));
-        }
-        else
-            thisMdl.limit(500);
-
-        const select = new SelectInclude(req);
-        thisMdl.select(select.getSelect());
-
         return thisMdl.exec();
     }
 
@@ -177,4 +185,4 @@ module.exports = class Domain {
         }
     }
 
-};
+}

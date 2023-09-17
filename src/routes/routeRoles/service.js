@@ -35,7 +35,7 @@ module.exports = TestHarness(class RouteRolesService extends Service {
             filters = new Filter(filterArry);
 
         try {
-            const results = await this.find({}, filters.getFilters());
+            const results = await this.find({filters: filters});
 
             if (results.length > 0) {
                 await global.RouteCache.flushAll();

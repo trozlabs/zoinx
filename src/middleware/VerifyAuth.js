@@ -7,7 +7,7 @@ const VerifyAuth = async (req, res, next) => {
 
     try {
         const routePerms = global.RouteCache.get(`${req.method.toLowerCase()}=>${req.baseUrl}${req.route.path}`);
-        const matchedRoles = _.intersection(req.verfiedAuth.roles, routePerms);
+        const matchedRoles = _.intersection(req.verifiedAuth.roles, routePerms);
         // Log.info(matchedRoles);
         if (matchedRoles.length < 1) {
             next(new APIError(401, `No permissions for ${req.baseUrl}${req.route.path}`, `No permissions for ${req.baseUrl}${req.route.path}`));

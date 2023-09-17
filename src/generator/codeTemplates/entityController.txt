@@ -1,5 +1,4 @@
 const { ResponseObj, APIError, Route, Controller } = require('zoinx/core');
-const { Filter } = require('zoinx/util');
 const { TestHarness } = require('zoinx/testing');
 const { VerifyAuth } = require("zoinx/middle");
 
@@ -70,7 +69,7 @@ module.exports = TestHarness(class <%= className %> extends Controller {
             throw new APIError(500, 'No document sent to save.');
         }
 
-        let rtn = await this.service.save(req.params.id, req.body, req.verfiedAuth);
+        let rtn = await this.service.save(req.params.id, req.body, req.verifiedAuth);
 
         if (!rtn) {
             throw new APIError(`Failed to create \$\{routeLabel\}.`);
@@ -88,7 +87,7 @@ module.exports = TestHarness(class <%= className %> extends Controller {
             throw new APIError(400, 'No changes sent to save.');
         }
 
-        let rtn = await this.service.save(req.params.id, req.body, req.verfiedAuth);
+        let rtn = await this.service.save(req.params.id, req.body, req.verifiedAuth);
         if (!rtn) {
             throw new APIError(400, `\$\{routeLabel\} with the ID \$\{req.params.id\} was not found and could not be updated.`);
         }
@@ -108,14 +107,7 @@ module.exports = TestHarness(class <%= className %> extends Controller {
     }
 
     async find(req, res) {
-        const filterObj = new Filter(req);
-        const filters = filterObj.getFilters();
-
-        if (filters.length < 1) {
-            throw new APIError(400, 'A filter must be provided to get results.');
-        }
-
-        let rtn = await this.service.find(req, filters);
+        let rtn = await this.service.find(await this.service.getFindQueryParams(req));
         return rtn;
     }
 })

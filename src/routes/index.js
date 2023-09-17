@@ -11,7 +11,7 @@ const error = require('./RouteError');
 const _ = require('lodash');
 const rrService = require('./routeRoles/service');
 
-require('express-async-errors');
+// require('express-async-errors');
 
 const router = express.Router();
 
@@ -121,7 +121,7 @@ async function addMissingRouteRoles(routes) {
                 polledRouteRoles = [],
                 existingRouteRoles, routeKeys, roleHandles;
 
-            existingRouteRoles = await routeRolesService.find({});
+            existingRouteRoles = await routeRolesService.find({filters: []});
 
             routeKeys = Object.keys(routes);
             for (let i=0; i<routeKeys.length; i++) {

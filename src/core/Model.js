@@ -118,6 +118,10 @@ module.exports = class Model {
         return this.#getJsonObj();
     }
 
+    get json() {
+        return this.#getJsonObj();
+    }
+
     #getJsonObj(genEmpty = false) {
         let jsonObj = {};
         this.fields.forEach((field) => {
@@ -125,6 +129,10 @@ module.exports = class Model {
             if (genEmpty && field.name !== 'id') {
                 if (!_.isEmpty(field.defaultValue) || _.isArray(field.defaultValue) || _.isObject(field.defaultValue)) value = field.defaultValue;
             }
+
+            // if (field.name === 'events')
+            //     jsonObj[field.name] = Object.assign({}, {}, ...value);
+            // else
             jsonObj[field.name] = value;
         });
 

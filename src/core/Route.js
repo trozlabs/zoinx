@@ -4,6 +4,7 @@ class Route {
     path = '/';
     before = [];
     handler = null;
+    after = [];
 
     router;
     controller;

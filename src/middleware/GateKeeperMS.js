@@ -69,24 +69,27 @@ const GateKeeperMS = async (req, res, next) => {
 
 async function assignVerifiedRoles(req, parsedToken, basicAuthResult) {
     try {
-        if (_.isEmpty(req.verfiedAuth))
-            req.verfiedAuth = {};
+        if (_.isEmpty(req.verifiedAuth))
+            req.verifiedAuth = {};
 
         if (!_.isEmpty(basicAuthResult)) {
-            req.verfiedAuth.oid = basicAuthResult.id;
-            req.verfiedAuth.user = `${basicAuthResult.name} (${basicAuthResult.id})`
-            if (_.isEmpty(req.verfiedAuth.roles))
-                req.verfiedAuth.roles = [];
+            req.verifiedAuth.oid = basicAuthResult.id;
+            req.verifiedAuth.user = `${basicAuthResult.name} (${basicAuthResult.id})`
+            if (_.isEmpty(req.verifiedAuth.roles))
+                req.verifiedAuth.roles = [];
 
-            req.verfiedAuth.roles.push(basicAuthResult.role);
+            req.verifiedAuth.roles.push(basicAuthResult.role);
         }
         else {
-            req.verfiedAuth.oid = parsedToken.payload.oid;
-            req.verfiedAuth.user = `${parsedToken.payload.preferred_username} (${parsedToken.payload.oid})`
+            req.verifiedAuth.oid = parsedToken.payload.oid;
+            req.verifiedAuth.user = `${parsedToken.payload.preferred_username} (${parsedToken.payload.oid})`
+            req.verifiedAuth.preferred_username = parsedToken.payload.preferred_username;
+            req.verifiedAuth.user_agent = req.get('user-agent') ?? 'MISSING';
+            req.verifiedAuth.ip_address = req.socket.remoteAddress;
             if (!_.isEmpty(process.env.AZURE_TEST_ROLES)) {
-                req.verfiedAuth.roles = JSON.parse(process.env.AZURE_TEST_ROLES);
+                req.verifiedAuth.roles = JSON.parse(process.env.AZURE_TEST_ROLES);
             } else {
-                req.verfiedAuth.roles = parsedToken.payload.roles;
+                req.verifiedAuth.roles = parsedToken.payload.roles;
             }
         }
     }
