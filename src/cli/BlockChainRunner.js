@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 const BaseCli = require('./BaseCli');
 const _ = require('lodash');
 const Log = require('../log/Log');
@@ -27,7 +25,7 @@ module.exports = class BlockChainRunner extends BaseCli {
             blockChain.addBlock(new Block(Date.now().toString(), [data]));
             blockChain.addBlock(new Block(Date.now().toString(), ["Sammy", "stinks"]));
             blockChain.addBlock(new Block(Date.now().toString(), ["cupped", "hands"]));
-            blockChain.addBlock(new Block(Date.now().toString(), ["trump", "fascist"]));
+            blockChain.addBlock(new Block(Date.now().toString(), ["shaggy", "scooby"]));
             console.log(blockChain.chain);
             console.log(blockChain.isValid());
         }

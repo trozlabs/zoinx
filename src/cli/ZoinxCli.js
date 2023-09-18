@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 const BaseCli = require('./BaseCli');
 const _ = require('lodash');
 const Log = require('../log/Log');
