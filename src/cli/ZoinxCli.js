@@ -7,7 +7,7 @@ const os = require("os");
 const v8 = require("v8");
 const ShellCmd = require("../shellCmds/CmdExec");
 const CreateEntityOrFeature = require("../generator/CreateEntityOrFeature");
-const {Playground} = require("../../../../vast/FogLight/lib/playground");
+const Playground = require('../playground/Playground');
 
 /*
 'testparse',

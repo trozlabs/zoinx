@@ -1,15 +1,16 @@
 const Block = require('./Block');
+const Transaction = require('./Transaction');
 
 module.exports = class Blockchain {
 
-    #difficulty = 1;
+    #difficulty = 1
+    #blockTime = 30000
+    #transactions = []
+    #reward = 534
     #chain
-    #blockTime
 
     constructor(data) {
-        // Create our genesis block
         this.#chain = [new Block(Date.now().toString(), data)];
-        this.#blockTime = 30000;
     }
 
     get chain() {
@@ -18,6 +19,19 @@ module.exports = class Blockchain {
             rtnArray.push(this.#chain[i].blockJson);
         }
         return rtnArray;
+    }
+
+    addTransaction(txn) {
+        if (txn.isValid(txn, this)) {
+            this.#transactions.push(txn);
+        }
+    }
+
+    mineTransaction(rewardAddress) {
+        // CREATER_REWARD_ADDRESS
+        let newTxn = new Transaction('nbbbb', rewardAddress, this.#reward);
+        this.addBlock(new Block(Date.now().toString(), [newTxn, ...this.#transactions]));
+        this.#transactions = [];
     }
 
     addBlock(block) {
@@ -41,7 +55,7 @@ module.exports = class Blockchain {
             const prevBlock = blockchain.#chain[i-1];
 
             // Check validation
-            if (currentBlock.hash !== currentBlock.getHash() || prevBlock.hash !== currentBlock.prevHash) {
+            if (currentBlock.hash !== currentBlock.getHash() || prevBlock.hash !== currentBlock.prevHash) { // || currentBlock.hasValidTransactions(blockchain)
                 return false;
             }
         }
