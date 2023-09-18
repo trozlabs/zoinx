@@ -8,6 +8,8 @@ const v8 = require("v8");
 const ShellCmd = require("../shellCmds/CmdExec");
 const CreateEntityOrFeature = require("../generator/CreateEntityOrFeature");
 const Playground = require('../playground/Playground');
+const LocalAccountService = require('../routes/localAccts/service');
+const bcrypt = require("bcrypt");
 
 /*
 'testparse',
@@ -24,6 +26,7 @@ module.exports = class ZoinxCli extends BaseCli {
         Log.info('ZoinxCli is running.');
         this.addInputs(
             {
+                'create local acct': {fn: 'createLocalAcct', desc: 'Create an account to be used for local only operations.'},
                 'stats': {fn: 'sysStats', desc: 'Get Statistic on the underlying OS and resource utilities'},
                 'mongo ping': {fn: 'mongoPing', desc:'Pings Mongo DB'},
                 'mongo stats': {fn: 'mongoStats', desc:'Returns Mongo DB statistics'},
@@ -70,6 +73,30 @@ module.exports = class ZoinxCli extends BaseCli {
 
         this.verticalSpace(1);
         this.horizontalLine();
+    }
+
+    async createLocalAcct(inputStr, _interface) {
+        let cmdSplit = inputStr.trim().split('--'),
+            inputJson, laService, createResult;
+
+        try {
+            inputJson= (cmdSplit.length > 1 && typeof(cmdSplit[1]) === 'string') ? JSON.parse(cmdSplit[1]) : undefined;
+            if (_.isEmpty(inputJson.username) || !_.isString(inputJson.username) || _.isEmpty(inputJson.password) || !_.isString(inputJson.password)) {
+                Log.info('Must provide username and password to create a local account.');
+            }
+            else {
+                const salt = await bcrypt.genSalt(10);
+                inputJson.password = await bcrypt.hash(inputJson.password, salt);
+
+                laService = new LocalAccountService();
+                createResult = await laService.save(undefined, inputJson, {user: 'SYSTEM'});
+                Log.info(createResult);
+                _interface.prompt();
+            }
+        }
+        catch (e) {
+            Log.error(e);
+        }
     }
 
     async mongoPing(inputStr, _interface) {

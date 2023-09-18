@@ -15,6 +15,7 @@ module.exports = class BaseCli {
 
     #process
     #events
+    #useDB = false
 
     constructor(cliProcessName='!!!!! NO NAME !!!!!', process) {
         this.#cliProcessName = cliProcessName;
@@ -23,9 +24,8 @@ module.exports = class BaseCli {
 
         const userArgs = process.argv.slice(2);
         if (_.isEmpty(userArgs)) Log.info('No arguments passed to CLI Interface');
-        else Log.info(userArgs);
+        // else Log.info(userArgs);
 
-        let useDB = false;
         let _interface = readline.createInterface({
             input: process.stdin,
             output: process.stdout,
@@ -34,7 +34,7 @@ module.exports = class BaseCli {
 
         switch (userArgs[0]) {
             case 'usedb':
-                useDB = true;
+                this.#useDB = true;
                 break;
         }
 
@@ -49,8 +49,10 @@ module.exports = class BaseCli {
         });
 
         _interface.prompt();
+    }
 
-        return useDB;
+    get useDB() {
+        return this.#useDB;
     }
 
     get uniqueInputs() {

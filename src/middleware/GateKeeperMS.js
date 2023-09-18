@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 const jwksClient = require("jwks-rsa");
 const laService = require('../routes/localAccts/service');
 const vaService = require('../routes/validatedAuths/service');
-const rrService = require('../routes//routeRoles/service');
+const rrService = require('../routes/routeRoles/service');
 const {Filter} = require("zoinx/util");
 const bcrypt = require('bcrypt');
 
