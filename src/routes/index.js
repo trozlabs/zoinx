@@ -82,11 +82,14 @@ async function addRoutes(app, routes = {}, srcPath) {
             let routeHandleList = [];
             routeGroups.forEach((route, idx) => {
                 let routeHandle = Object.keys(route.getRoutes())[0];
+                console.log(`[${idx}] ${route.constructor.name} -- ${routeHandle}\n`);
+
                 if (_.isEmpty(routeHandle)) {
+                    Log.warn('=====================================');
                     Log.warn(`Route ${route.constructor.name} is disabled`);
+                    Log.warn('=====================================\n');
                 }
                 else {
-                    console.log(`[${idx}] ${route.constructor.name} -- ${routeHandle}`);
                     if (routeHandleList.includes(routeHandle)) {
                         Log.warn(`Route conflict for ${route.constructor.name}, duplicate Route object named ${routeHandle}. Not overwriting/mounting this route`);
                     } else {

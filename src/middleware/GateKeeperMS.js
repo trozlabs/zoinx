@@ -172,7 +172,7 @@ async function isBasicAuthHeaderValid(authHeader) {
             filters = new Filter(filterArry);
 
         const localAcctsService = new laService();
-        const results = await localAcctsService.find({}, filters.getFilters());
+        const results = await localAcctsService.find({filters: filters.getFilters()});
 
         if (results.length === 1) {
             rtn.valid = await bcrypt.compare(authPassword, results[0].get('password'));
@@ -203,7 +203,7 @@ async function fillAuthCacheFromStore() {
 
     try {
         const verifiedAuthsService = new vaService(),
-            results = await verifiedAuthsService.find({}, filters.getFilters());
+            results = await verifiedAuthsService.find({filters: filters.getFilters()});
 
         if (results.length > 0) {
             let result, ttl;
