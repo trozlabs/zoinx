@@ -1,13 +1,16 @@
-# EditorConfig is awesome: http://EditorConfig.org
+# editorconfig http://editorconfig.org
 
 # top-most EditorConfig file
 root = true
 
 # Unix-style newlines with a newline ending every file
 [*]
+tab_width = 4
 indent_size = 4
 indent_style = space
+quote_type = single
 end_of_line = lf
+trim_trailing_whitespace = true
 insert_final_newline = true
 
 # JavaScript
