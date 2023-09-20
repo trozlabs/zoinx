@@ -38,22 +38,6 @@
             "import": "./src/cli/index.js",
             "require": "./src/cli/index.js"
         },
-        "./generator": {
-            "import": "./src/generator/index.js",
-            "require": "./src/generator/index.js"
-        },
-        "./enums": {
-            "import": "./src/enums/index.js",
-            "require": "./src/enums/index.js"
-        },
-        "./util": {
-            "import": "./src/util/index.js",
-            "require": "./src/util/index.js"
-        },
-        "./log": {
-            "import": "./src/log/index.js",
-            "require": "./src/log/index.js"
-        },
         "./core": {
             "import": "./src/core/index.js",
             "require": "./src/core/index.js"
@@ -62,25 +46,45 @@
             "import": "./src/database/index.js",
             "require": "./src/database/index.js"
         },
-        "./shellCmds": {
-            "import": "./src/shellCmds/index.js",
-            "require": "./src/shellCmds/index.js"
+        "./enums": {
+            "import": "./src/enums/index.js",
+            "require": "./src/enums/index.js"
         },
-        "./routes": {
-            "import": "./src/routes/index.js",
-            "require": "./src/routes/index.js"
-        },
-        "./testing": {
-            "import": "./src/testing/index.js",
-            "require": "./src/testing/index.js"
+        "./generator": {
+            "import": "./src/generator/index.js",
+            "require": "./src/generator/index.js"
         },
         "./inspect": {
             "import": "./src/inspect/index.js",
             "require": "./src/inspect/index.js"
         },
+        "./log": {
+            "import": "./src/log/index.js",
+            "require": "./src/log/index.js"
+        },
         "./middle": {
             "import": "./src/middleware/index.js",
             "require": "./src/middleware/index.js"
+        },
+        "./routes": {
+            "import": "./src/routes/index.js",
+            "require": "./src/routes/index.js"
+        },
+        "./shellCmds": {
+            "import": "./src/shellCmds/index.js",
+            "require": "./src/shellCmds/index.js"
+        },
+        "./telemetry": {
+            "import": "./src/telemetry/index.js",
+            "require": "./src/telemetry/index.js"
+        },
+        "./testing": {
+            "import": "./src/testing/index.js",
+            "require": "./src/testing/index.js"
+        },
+        "./util": {
+            "import": "./src/util/index.js",
+            "require": "./src/util/index.js"
         },
         "./package.json": "./package.json"
     },
