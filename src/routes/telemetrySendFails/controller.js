@@ -3,9 +3,9 @@ const { Filter } = require('../../util');
 const { TestHarness } = require('../../testing');
 const { VerifyAuth } = require('../../middleware');
 
-const routeLabel = 'ValidatedAuths';
+const routeLabel = 'TelemetrySendFail';
 
-module.exports = TestHarness(class ValidatedAuthsCtrlr extends Controller {
+module.exports = TestHarness(class TelemetrySendFailsCtrlr extends Controller {
 
     static testConfig = {
         'get': {
@@ -31,7 +31,7 @@ module.exports = TestHarness(class ValidatedAuthsCtrlr extends Controller {
         }
     }
 
-    route = '/validatedAuths';
+    route = '/telemetrySendFail';
     routes = [
         new Route({ method: 'get',      path: '/find',      handler: 'find',      before: [VerifyAuth] }),
         new Route({ method: 'get',      path: '/:id?',      handler: 'get',       before: [VerifyAuth] }),
@@ -44,6 +44,7 @@ module.exports = TestHarness(class ValidatedAuthsCtrlr extends Controller {
     }
 
     async get(req, res) {
+        // throw new APIError(400, 'Some helpful user facing error', 'The real reason we had an error');
         let rtn = await this.service.get(req.params.id);
         return rtn;
     }

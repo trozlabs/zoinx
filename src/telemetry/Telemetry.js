@@ -1,28 +1,25 @@
 const { Log } = require('../log');
 const _ = require('lodash');
-const {Worker} = require("worker_threads");
+const { Worker, SHARE_ENV, parentPort} = require("worker_threads");
 const path = require("path");
 const os = require('os');
 const {randomUUID} = require("crypto");
 const Network = require('../util/Network');
 const TelemetryTraceModel = require('./TelemetryTraceModel');
+const tsfService = require('../routes/telemetrySendFails/service');
 
 module.exports = class Telemetry {
 
     #telemetryModel
     #telemetryName
+    #telemetryStatus
+    #telemetrySendFailsService
 
-    constructor(telemetryName='No name provided', configObj) {
+    constructor(telemetryName='No name provided', configObj, telemetryStatus) {
         this.#telemetryName = telemetryName;
-        if (configObj?.constructor.name === 'IncomingMessage') {
-            this.#fillTelemetryFromRequest(configObj).catch(r => { console.log(r)});
-        }
-        else if (configObj?.constructor.name === 'APIError') {
-            Log.info('Got an APIError in telemetry.')
-        }
-        // else if (configObj.self.toString().match(/extends Controller/)) {
-        //
-        // }
+        this.#telemetryStatus = telemetryStatus;
+        this.#fillTelemetryFromRequest(configObj).catch(r => { console.log(r)});
+        this.#telemetrySendFailsService = new tsfService();
     }
 
     async #fillTelemetryFromRequest(req) {
@@ -38,12 +35,19 @@ module.exports = class Telemetry {
                     reqAttributes.user_agent = req.verifiedAuth.user_agent;
                 }
                 else {
-                    reqAttributes = {name: 'none'}
+                    reqAttributes.preferred_username = 'No user perms';
                 }
                 reqAttributes.route_method = req.method;
                 reqAttributes.route_path = req.originalUrl;
                 reqAttributes.params = req.params;
                 reqAttributes.body = req.body;
+
+                if (_.isEmpty(this.#telemetryStatus)) {
+                    this.#telemetryStatus =  {
+                        code: req.res.apiResponse.statusCode,
+                        message: req.res.apiResponse.statusMessage
+                    }
+                }
 
                 this.#telemetryModel = new TelemetryTraceModel({
                     application_name: process.env.TELEMETRY_APPLICATION_NAME,
@@ -55,10 +59,7 @@ module.exports = class Telemetry {
                     end_time: new Date(),
                     events: req.telemetryEvents,
                     attributes: reqAttributes,
-                    status: {
-                        code: req.res.apiResponse.statusCode,
-                        message: req.res.apiResponse.statusMessage
-                    }
+                    status: this.#telemetryStatus
                 });
             }
         }
@@ -70,14 +71,34 @@ module.exports = class Telemetry {
     async send() {
         try {
             const worker = new Worker(path.resolve(`${__dirname}/Telemetry2Kafka.js`), {
-                workerData: {telemetryModel: this.#telemetryModel.json, runningAppPath: path.resolve(process.cwd())}
+                workerData: {telemetryModel: this.#telemetryModel.json, runningAppPath: path.resolve(process.cwd()), libPath: __dirname}
             });
-            // worker.on("message", (total) => {
-            //     console.log(`Total from thred: ${total}`);
-            // });
-            // worker.on('error', (error) => {
-            //     console.log(error);
-            // });
+            worker.on('error', (error) => {
+                this.saveTelemetrySendFail(error.workerData, error);
+            });
+            // worker.on("exit", (code) =>
+            //     console.log(`Worker stopped with exit code ${code}`)
+            // );
+        }
+        catch (e) {
+            Log.error(e);
+        }
+    }
+
+    async saveTelemetrySendFail(telemetryModel, error) {
+        try {
+            let saveObj = {
+                    send_to_server: process.env.TELEMETRY_MESSAGE_SERVERS,
+                    ip_address: Network.getHostAddress(),
+                    telemetry_obj: telemetryModel,
+                    error_message: error.message
+                },
+                result;
+
+            let service = new tsfService();
+
+            result = await service.save(undefined, saveObj, {user: 'SYSTEM'});
+            // Log.info(result);
         }
         catch (e) {
             Log.error(e);

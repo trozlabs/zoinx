@@ -9,13 +9,16 @@ const SelectInclude = require('../util/SelectInclude');
 module.exports = class Service {
 
     #domain;
+    #domainPath;
     #telemetryEvents = [];
 
     constructor(domainPath) {
         if (domainPath && typeof domainPath === 'string') {
             Maindomain = require(domainPath);
             this.#domain = new Maindomain();
-        } else if (domainPath && typeof domainPath === 'object') {
+            this.#domainPath = domainPath;
+        }
+        else if (domainPath && typeof domainPath === 'object') {
             this.#domain = domainPath;
         }
     }
@@ -76,7 +79,12 @@ module.exports = class Service {
             );
             body.updated_user = session.user;
             body.created_user = session.user;
-            rtn = await this.domain.save(body);
+            try {
+                rtn = await this.domain.save(body);
+            }
+            catch (e) {
+                rtn = await this.domain.save(body)
+            }
         }
         return rtn;
     }

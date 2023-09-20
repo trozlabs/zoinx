@@ -1,6 +1,5 @@
 const Model = require('../core/Model');
 const { randomUUID } = require('crypto');
-const _ = require('lodash');
 
 module.exports = class TelemetryTraceModel extends Model {
 
