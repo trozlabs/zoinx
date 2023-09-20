@@ -81,13 +81,12 @@ async function addRoutes(app, routes = {}, srcPath) {
             await addZoinxRoutes(app, routeGroups);
             let routeHandleList = [];
             routeGroups.forEach((route, idx) => {
-                let routeHandle = Object.keys(route.getRoutes())[0];
-                console.log(`[${idx}] ${route.constructor.name} -- ${routeHandle}\n`);
+                let routeHandle = Object.keys(route.getRoutes())[0] ?? 'disabled';
 
-                if (_.isEmpty(routeHandle)) {
+                if (_.isEmpty(routeHandle) || routeHandle === 'disabled') {
                     Log.warn('=====================================');
                     Log.warn(`Route ${route.constructor.name} is disabled`);
-                    Log.warn('=====================================\n');
+                    Log.warn('=====================================');
                 }
                 else {
                     if (routeHandleList.includes(routeHandle)) {
@@ -97,6 +96,7 @@ async function addRoutes(app, routes = {}, srcPath) {
                         Object.assign(routes, route.getRoutes());
                     }
                 }
+                console.log(`[${idx}] ${route.constructor.name} -- ${routeHandle}\n`);
             });
 
             Object.keys(routes).forEach(function (name) {

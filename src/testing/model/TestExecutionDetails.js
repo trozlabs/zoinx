@@ -1,5 +1,4 @@
-const { Model } = require('../../core');
-const _ = require('lodash');
+const Model = require('../../core/Model');
 
 module.exports = class TestExecutionDetails extends Model {
 
