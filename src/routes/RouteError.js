@@ -6,7 +6,10 @@ const {Telemetry} = require("../telemetry");
 
 module.exports = async function (err, req, res, next) {
     Log.error(err.stack);
-    let errorCode = err.statusCode ?? 500;
-    const tel = new Telemetry(err);
+    let errorCode = err.statusCode ?? 500,
+        status = {code: errorCode, message: err.message},
+        telemetry = new Telemetry('RouteError', req, status);
+
     res.status(errorCode).json(ResponseObj.getJsonExMsg(err, errorCode));
+    if (telemetry) telemetry.send();
 };

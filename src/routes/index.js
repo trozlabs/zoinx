@@ -31,17 +31,14 @@ const routes = {
 const defs = [];
 
 async function addZoinxRoutes(app, routeGroups=[]) {
-    const directories = ['./validatedAuths', './routeRoles', './localAccts'];
+    const directories = ['./validatedAuths', './routeRoles', './localAccts', './telemetrySendFails'];
 
     try {
         for (let i = 0; i < directories.length; i++) {
+            //console.log(directories[i]);
             const router = require(`${directories[i]}/index.js`);
             routeGroups.push(new router(app));
         }
-
-        routeGroups.forEach((route) => {
-            Object.assign(routes, route.getRoutes());
-        });
     }
     catch (e) {
         Log.error(e.message);
@@ -82,8 +79,21 @@ async function addRoutes(app, routes = {}, srcPath) {
             }
 
             await addZoinxRoutes(app, routeGroups);
-            routeGroups.forEach((route) => {
-                Object.assign(routes, route.getRoutes());
+            let routeHandleList = [];
+            routeGroups.forEach((route, idx) => {
+                let routeHandle = Object.keys(route.getRoutes())[0];
+                if (_.isEmpty(routeHandle)) {
+                    Log.warn(`Route ${route.constructor.name} is disabled`);
+                }
+                else {
+                    console.log(`[${idx}] ${route.constructor.name} -- ${routeHandle}`);
+                    if (routeHandleList.includes(routeHandle)) {
+                        Log.warn(`Route conflict for ${route.constructor.name}, duplicate Route object named ${routeHandle}. Not overwriting/mounting this route`);
+                    } else {
+                        routeHandleList.push(Object.keys(route.getRoutes())[0]);
+                        Object.assign(routes, route.getRoutes());
+                    }
+                }
             });
 
             Object.keys(routes).forEach(function (name) {
@@ -92,8 +102,9 @@ async function addRoutes(app, routes = {}, srcPath) {
                     defs.push({ name, uri: route.base });
                     app.use(route.base, route.router);
                     Log.debug('Initialized: ' + route.base);
+                    // console.log('Initialized: ' + route.base);
                 } catch (err) {
-                    console.log('Failed to mount router', route.base);
+                    // console.log('Failed to mount router', route.base);
                     Log.error(err.stack);
                 }
             }, routes);
@@ -147,7 +158,7 @@ async function addMissingRouteRoles(routes) {
                 Log.info(`Added ${missingRouteRoles.length} routes to routeRoles`);
             }
 
-            if (checkArray.length !== existingRouteRoles.length) {
+            if (checkArray.length !== checkArrayExisting.length) {
                 function findMissingRoutes(arr1, arr2) {
                     return arr1.filter(
                         (element) => !arr2.includes(element)
@@ -155,7 +166,7 @@ async function addMissingRouteRoles(routes) {
                 }
                 let missingRoutes = findMissingRoutes(checkArrayExisting, checkArray);
                 for (i=0; i<missingRoutes.length; i++) {
-                    Log.info(`${missingRoutes[0]} has permissions assigned but no matching routes in application. Might need to delete existing permissions from DB.`);
+                    Log.info(`${missingRoutes[i]} has permissions assigned but no matching routes in application. Might need to delete existing permissions from DB.`);
                 }
 
             }

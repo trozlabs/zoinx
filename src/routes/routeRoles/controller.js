@@ -47,12 +47,12 @@ module.exports = TestHarness(class RouteRolesCtrlr extends Controller {
 
     route = '/routeRoles';
     routes = [
-        new Route({ method: 'get',      path: '/find',      before: [VerifyAuth],       handler: 'find' }),
-        new Route({ method: 'get',      path: '/refresh',   before: [VerifyAuth],       handler: 'refresh' }),
-        new Route({ method: 'get',      path: '/:id?',      before: [VerifyAuth],       handler: 'get' }),
-        new Route({ method: 'put',      path: '/:id',       before: [VerifyAuth],       handler: 'put' }),
-        new Route({ method: 'delete',   path: '/:id',       before: [VerifyAuth],       handler: 'delete' }),
-        new Route({ method: 'post',     path: '/',          before: [VerifyAuth],       handler: 'post' })
+        new Route({ method: 'get',      path: '/refresh',       handler: 'refresh',     before: [VerifyAuth] }),
+        new Route({ method: 'get',      path: '/find',          handler: 'find',        before: [VerifyAuth] }),
+        new Route({ method: 'get',      path: '/:id?',          handler: 'get',         before: [VerifyAuth] }),
+        new Route({ method: 'put',      path: '/:id',           handler: 'put',         before: [VerifyAuth] }),
+        new Route({ method: 'delete',   path: '/:id',           handler: 'delete',      before: [VerifyAuth] }),
+        new Route({ method: 'post',     path: '/',              handler: 'post',        before: [VerifyAuth] })
     ]
 
     constructor(config) {

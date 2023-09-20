@@ -5,7 +5,7 @@ module.exports = class RouteRoles extends RouteDef {
 
     constructor(app) {
         let routes = {
-            ValidatedAuths: {
+            RouteRoles: {
                 base: '/routeRoles',
                 router: path.join(__dirname, './route'),
                 enabled: true

@@ -1,6 +1,7 @@
 const { ResponseObj, APIError, Route, Controller, AppCache } = require('../../core');
 const { TestHarness } = require('../../testing');
 const bcrypt = require('bcrypt');
+const {VerifyAuth} = require("../../middleware");
 
 const routeLabel = 'LocalAccts';
 
@@ -25,8 +26,8 @@ module.exports = TestHarness(class LocalAcctsCtrlr extends Controller {
 
     route = '/localAccts';
     routes = [
-        new Route({ method: 'get',      path: '/:id?',      handler: 'get'          }),
-        new Route({ method: 'post',     path: '/',          handler: 'post'         })
+        new Route({ method: 'get',      path: '/:id?',      handler: 'get',      before: [VerifyAuth] }),
+        new Route({ method: 'post',     path: '/',          handler: 'post',     before: [VerifyAuth] })
     ]
 
     constructor(config) {

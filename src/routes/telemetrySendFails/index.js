@@ -1,14 +1,15 @@
 const { RouteDef } = require('../../core');
 const path = require('path');
 
-module.exports = class LocalAccts extends RouteDef {
+module.exports = class TelemetrySendFails extends RouteDef {
 
     constructor(app) {
         let routes = {
-            LocalAccts: {
-                base: '/localAccts',
+            // RouteRoles: {
+            TelemetrySendFails: {
+                base: '/telemetrySendFail',
                 router: path.join(__dirname, './route'),
-                enabled: false
+                enabled: true
             }
         };
         super(app, routes);
