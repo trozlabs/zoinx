@@ -16,3 +16,4 @@ exports.Text = require('./Text.js');
 exports.Type = require('./Type.js');
 exports.Model2Avro = require('./Model2Avro.js');
 exports.Network = require('./Network.js');
+exports.workflow = require('./workflow.js');
