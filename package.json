@@ -5,7 +5,9 @@
     "main": "./src/index.js",
     "module": "./src/index.js",
     "types": "./src/types.d.ts",
-    "bin": {},
+    "bin": {
+        "initProject": "./bin/initProject.js"
+    },
     "scripts": {
         "format": "prettier --write \"**/*.{js,ts,tsx,json,md}\"",
         "test": "npm run test:cjs && npm run test:mjs",
