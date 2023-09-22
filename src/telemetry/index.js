@@ -1,3 +1,5 @@
 module.exports = {
-    Telemetry: require('./Telemetry')
+    Telemetry: require('./Telemetry'),
+    TelemetryTraceModel: require('./TelemetryTraceModel'),
+    TelemetryEventModel: require('./TelemetryEventModel')
 };

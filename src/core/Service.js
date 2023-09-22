@@ -31,8 +31,8 @@ module.exports = class Service {
         return this.#telemetryEvents;
     }
 
-    set telemetryEvents(evnets) {
-        this.#telemetryEvents = evnets;
+    set telemetryEvents(events) {
+        this.#telemetryEvents = events;
     }
 
     async get(id) {

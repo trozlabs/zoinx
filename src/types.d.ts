@@ -1,6 +1,7 @@
 declare module 'zoinx/cli'
 declare module 'zoinx/core'
 declare module 'zoinx/database'
+declare module "zoinx/datastream"
 declare module 'zoinx/enums'
 declare module 'zoinx/generator'
 declare module 'zoinx/inspect'

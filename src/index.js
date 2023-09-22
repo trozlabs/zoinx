@@ -1,6 +1,7 @@
 exports.cli = require('./cli/index.js');
 exports.core = require('./core/index.js');
 exports.database = require('./database/index.js');
+exports.datastream = require('./datastream/index.js');
 exports.enums = require('./enums/index.js');
 exports.generator = require('./generator/index.js');
 exports.inspect = require('./inspect/index.js');

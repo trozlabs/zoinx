@@ -111,7 +111,7 @@ module.exports = class Controller {
                     }
                     this.service.telemetryEvents = [];
 
-                    if (!_.isEmpty(this.service.domain.telemetryEvent)) {
+                    if (!_.isEmpty(this.service.domain?.telemetryEvent)) {
                         telemetryEvents.push(this.service.domain.telemetryEvent.json);
                     }
 

@@ -57,7 +57,7 @@ module.exports = class Telemetry {
                     span_id: randomUUID(),
                     start_time: req._startTime,
                     end_time: new Date(),
-                    events: req.telemetryEvents,
+                    events: req.telemetryEvents ?? [],
                     attributes: reqAttributes,
                     status: this.#telemetryStatus
                 });
@@ -71,7 +71,7 @@ module.exports = class Telemetry {
     async send() {
         try {
             const worker = new Worker(path.resolve(`${__dirname}/Telemetry2Kafka.js`), {
-                workerData: {telemetryModel: this.#telemetryModel.json, runningAppPath: path.resolve(process.cwd()), libPath: __dirname}
+                workerData: {telemetryModel: this.#telemetryModel.json, zoinxPath: __dirname, runningAppPath: path.resolve(process.cwd()), libPath: __dirname}
             });
             worker.on('error', (error) => {
                 this.saveTelemetrySendFail(error.workerData, error);

@@ -1,4 +1,4 @@
-const { Log } = require('../log');
+const Log = require('../log/Log');
 const _ = require('lodash');
 const { workerData, parentPort } = require('worker_threads');
 const { randomUUID } = require("crypto");
@@ -15,13 +15,21 @@ catch (e) {
 
 async function runit(workerData) {
     // await require("../util/StaticUtil").sleep(1500);
-    const KafkaClient = require(path.resolve(`${workerData.runningAppPath}/lib/kafka/KafkaClient.js`));
 
     try {
-        let kafkaClient = new KafkaClient('FogLightTelemetry', [process.env.TELEMETRY_MESSAGE_SERVERS] , );
+        const KafkaClient = require(path.resolve(`${workerData.zoinxPath}/../datastream/KafkaClient`));
+        let kafkaClient = new KafkaClient('TelemetryProducer', [process.env.TELEMETRY_MESSAGE_SERVERS]),
+            telemetryMsg = JSON.stringify(workerData.telemetryModel);
+
+        kafkaClient.setClientConfig('TELEMETRY_KAFKA');
+
+        if (require(path.resolve(`${workerData.zoinxPath}/../util/StaticUtil`)).StringToBoolean(process.env.TELEMETRY_ENCRYPT)) {
+            telemetryMsg = await require(path.resolve(`${workerData.zoinxPath}/../util/Encryption`)).encrypt(telemetryMsg, process.env.TELEMETRY_SECRET_KEY, process.env.TELEMETRY_SECRET_IV);
+        }
+
         await kafkaClient.sendMessage({
             key: randomUUID(),
-            value: JSON.stringify(workerData.telemetryModel)
+            value: telemetryMsg
         }, 'Telemetry');
         kafkaClient.disconnectProducer();
     }

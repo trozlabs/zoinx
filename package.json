@@ -46,6 +46,10 @@
             "import": "./src/database/index.js",
             "require": "./src/database/index.js"
         },
+        "./datastream": {
+            "import": "./src/datastream/index.js",
+            "require": "./src/datastream/index.js"
+        },
         "./enums": {
             "import": "./src/enums/index.js",
             "require": "./src/enums/index.js"
@@ -98,6 +102,7 @@
         "express-async-handler": "^1.2.0",
         "jsonwebtoken": "^9.0.0",
         "jwks-rsa": "^3.0.1",
+        "kafkajs": "^2.2.4",
         "lodash": "^4.17.21",
         "mongoose": "latest",
         "node-cache": "^5.1.2",
