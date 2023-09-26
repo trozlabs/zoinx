@@ -1,6 +1,6 @@
 const _ = require('lodash');
-const { Log } = require('../log');
-const { TypeDefinitions } = require('./TypeDefinitions');
+const Log = require('../log/Log');
+const TypeDefinitions = require('./TypeDefinitions');
 const { TestParamDetails, TestExecutionDetails, TestRawObject } = require('./model');
 
 const { readdirSync, statSync } = require('fs');
@@ -16,7 +16,6 @@ module.exports = class UtilMethods {
     static setGlobalTestConfig(configKey, confObj) {
         global.testConfigList[configKey] = confObj;
     }
-
 
     static isSimpleObject(value) {
         return value instanceof Object && value.constructor === Object;
@@ -512,15 +511,23 @@ module.exports = class UtilMethods {
         return {targetName: targetName, updatedTestConfig: updatedTestConfig};
     }
 
-    static getTestObjectWithoutModels(testObj) {
+    static async getTestObjectWithoutModels(testObj) {
         if (!_.isEmpty(testObj) && Object.keys(testObj).length > 0) {
             if (testObj.constructor.__proto__.isPrototypeOf(TestExecutionDetails)) {
                 let paramJsonList = [],
                     testedParams = testObj.get('testedParams');
                 if (_.isArray(testedParams) && testedParams.length > 0) {
                     for (let i=0; i<testedParams.length; i++) {
-                        if (!_.isUndefined(testedParams[i]))
-                            paramJsonList.push(testedParams[i].getData());
+                        if (!_.isUndefined(testedParams[i])) {
+                            let tmpModel = testedParams[i];
+                            if (TypeDefinitions.objects.includes(tmpModel.get('jsType'))) {
+                                let tmpTestObj = await this.getPropertyFromObject(tmpModel.get('testObject'), testObj.get('testParamConfig')[i].required[0].propName);
+                                if (!_.isUndefined(tmpTestObj)) {
+                                    tmpModel.set('testObject', tmpTestObj);
+                                }
+                            }
+                            paramJsonList.push(tmpModel.getData());
+                        }
                     }
                 }
                 testObj.set('testedParams', paramJsonList);
@@ -539,7 +546,7 @@ module.exports = class UtilMethods {
         return testObj;
     }
 
-    static getJsonWithoutCirculars(obj, depth = 0) {
+    static async getJsonWithoutCirculars(obj, depth = 0) {
         let visitedMark = Symbol('VISITED_MARK'),
             MAX_CLEANUP_DEPTH = 10;
 
@@ -552,7 +559,7 @@ module.exports = class UtilMethods {
         const originalObj = obj;
         let result = {};
 
-        Object.keys(originalObj).forEach((entry) => {
+        for (const entry of Object.keys(originalObj)) {
             const val = originalObj[entry];
 
             if (!shouldSkip) {
@@ -560,7 +567,7 @@ module.exports = class UtilMethods {
                     originalObj[visitedMark] = true; // Mark current node as "seen" - will stop from going deeper into circulars
                     const nextDepth = depth + 1;
 
-                    let nextResult =  this.getJsonWithoutCirculars(val, nextDepth);
+                    let nextResult =  await this.getJsonWithoutCirculars(val, nextDepth);
                     if (!_.isEmpty(nextResult) && (nextResult !== 'CIRCULAR' && nextResult !== 'SYMBOL ERROR')) {
                         try {
                             nextResult = Object.fromEntries(Object.entries(nextResult).sort());
@@ -580,7 +587,7 @@ module.exports = class UtilMethods {
             else {
                 result = 'CIRCULAR';
             }
-        });
+        }
 
         return result;
     }
@@ -591,7 +598,7 @@ module.exports = class UtilMethods {
         return _.isArray(obj) ? 'array' : typeof(obj);
     }
 
-    static findObjectProperty(obj, propertyName, propertyValue) {
+    static async findObjectProperty(obj, propertyName, propertyValue) {
         const objKeys = new Set(Object.keys(obj));
         for (const key in objKeys) {
             try {
@@ -605,7 +612,7 @@ module.exports = class UtilMethods {
 
                     // If the current property is an object, recursively search within it
                     if (typeof value === 'object' && value !== null) {
-                        const result = this.findObjectProperty(value, propertyName, propertyValue);
+                        const result = await this.findObjectProperty(value, propertyName, propertyValue);
                         if (result) {
                             return result;
                         }
@@ -743,6 +750,71 @@ module.exports = class UtilMethods {
         }
 
         return list;
+    }
+
+    static async isPropertyInObject(testObj={}, propertyPath='') {
+        let propPresence = true,
+            propPathParts = propertyPath.split('.');
+
+        try {
+            if (propPathParts.length > 0) {
+                let tmpObjProp = testObj;
+                for (let i=0; i<propPathParts.length; i++) {
+                    if (tmpObjProp[propPathParts[i]]) {
+                        tmpObjProp = tmpObjProp[propPathParts[i]];
+                    }
+                    else {
+                        propPresence = false;
+                        break;
+                    }
+                }
+            }
+        }
+        catch (e) {
+            Log.error(e);
+        }
+
+        return propPresence;
+    }
+
+
+    static async getPropertyFromObject(testObj={}, propertyPath='') {
+        let prop,
+            propPathParts = propertyPath.split('.');
+
+        try {
+            if (propPathParts.length > 0) {
+                let tmpObjProp = testObj;
+                for (let i=0; i<propPathParts.length; i++) {
+                    if (tmpObjProp[propPathParts[i]]) {
+                        tmpObjProp = tmpObjProp[propPathParts[i]];
+                    }
+                }
+                prop = tmpObjProp;
+            }
+        }
+        catch (e) {
+            Log.error(e);
+        }
+
+        return prop;
+    }
+
+    static getPassedParamsTypes(passedArguments=[]) {
+        let typeList = [];
+
+        try {
+            if (passedArguments.length > 0) {
+                for (let i=0; i<passedArguments.length; i++) {
+                    typeList.push(passedArguments[i].constructor.name);
+                }
+            }
+        }
+        catch (e) {
+            Log.error(e);
+        }
+
+        return typeList;
     }
 
 }

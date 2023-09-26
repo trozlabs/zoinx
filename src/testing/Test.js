@@ -90,7 +90,7 @@ module.exports = class RunTest {
 
             funcTestConfig.className = className;
             funcTestConfig.methodName = methodName;
-            funcTestConfig.passedArguments = passedArguments;
+            funcTestConfig.passedArguments = UtilMethods.getPassedParamsTypes(passedArguments);
             funcTestConfig.argumentsCount = UtilMethods.getRealArgumentsCount(passedArguments);
 
             funcTestConfig.methodSignature = UtilMethods.getMethodSignature(func);
@@ -99,7 +99,8 @@ module.exports = class RunTest {
             if ( !_.isString(methodInput) || methodInput.toLowerCase() !== 'trace')
                 funcTestConfig.doArgumentCountsMatch = UtilMethods.doesPassedCountEqualExpectedCount(passedArguments, expectedParams);
 
-            if (!funcTestConfig.doArgumentCountsMatch && passedArguments.length > expectedParams.length) funcTestConfig.untestedParams = UtilMethods.getUntestedParams(passedArguments, expectedParams);
+            if (!funcTestConfig.doArgumentCountsMatch && passedArguments.length > expectedParams.length)
+                funcTestConfig.untestedParams = UtilMethods.getUntestedParams(passedArguments, expectedParams);
 
             // This is a workaround for closures or callbacks or async and might work for async/await.
             // This looks to see if the methodCaller is null or if it has a className property.
@@ -126,7 +127,7 @@ module.exports = class RunTest {
         }
     }
 
-    static execFuncTest(clazz, func, passedArguments, testRec={}, optionalVals={}) {
+    static async execFuncTest(clazz, func, passedArguments, testRec = {}, optionalVals = {}) {
 
         if (Object.keys(testRec).length < 1) {
             Log.error('No test record provided to run.')
@@ -144,17 +145,19 @@ module.exports = class RunTest {
             let optionalKeys = Object.keys(optionalVals);
             if (optionalKeys.length > 0) {
                 let fieldNames = testRec.getFieldNames();
-                optionalKeys.forEach( (key) => {
+                for (const key of optionalKeys) {
                     if (fieldNames.includes(key)) {
                         let tmpResult = optionalVals[key];
                         if (key === 'executionResult') {
-                            if (TypeDefinitions.isObjectLike(tmpResult))
-                                tmpResult = UtilMethods.cloneObjectDeep(tmpResult);
-                                //tmpResult = UtilMethods.cloneObjectDeep( UtilMethods.getJsonWithoutCirculars(tmpResult, 8));
+                            if (TypeDefinitions.isObjectLike(tmpResult)) {
+                                if (tmpResult.constructor.name === 'Promise')
+                                    tmpResult = await tmpResult;
+                                tmpResult = await UtilMethods.getJsonWithoutCirculars(tmpResult, 4);
+                            }
                         }
                         testRec.set(key, tmpResult);
                     }
-                });
+                }
             }
 
             if (_.isEmpty(testRec)) {
@@ -163,7 +166,7 @@ module.exports = class RunTest {
             else {
                 if (!_.isEmpty(testRec.get('stopWatchStart')) && _.isDate(testRec.get('stopWatchStart')) && !_.isEmpty(testRec.get('stopWatchEnd')) && _.isDate(testRec.get('stopWatchEnd')))
                     testRec.set('runningTimeMillis', (+testRec.get('stopWatchEnd') - +testRec.get('stopWatchStart')));
-                this.functionTest(clazz, func, passedArguments, testRec);
+                await this.functionTest(clazz, func, passedArguments, testRec);
             }
         }
         catch (e) {
@@ -174,7 +177,7 @@ module.exports = class RunTest {
         return true;
     }
 
-    static functionTest(clazz, func, passedArguments, testRec) {
+    static async functionTest(clazz, func, passedArguments, testRec) {
         let me = this;
 
         if (global.testingConfig.isTestingEnabled) {
@@ -187,8 +190,7 @@ module.exports = class RunTest {
                         testRec.set('resultMessage', '********** Function Contract for ' + testRec.get('methodName') + ' passed ' + testRec.get('paramsPassedTestCount') + ' of ' + testRec.get('paramsCount') + ' tests. **********');
                         UtilMethods.logTestResult(testRec.get('className'), testRec.get('methodName'), testRec.get('resultMessage'));
                     }
-                }
-                else if (testRec.get('distinctParamNames').length < 1) {
+                } else if (testRec.get('distinctParamNames').length < 1) {
                     testRec.set('paramsCount', 0);
                     testRec.set('paramsPassedTestCount', 0);
                     testRec.set('passed', true);
@@ -196,8 +198,9 @@ module.exports = class RunTest {
                     me.execOutputTest(clazz, func, passedArguments, testRec);
                 }
 
-                testRec = UtilMethods.getTestObjectWithoutModels(testRec);
-                global.testingConfig.testResultsMap[testRec.get('id')] = testRec.getData();
+                testRec = await UtilMethods.getTestObjectWithoutModels(testRec);
+                testRec = await UtilMethods.getJsonWithoutCirculars(testRec.json, 4);
+                global.TestCache.set(testRec.id, testRec, 120);
                 return testRec;
             }
             catch (e) {
