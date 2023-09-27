@@ -1,3 +1,11 @@
 #!/usr/bin/env node
 
-console.log('About to initialize a Zonix project');
+const ZoinxCreateCli = require('../src/cli/ZoinxCreateCli');
+
+class InitProject extends ZoinxCreateCli {
+    constructor(process) {
+        super(process);
+    }
+}
+
+new InitProject(process);

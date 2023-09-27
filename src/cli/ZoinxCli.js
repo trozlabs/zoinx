@@ -12,14 +12,7 @@ const LocalAccountService = require('../routes/localAccts/service');
 const bcrypt = require("bcrypt");
 const rrService = require("../routes/routeRoles/service");
 const {Filter} = require("zoinx/util");
-
-/*
-'testparse',
-'testfetch',
-'testkafka',
-'testsecrets',
-
- */
+const CreateZoinxApplication = require('../generator/CreateZoinxApplication');
 
 module.exports = class ZoinxCli extends BaseCli {
 
@@ -54,10 +47,10 @@ module.exports = class ZoinxCli extends BaseCli {
             'Uptime': os.uptime() + ' seconds'
         };
 
-        this.horizontalLine();
-        this.centered('System Stats');
-        this.horizontalLine();
-        this.verticalSpace(2);
+        await this.horizontalLine();
+        await this.centered('System Stats');
+        await this.horizontalLine();
+        await this.verticalSpace(2);
 
         for (let key in stats) {
             if (stats.hasOwnProperty(key)) {
@@ -70,12 +63,12 @@ module.exports = class ZoinxCli extends BaseCli {
                 }
                 line += value;
                 Log.info(line);
-                this.verticalSpace();
+                await this.verticalSpace();
             }
         }
 
-        this.verticalSpace(1);
-        this.horizontalLine();
+        await this.verticalSpace(1);
+        await this.horizontalLine();
     }
 
     async createLocalAcct(inputStr, _interface) {

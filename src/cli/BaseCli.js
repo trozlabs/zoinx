@@ -1,4 +1,4 @@
-const {Log} = require("../log");
+const Log = require("../log/Log");
 const events = require("events");
 const _ = require("lodash");
 const readline = require("readline");
@@ -6,6 +6,7 @@ const MongoDB = require("./../database/MongoDB");
 
 module.exports = class BaseCli {
 
+    #_interface
     #cliProcessName
     #uniqueInputs = {
         'man':                      {fn: 'displayHelp', desc:'Show help content'},
@@ -31,6 +32,7 @@ module.exports = class BaseCli {
             output: process.stdout,
             prompt: `\n\r[${cliProcessName}] -> `
         });
+        this.#_interface = _interface;
 
         switch (userArgs[0]) {
             case 'usedb':
@@ -49,6 +51,10 @@ module.exports = class BaseCli {
         });
 
         _interface.prompt();
+    }
+
+    get _interface() {
+        return this.#_interface;
     }
 
     get useDB() {
