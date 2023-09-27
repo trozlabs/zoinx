@@ -90,7 +90,10 @@ module.exports = class Filter {
                     }
                     else if (this.#queryFilters[i].oper.toLowerCase() === 'in' || this.#queryFilters[i].oper.toLowerCase() === '!in') {
                         tmpObj.oper = this.#queryFilters[i].oper.toLowerCase();
-                        tmpObj.term = this.#queryFilters[i].term.split(',');
+                        if (_.isArray(this.#queryFilters[i].term))
+                            tmpObj.term = this.#queryFilters[i].term;
+                        else
+                            tmpObj.term = this.#queryFilters[i].term.split(',');
                     }
 
                     this.#filters.push(tmpObj);

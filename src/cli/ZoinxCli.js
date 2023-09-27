@@ -10,6 +10,8 @@ const CreateEntityOrFeature = require("../generator/CreateEntityOrFeature");
 const Playground = require('../playground/Playground');
 const LocalAccountService = require('../routes/localAccts/service');
 const bcrypt = require("bcrypt");
+const rrService = require("../routes/routeRoles/service");
+const {Filter} = require("zoinx/util");
 
 /*
 'testparse',
@@ -27,6 +29,7 @@ module.exports = class ZoinxCli extends BaseCli {
         this.addInputs(
             {
                 'create local acct': {fn: 'createLocalAcct', desc: 'Create an account to be used for local only operations.'},
+                'set route roles': {fn: 'setRouteRoles', desc: 'Set route role either per route or for all roles {"route":["all"], "role":"exampleRole"}'},
                 'stats': {fn: 'sysStats', desc: 'Get Statistic on the underlying OS and resource utilities'},
                 'mongo ping': {fn: 'mongoPing', desc:'Pings Mongo DB'},
                 'mongo stats': {fn: 'mongoStats', desc:'Returns Mongo DB statistics'},
@@ -82,7 +85,7 @@ module.exports = class ZoinxCli extends BaseCli {
         try {
             inputJson= (cmdSplit.length > 1 && typeof(cmdSplit[1]) === 'string') ? JSON.parse(cmdSplit[1]) : undefined;
             if (_.isEmpty(inputJson.username) || !_.isString(inputJson.username) || _.isEmpty(inputJson.password) || !_.isString(inputJson.password)) {
-                Log.info('Must provide username and password to create a local account.');
+                Log.info('Must provide username and password to create a local account. i.e. {"username": "your user name", "password": "your special password"}');
             }
             else {
                 const salt = await bcrypt.genSalt(10);
@@ -92,6 +95,55 @@ module.exports = class ZoinxCli extends BaseCli {
                 createResult = await laService.save(undefined, inputJson, {user: 'SYSTEM'});
                 Log.info(createResult);
                 _interface.prompt();
+            }
+        }
+        catch (e) {
+            Log.error(e);
+        }
+    }
+
+    async setRouteRoles(inputStr, _interface) {
+        let cmdSplit = inputStr.trim().split('--'),
+            inputJson, laService, createResult;
+
+        try {
+            inputJson = (cmdSplit.length > 1 && typeof (cmdSplit[1]) === 'string') ? JSON.parse(cmdSplit[1]) : undefined;
+            if (_.isEmpty(inputJson.route) || !_.isArray(inputJson.route) || inputJson.route.length < 0 || _.isEmpty(inputJson.role) || !_.isString(inputJson.role)) {
+                Log.info('Must provide route and role to create assign a role to a route. i.e.  {"route":["exampleRoute"], "role":"exampleRole"}');
+            }
+            else if (!this.useDB) {
+                Log.warn('CLI must be connected to DB for this process. Us the "with DB" option when starting this CLI.');
+            }
+            else {
+                // Log.info(inputJson.route);
+                // Log.info(inputJson.role);
+                let filterArry = [
+                        {field: 'route_path', term: inputJson.route, oper: 'in'}
+                    ],
+                    filters = new Filter(filterArry),
+                    filterObject = {filters: []},
+                    roles;
+
+                if (inputJson.route[0].toLowerCase() !== 'all') {
+                    filterObject = {filters: filters.getFilters()};
+                }
+
+                let routeRolesService = new rrService(),
+                    existingRouteRoles = await routeRolesService.find(filterObject);
+
+                for (let i=0; i<existingRouteRoles.length; i++) {
+                    roles = existingRouteRoles[i].get('role_names');
+                    if (!roles.includes(inputJson.role)) {
+                        roles.push(inputJson.role);
+                        existingRouteRoles[i].set('role_names', roles);
+
+                        let rtn = await routeRolesService.save(existingRouteRoles[i].get('id'), existingRouteRoles[i], {user: 'SYSTEM'});
+                        Log.info(`Updated roles for: ${existingRouteRoles[i].get('route_path')}`);
+                    }
+                    else {
+                        Log.warn(`Role ${inputJson.role} already exists for: ${existingRouteRoles[i].get('route_path')}`);
+                    }
+                }
             }
         }
         catch (e) {
