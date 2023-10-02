@@ -6,7 +6,7 @@ module.exports = class CreateZoinxApplication {
     #cliPrompt
     #cliParent
     #appBannerMsg = 'Thank you for choosing Zoinx.\n' +
-        'A core vision for Zoinx is the ability to create API endpoints fully CRUD (Create, Read, Update, Delete) enabled and secure in minutes.';
+        'A core vision for Zoinx is the ability to create API endpoints fully CRUD (Create, Read, Update, Delete) enabled and secure in minutes.\n';
     #questionsAnswers = {
         0: {
             question: 'Do you want to use this project with a Docker Container? (yes)',
