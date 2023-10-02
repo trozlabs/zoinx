@@ -9,6 +9,14 @@ module.exports = class CreateZoinxApplication {
         'A core vision for Zoinx is the ability to create API endpoints fully CRUD (Create, Read, Update, Delete) enabled and secure in minutes.\n';
     #questionsAnswers = {
         0: {
+            question: 'What is the name of your project/application? (zoinx)',
+            answerProp: 'projectName',
+            answerType: 'string',
+            answerDefault: 'zoinx',
+            answerValue: undefined,
+            endWithHR: true
+        },
+        1: {
             question: 'Do you want to use this project with a Docker Container? (yes)',
             answerProp: 'docker',
             answerType: 'boolean',
@@ -16,7 +24,7 @@ module.exports = class CreateZoinxApplication {
             answerValue: undefined,
             endWithHR: true
         },
-        1: {
+        2: {
             question: 'To make CRUD operations a reality, Zoinx uses Mongo as the primary Data Store.\n' +
                 'There are 2 options to install and use MongoDB:\n' +
                 '1. Install MongoDB locally anywhere you like\n' +
@@ -30,7 +38,7 @@ module.exports = class CreateZoinxApplication {
             answerValue: undefined,
             endWithHR: true
         },
-        2: {
+        3: {
             question: 'Security is also a major feature for any application. Currently, Zoinx supports authentication against Azure, and it will handle all token validation and extracting roles.\n' +
                 'Each endpoint can have a role assigned to it. Zoinx will automatically enforce role based security.\n' +
                 'Would you like to enable Role Based security? (yes)',
@@ -40,7 +48,7 @@ module.exports = class CreateZoinxApplication {
             answerValue: undefined,
             endWithHR: true
         },
-        3: {
+        4: {
             question: 'Part of the built-in security for Zoinx is the ability to set up a local account that can be used for development or application config changes. The username created will be used as a new role for endpoint security.\n' +
                 'Would you like to make use of local security auth? (yes)',
             answerProp: 'localAccts',
@@ -48,9 +56,9 @@ module.exports = class CreateZoinxApplication {
             answerDefault: true,
             answerValue: undefined,
             endWithHR: false,
-            skipToIfFalse: 6
+            skipToIfFalse: 7
         },
-        4: {
+        5: {
             question: 'What username would you like to use for your admin account? (ROOT)',
             answerProp: 'username',
             answerType: 'string',
@@ -58,7 +66,7 @@ module.exports = class CreateZoinxApplication {
             answerValue: undefined,
             endWithHR: false
         },
-        5: {
+        6: {
             question: 'What is the password for the admin account?' +
                 'A local password should be very secure and complex but can be changed at anytime.',
             answerProp: 'password',
@@ -67,7 +75,7 @@ module.exports = class CreateZoinxApplication {
             answerValue: undefined,
             endWithHR: true
         },
-        6: {
+        7: {
             question: 'Zoinx offers telemetry where messages are sent to a Kafka data streaming service. Similar to MongoDB, you can install it locally on your own or user a Docker instance.\n' +
                 '1. Install Kafka locally anywhere you like\n' +
                 '2. Use a Docker instance of Kafka\n' +
