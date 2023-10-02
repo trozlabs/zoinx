@@ -9,6 +9,7 @@
         "initProject": "./bin/initProject.js"
     },
     "scripts": {
+        "create-zoinx": "node ./bin/initProject.js",
         "format": "prettier --write \"**/*.{js,ts,tsx,json,md}\"",
         "test": "npm run test:cjs && npm run test:mjs",
         "test:cjs": "cd test/cjs && npm install && npm start && cd ../..",

@@ -24,7 +24,7 @@ module.exports = class BaseCli {
         this.#events = new events();
 
         const userArgs = process.argv.slice(2);
-        if (_.isEmpty(userArgs)) Log.info('No arguments passed to CLI Interface');
+        // if (_.isEmpty(userArgs)) Log.info('No arguments passed to CLI Interface');
         // else Log.info(userArgs);
 
         let _interface = readline.createInterface({
