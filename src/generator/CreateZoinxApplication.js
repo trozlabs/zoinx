@@ -67,7 +67,7 @@ module.exports = class CreateZoinxApplication {
             endWithHR: false
         },
         6: {
-            question: 'What is the password for the admin account?' +
+            question: 'What is the password for the admin account? ' +
                 'A local password should be very secure and complex but can be changed at anytime.',
             answerProp: 'password',
             answerType: 'string',
@@ -125,6 +125,13 @@ module.exports = class CreateZoinxApplication {
 
         console.log('Configured installation: ', configObj);
         await this.#cliParent.horizontalLine();
+
+        if (__dirname.includes('generator')) {
+            console.log(`locally: ${__dirname}`);
+        }
+        else {
+            console.log(__dirname);
+        }
 
         await this.#cliParent.exit();
     }
