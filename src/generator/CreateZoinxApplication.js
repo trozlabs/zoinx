@@ -1,8 +1,10 @@
+const GeneratorBase = require('./GeneratorBase');
 const _ = require("lodash");
 const Log = require('../log/Log');
 
-module.exports = class CreateZoinxApplication {
+module.exports = class CreateZoinxApplication extends GeneratorBase{
 
+    #cliPath
     #cliPrompt
     #cliParent
     #appBannerMsg = 'Thank you for choosing Zoinx.\n' +
@@ -90,8 +92,10 @@ module.exports = class CreateZoinxApplication {
     }
 
     constructor(cliPrompt, cliParent) {
+        super();
         this.#cliPrompt = cliPrompt;
         this.#cliParent = cliParent;
+        this.#cliPath = __dirname;
     }
 
     async askQuestions() {
@@ -107,7 +111,7 @@ module.exports = class CreateZoinxApplication {
 
         for (let i=0; i<qaKeys.length; i++) {
             qaObj = this.#questionsAnswers[i];
-            qaObj.answerValue = await this.askQuestion(qaObj);
+            qaObj.answerValue = await this.#askQuestion(qaObj);
 
             if (!_.isUndefined(qaObj.skipToIfFalse) && qaObj.answerValue !== qaObj.answerDefault) {
                 if (!isNaN(qaObj.skipToIfFalse)) {
@@ -122,21 +126,17 @@ module.exports = class CreateZoinxApplication {
         for (const key of qaKeys) {
             configObj[this.#questionsAnswers[key].answerProp] = this.#questionsAnswers[key].answerValue;
         }
+        this.configObj = configObj;
 
-        console.log('Configured installation: ', configObj);
+        console.log('Configured installation: ', this.configObj);
         await this.#cliParent.horizontalLine();
 
-        if (__dirname.includes('generator')) {
-            console.log(`locally: ${__dirname}`);
-        }
-        else {
-            console.log(__dirname);
-        }
+        await this.#writeProjectFiles();
 
         await this.#cliParent.exit();
     }
 
-    async askQuestion(qaObj) {
+    async #askQuestion(qaObj) {
         let answer,
             questionText = '';
 
@@ -172,6 +172,22 @@ module.exports = class CreateZoinxApplication {
         }
 
         return answer;
+    }
+
+    async #writeProjectFiles() {
+
+        try {
+            if (this.#cliPath.includes('_npx')) {
+                console.log(`${process.env.PWD}`);
+            }
+            else {
+                console.log(`locally: ${__dirname}`);
+            }
+        }
+        catch (e) {
+            Log.error(e);
+        }
+
     }
 
 }
