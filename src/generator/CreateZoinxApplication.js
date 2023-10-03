@@ -1,6 +1,7 @@
 const GeneratorBase = require('./GeneratorBase');
 const _ = require("lodash");
 const Log = require('../log/Log');
+const ShellCmd = require("../shellCmds/CmdExec");
 
 module.exports = class CreateZoinxApplication extends GeneratorBase{
 
@@ -143,6 +144,10 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         for (const key of qaKeys) {
             configObj[this.#questionsAnswers[key].answerProp] = this.#questionsAnswers[key].answerValue;
         }
+        //temporary placeholders till questions get created.
+        configObj.mongoRootUsr = '';
+        configObj.mongoRootPw = '';
+
         this.configObj = configObj;
 
         console.log('Configured installation: ', this.configObj);
@@ -151,6 +156,8 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         await this.#initProjectDirectory();
         await this.#createDottedFiles();
         await this.#createProjectFiles();
+        await this.#createPlaceholders();
+        await this.#execNpmInstall();
 
         await this.#cliParent.exit();
     }
@@ -225,6 +232,11 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
 
             fileContents = await this.getTemplateContent(this.#installPath,'prettierrc.json.txt');
             await this.writeSourceFile(this.#installPath, '.prettierrc.json', fileContents);
+
+            if (this.configObj.docker) {
+                fileContents = await this.getTemplateContent(this.#installPath, 'dockerignore.txt');
+                await this.writeSourceFile(this.#installPath, '.dockerignore', fileContents);
+            }
         }
         catch (e) {
             Log.error(e);
@@ -235,6 +247,56 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         try {
             let fileContents = await this.getTemplateContent(this.#installPath,'package.json.txt');
             await this.writeSourceFile(this.#installPath, 'package.json', fileContents);
+
+            fileContents = await this.getTemplateContent(this.#installPath,'/src/index.js.txt');
+            await this.writeSourceFile(`${this.#installPath}/src/`, 'index.js', fileContents);
+
+            fileContents = await this.getTemplateContent(this.#installPath,'/src/db.js.txt');
+            await this.writeSourceFile(`${this.#installPath}/src/`, 'db.js', fileContents);
+
+            fileContents = await this.getTemplateContent(this.#installPath,'/src/app.js.txt');
+            await this.writeSourceFile(`${this.#installPath}/src/`, 'app.js', fileContents);
+
+            fileContents = await this.getTemplateContent(this.#installPath,'/src/AppConfig.js.txt');
+            await this.writeSourceFile(`${this.#installPath}/src/`, 'AppConfig.js', fileContents);
+
+            fileContents = await this.getTemplateContent(this.#installPath,'/bin/www.js.txt');
+            await this.writeSourceFile(`${this.#installPath}/bin/`, 'www.js', fileContents);
+
+            fileContents = await this.getTemplateContent(this.#installPath,'/bin/ZoinxCli.js.txt');
+            await this.writeSourceFile(`${this.#installPath}/bin/`, 'ZoinxCli.js', fileContents);
+
+            if (this.configObj.docker) {
+                fileContents = await this.getTemplateContent(this.#installPath, 'docker-compose.yaml.txt');
+                await this.writeSourceFile(this.#installPath, 'docker-compose.yaml', fileContents);
+            }
+        }
+        catch (e) {
+            Log.error(e);
+        }
+    }
+
+    async #createPlaceholders() {
+        try {
+            let fileContents = await this.getTemplateContent(this.#installPath,'/src/index.empty.txt');
+            await this.writeSourceFile(`${this.#installPath}/src/entities/`, 'index.js', fileContents);
+
+            fileContents = await this.getTemplateContent(this.#installPath,'/src/index.empty.txt');
+            await this.writeSourceFile(`${this.#installPath}/src/features/`, 'index.js', fileContents);
+
+            fileContents = await this.getTemplateContent(this.#installPath,'/src/index.empty.txt');
+            await this.writeSourceFile(`${this.#installPath}/src/integrations/`, 'index.js', fileContents);
+        }
+        catch (e) {
+            Log.error(e);
+        }
+    }
+
+    async #execNpmInstall() {
+        try {
+            let cmd = new ShellCmd(`npm install`);
+            await cmd.run(true);
+            await cmd.getCmdResults();
         }
         catch (e) {
             Log.error(e);

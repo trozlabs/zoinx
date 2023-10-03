@@ -1,0 +1,27 @@
+#!/usr/bin/env node
+
+const _ = require('lodash');
+const AppConfig = require('../src/AppConfig');
+const { Log } = require('zoinx/log');
+const { ZoinxCli } = require('zoinx/cli');
+
+class Zoinx extends ZoinxCli {
+
+    constructor(process) {
+        super(process);
+        if (this.useDB) {
+            exports.db = require('../src/db');
+            AppConfig.initConfig(false, '.env').catch((err) => {
+                Log.error(err);
+            });
+        }
+        else {
+            AppConfig.initConfigNoDB('.env').catch((err) => {
+                Log.error(err);
+            });
+        }
+    }
+
+}
+
+new Zoinx(process);

@@ -1,0 +1,106 @@
+version: "3.9"
+
+name: \$\{COMPOSE_PROJECT_NAME\}
+
+volumes:
+
+  api-db-volume:
+    name: \$\{SERVICE_NAME\}-api-db-volume-\$\{ENV\}
+    driver: local
+
+networks:
+  default:
+    name: \$\{SERVICE_NAME\}-default-network-\$\{ENV\}
+  api-network:
+    name: \$\{SERVICE_NAME\}-network-\$\{ENV\}
+    driver: bridge
+
+services:
+
+  <%= projectName %>-api:
+    profiles: [ api ]
+    platform: linux/amd64
+    container_name: \$\{SERVICE_NAME\}-api-\$\{ENV\}
+    hostname: <%= projectName %>-api
+    build:
+      context: .
+      dockerfile: ./docker/node/Dockerfile
+      # dockerfile: ./docker/node/Dockerfile.debug
+      args:
+        ENV: \$\{ENV\}
+        NODE_ENV: \$\{NODE_ENV\}
+        PORT: \$\{PORT\}
+    restart: unless-stopped
+    # command: [ start-dev ]
+    command: npm run develop
+    networks:
+      - api-network
+    ports:
+      - 3000:3000
+      - 8080:8080
+      - 9222:9222
+      - 9229:9229
+    volumes:
+      - .:/usr/src/app
+      # developing zoinx as a local package, so we need to mount it to the container
+      # - ../zoinx:/usr/src/app/node_modules/zoinx
+    depends_on:
+      - <%= projectName %>-db
+
+  <%= projectName %>-db:
+    profiles: [ database ]
+    image: mongo
+    container_name: \$\{SERVICE_NAME\}-db-\$\{ENV\}
+    hostname: <%= projectName %>-db
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: \$\{MONGO_USER\}
+      MONGO_INITDB_ROOT_PASSWORD: \$\{MONGO_PASS\}
+      MONGO_INITDB_DATABASE: \$\{MONGO_DB_NAME\}
+    networks:
+      - api-network
+    ports:
+      - 27017-27019:27017-27019
+    volumes:
+      - ./docker/mongodb/init.js:ro
+      - api-db-volume:/data/db
+
+  # optional services
+
+  kafka:
+    profiles: [ optional ]
+    container_name: \$\{SERVICE_NAME\}-kafka-\$\{ENV\}
+    hostname: kafka
+    image: moeenz/docker-kafka-kraft:latest
+    platform: linux/amd64
+    restart: always
+    environment:
+      KAFKA_BROKER_ID: \$\{KAFKA_BROKER_ID\}
+      KRAFT_CONTAINER_HOST_NAME: \$\{KRAFT_CONTAINER_HOST_NAME\}
+      KAFKA_ADVERTISED_LISTENERS: \$\{KAFKA_ADVERTISED_LISTENERS\}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: \$\{KAFKA_LISTENER_SECURITY_PROTOCOL_MAP\}
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: \$\{KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR\}
+      KRAFT_CREATE_TOPICS: \$\{KRAFT_CREATE_TOPICS\}
+      KRAFT_PARTITIONS_PER_TOPIC: \$\{KRAFT_PARTITIONS_PER_TOPIC\}
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: \$\{KAFKA_AUTO_CREATE_TOPICS_ENABLE\}
+      KAFKA_DELETE_TOPIC_ENABLE: \$\{KAFKA_DELETE_TOPIC_ENABLE\}
+    ports:
+      - 19092:19092
+      - 9092:9092
+      - 9093:9093
+    volumes:
+      - ./docker/kafka:/etc/kafka/configs
+
+  nifi:
+    profiles: [ optional ]
+    container_name: \$\{SERVICE_NAME\}-nifi-\$\{ENV\}
+    image: apache/nifi
+    environment:
+      NIFI_WEB_HTTP_PORT: \$\{NIFI_WEB_HTTP_PORT\}
+    depends_on:
+      - kafka
+    hostname: nifi
+    ports:
+      - 8181:8181
+    networks:
+      - api-network

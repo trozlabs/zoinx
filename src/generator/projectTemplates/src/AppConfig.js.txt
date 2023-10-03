@@ -1,0 +1,105 @@
+const { Log } = require('zoinx/log');
+const { AppConfig, env } = require('zoinx/util');
+
+module.exports = class FogLightAppConfig extends AppConfig {
+
+    static async initConfig(withAuth, ...files) {
+        try {
+            await this.init(...files);
+            await this.logEnvVars();
+            await this.initTesting();
+        } catch (e) {
+            Log.error(`Must have file path info init application configuration. Try using (__dirname, '.env') ... \$\{e.message\}`);
+        }
+    }
+
+    static async initConfigNoDB(...files) {
+        try {
+            await this.init(...files);
+            await this.logEnvVars();
+            await this.initTesting();
+        } catch (e) {
+            Log.error(`Must have file path info init application configuration. Try using (__dirname, '.env') ... \$\{e.message\}`);
+        }
+    }
+
+    static async initTesting() {
+        const currentEnv = typeof(process.env.NODE_ENV) === 'string' ? process.env.NODE_ENV.toLowerCase() : '';
+        global.testConfigList = {};
+        if (['dev', 'development'].includes(currentEnv)) {
+            global.testingConfig = {
+                consoleOut: true,
+                isTestingEnabled: true,
+                methodTestPassCount: 0,
+                maxMethodTestCount: 500,
+                testResultsMap: {},
+                classExclusionMap: {},
+                functionExclusionMap: {},
+                classOnlyMap: {},
+                functionOnlyMap: {}
+            };
+        }
+        else if (['qa', 'test'].includes(currentEnv)) {
+            global.testingConfig = {
+                consoleOut: true,
+                isTestingEnabled: true,
+                methodTestPassCount: 0,
+                maxMethodTestCount: 500,
+                testResultsMap: {},
+                classExclusionMap: {},
+                functionExclusionMap: {},
+                classOnlyMap: {},
+                functionOnlyMap: {}
+            };
+        }
+        else if (['prod', 'production'].includes(currentEnv)) {
+            global.testingConfig = {
+                consoleOut: false,
+                isTestingEnabled: true,
+                methodTestPassCount: 0,
+                maxMethodTestCount: 500,
+                testResultsMap: {},
+                classExclusionMap: {},
+                functionExclusionMap: {},
+                classOnlyMap: {},
+                functionOnlyMap: {}
+            };
+        }
+    }
+
+    static async enableTesting() {
+        global.testingConfig.consoleOut = true;
+        global.testingConfig.global.isTestingEnabled = true;
+    }
+
+    static async disableTesting() {
+        global.testingConfig.consoleOut = false;
+        global.testingConfig.global.isTestingEnabled = false;
+    }
+
+    static async logEnvVars() {
+        Log.debug(`
+|----------------------------------------------------------------------------
+| ENV:
+|----------------------------------------------------------------------------
+| ENV                           | \$\{env.get('ENV')\}
+| DEBUG                         | \$\{env.boolean('DEBUG')\}
+| SERVICE_NAME                  | \$\{env.string('SERVICE_NAME')\}
+| VERSION                       | \$\{env.string('npm_package_version')\}
+|-----------------------------------------------------------------------------
+| NODE_ENV                      | \$\{env.get('NODE_ENV')\}
+| PORT                          | \$\{env.number('PORT')\}
+| HOST                          | \$\{env.get('HOST')\}
+|-----------------------------------------------------------------------------
+| DATABASE_PROTOCOL             | \$\{env.get('DATABASE_PROTOCOL')\}
+| DATABASE_HOST                 | \$\{env.get('MONGO_HOST')\}
+| DATABASE_PORT                 | \$\{env.get('MONGO_PORT')\}
+| DATABASE_USERNAME             | \$\{env.get('MONGO_USER')\}
+| DATABASE_PASSWORD             | \$\{env.get('MONGO_PASS')\}
+| DATABASE_NAME                 | \$\{env.get('MONGO_DB_NAME')\}
+| DATABASE_OPTIONS              | \$\{env.get('MONGO_OPTIONS')\}
+|-----------------------------------------------------------------------------
+`
+        );
+    }
+}
