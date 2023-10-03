@@ -296,7 +296,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         try {
             let cmd = new ShellCmd(`npm install`);
             await cmd.run(true);
-            await cmd.getCmdResults();
+            console.log(await cmd.getCmdResults());
         }
         catch (e) {
             Log.error(e);
