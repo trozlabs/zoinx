@@ -7,6 +7,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
     #cliPath
     #cliPrompt
     #cliParent
+    #installPath
     #appBannerMsg = 'Thank you for choosing Zoinx.\n' +
         'A core vision for Zoinx is the ability to create API endpoints fully CRUD (Create, Read, Update, Delete) enabled and secure in minutes.\n';
     #questionsAnswers = {
@@ -58,7 +59,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             answerDefault: true,
             answerValue: undefined,
             endWithHR: false,
-            skipToIfFalse: 7
+            skipToIfFalse: 2
         },
         5: {
             question: 'What username would you like to use for your admin account? (ROOT)',
@@ -92,7 +93,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
     }
 
     constructor(cliPrompt, cliParent) {
-        super();
+        super('projectTemplates');
         this.#cliPrompt = cliPrompt;
         this.#cliParent = cliParent;
         this.#cliPath = __dirname;
@@ -115,7 +116,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
 
             if (!_.isUndefined(qaObj.skipToIfFalse) && qaObj.answerValue !== qaObj.answerDefault) {
                 if (!isNaN(qaObj.skipToIfFalse)) {
-                    i = (qaObj.skipToIfFalse-1);
+                    i += qaObj.skipToIfFalse ;
                     await this.#cliParent.horizontalLine();
                     console.log('');
                 }
@@ -131,7 +132,8 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         console.log('Configured installation: ', this.configObj);
         await this.#cliParent.horizontalLine();
 
-        await this.#writeProjectFiles();
+        await this.#initProjectDirectory();
+        await this.createDottedFiles();
 
         await this.#cliParent.exit();
     }
@@ -174,20 +176,42 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         return answer;
     }
 
-    async #writeProjectFiles() {
+    async #initProjectDirectory() {
 
         try {
-            if (this.#cliPath.includes('_npx')) {
-                console.log(`${process.env.PWD}`);
-            }
-            else {
-                console.log(`locally: ${__dirname}`);
+            this.#installPath =  (this.#cliPath.includes('_npx')) ? process.env.PWD : `${__dirname}/tmpFiles`;
+            // console.log(this.#installPath);
+
+            if (!await this.doesDirExist(this.#installPath)) {
+                await this.writeSourceFile(this.#installPath, '.env');
             }
         }
         catch (e) {
             Log.error(e);
         }
 
+    }
+
+    async createDottedFiles(){
+        try {
+            let fileContents = await this.getTemplateContent(this.#installPath,'env.txt');
+            await this.writeSourceFile(this.#installPath, '.env', fileContents);
+
+            fileContents = await this.getTemplateContent(this.#installPath,'editorConfig.txt');
+            await this.writeSourceFile(this.#installPath, '.editorConfig', fileContents);
+
+            fileContents = await this.getTemplateContent(this.#installPath,'gitignore.txt');
+            await this.writeSourceFile(this.#installPath, '.gitignore', fileContents);
+
+            fileContents = await this.getTemplateContent(this.#installPath,'nvmrc.txt');
+            await this.writeSourceFile(this.#installPath, '.nvmrc', fileContents);
+
+            fileContents = await this.getTemplateContent(this.#installPath,'prettierrc.json.txt');
+            await this.writeSourceFile(this.#installPath, '.prettierrc.json', fileContents);
+        }
+        catch (e) {
+            Log.error(e);
+        }
     }
 
 }

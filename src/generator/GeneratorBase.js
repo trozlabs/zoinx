@@ -1,5 +1,5 @@
 const fs = require("fs");
-const {Log} = require("../log");
+const Log = require("../log/Log");
 const _ = require("lodash");
 const path = require("path");
 
@@ -8,25 +8,11 @@ module.exports = class GeneratorBase {
 
     #confObj = {};
     #overwrite = false;
-    #templateSrc = 'codeTemplates';
+    #templateSrc = '';
 
     constructor(templateSrc) {
         this.#templateSrc = templateSrc;
     }
-
-    static async doesDirExist(dirName) {
-        let exists = fs.existsSync(dirName);
-
-        if (exists && this.#overwrite) {
-            exists = false;
-        }
-        else if (exists) {
-            Log.error(`${dirName} already exists.`);
-            Log.error('Set "overwrite": "true" in JSON options to overwrite existing Entity.');
-        }
-
-        return exists;
-    };
 
     get configObj() {
         return this.#confObj;
@@ -35,7 +21,25 @@ module.exports = class GeneratorBase {
         this.#confObj = configObj
     }
 
-    static async  writeSourceFile(dirName, fileName, fileContents = '') {
+    get templateSrc() {
+        return this.#templateSrc;
+    }
+
+    async doesDirExist(dirName) {
+        let exists = fs.existsSync(dirName);
+
+        if (exists && this.#overwrite) {
+            exists = false;
+        }
+        else if (exists) {
+            Log.error(`${dirName} already exists.`);
+            // Log.error('Set "overwrite": "true" to overwrite existing config.');
+        }
+
+        return exists;
+    };
+
+    async writeSourceFile(dirName, fileName, fileContents = '') {
         const fullPath = `${dirName}/${fileName}`;
 
         try {
@@ -44,13 +48,9 @@ module.exports = class GeneratorBase {
                 if (!fs.existsSync(dirName))
                     fs.mkdirSync(dirName, {recursive: true});
 
-                await fs.writeFile(fullPath, fileContents, { flag: 'w+' }, err => {
-                    if (err) {
-                        Log.error(err);
-                    } else {
-                        Log.info(`Successfully wrote file: ${fullPath}`);
-                    }
-                });
+                if (!_.isEmpty(fileContents)) {
+                    await fs.writeFileSync(fullPath, fileContents, {flag: 'w+'});
+                }
             }
         }
         catch (ex) {
@@ -58,8 +58,8 @@ module.exports = class GeneratorBase {
         }
     }
 
-    static async  getTemplateContent(templateName = 'entityIndex') {
-        const templatePath = path.join(__dirname, `./${this.#templateSrc}/${templateName}.txt`),
+    async getTemplateContent(dirName, templateName = '.env') {
+        const templatePath = path.join(__dirname, `./${this.#templateSrc}/${templateName}`),
             name = this.#confObj.name;
 
         let contents = `NO TEMPLATE SOURCE FOUND: ${templatePath}`;
@@ -67,7 +67,7 @@ module.exports = class GeneratorBase {
         try {
             contents = await this.readFileAsync(templatePath);
             let tmpCompiled = _.template(contents);
-            contents = tmpCompiled({}); //{ 'name': name, 'className': className, 'schemaName': schemaName });
+            contents = tmpCompiled({projectName: this.#confObj.projectName}); //{ 'name': name, 'className': className, 'schemaName': schemaName });
 
             // Template strings had to be escaped for the above replacements. These 2 lines removed those escaped strings.
             contents = contents.replaceAll('\\$\\{', '${');
@@ -80,16 +80,16 @@ module.exports = class GeneratorBase {
         return contents;
     }
 
-    static async readFileAsync(path) {
-        return new Promise(function (resolve, reject) {
-            fs.readFile(path, 'utf8', function (error, result) {
-                if (error) {
-                    reject(error);
-                }
-                else {
-                    resolve(result);
-                }
-            });
-        });
+    async readFileAsync(path) {
+        let fileContents;
+
+        try {
+            fileContents = fs.readFileSync(path, {encoding: 'utf8', flag: 'r'});
+        }
+        catch (e) {
+            Log.error(e);
+        }
+
+         return fileContents;
     }
 }
