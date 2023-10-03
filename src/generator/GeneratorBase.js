@@ -18,7 +18,7 @@ module.exports = class GeneratorBase {
         return this.#confObj;
     }
     set configObj(configObj) {
-        this.#confObj = configObj
+        this.#confObj = configObj;
     }
 
     get templateSrc() {
@@ -32,7 +32,7 @@ module.exports = class GeneratorBase {
             exists = false;
         }
         else if (exists) {
-            Log.warn(`${dirName} already exists.`);
+            Log.info(`Writing to ${dirName}.`);
             // Log.error('Set "overwrite": "true" to overwrite existing config.');
         }
 
@@ -66,8 +66,10 @@ module.exports = class GeneratorBase {
 
         try {
             contents = await this.readFileAsync(templatePath);
-            let tmpCompiled = _.template(contents);
-            contents = tmpCompiled({projectName: this.#confObj.projectName}); //{ 'name': name, 'className': className, 'schemaName': schemaName });
+            if (!_.isEmpty(this.#confObj)) {
+                let tmpCompiled = _.template(contents);
+                contents = tmpCompiled(this.#confObj); //{ 'name': name, 'className': className, 'schemaName': schemaName });
+            }
 
             // Template strings had to be escaped for the above replacements. These 2 lines removed those escaped strings.
             contents = contents.replaceAll('\\$\\{', '${');
