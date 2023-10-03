@@ -32,7 +32,7 @@ module.exports = class GeneratorBase {
             exists = false;
         }
         else if (exists) {
-            Log.error(`${dirName} already exists.`);
+            Log.warn(`${dirName} already exists.`);
             // Log.error('Set "overwrite": "true" to overwrite existing config.');
         }
 
