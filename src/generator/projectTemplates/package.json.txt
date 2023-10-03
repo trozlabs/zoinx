@@ -1,0 +1,26 @@
+{
+  "name": "<%= projectName %>",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "description": "<%= projectDesc %>",
+  "main": "index.js",
+  "scripts": {
+    "test": "node ./test",
+    "start": "node bin/www.js",
+    "start-dev": "nodemon bin/www.js",
+    "develop": "npm ci && nodemon --trace-warnings --inspect=0.0.0.0 bin/www.js",
+    "develop-break-on-startup": "npm install && nodemon --trace-warnings --inspect-brk=0.0.0.0 bin/www.js",
+    "format": "prettier --write \"**/*.{js,ts,tsx,json,md}\"",
+    "start-zoinxcli": "node ./bin/ZoinxCli.js",
+    "start-zoinxcli-usedb": "node ./bin/Zoinx.js usedb"
+  },
+  "author": "<%= projectAuthor %>",
+  "license": "ISC",
+  "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "express": "^4.17.3",
+    "lodash": "^4.17.21",
+    "zoinx": "github:trozlabs/zoinx"
+  }
+}

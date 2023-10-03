@@ -17,9 +17,25 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             answerType: 'string',
             answerDefault: 'zoinx',
             answerValue: undefined,
-            endWithHR: true
+            endWithHR: false
         },
         1: {
+            question: 'What is the project/application description? (Zoinx API)',
+            answerProp: 'projectDesc',
+            answerType: 'string',
+            answerDefault: 'Zoinx API',
+            answerValue: undefined,
+            endWithHR: false
+        },
+        2: {
+            question: 'Who is the project author? (Zoinx)',
+            answerProp: 'projectAuthor',
+            answerType: 'string',
+            answerDefault: 'Zoinx',
+            answerValue: undefined,
+            endWithHR: true
+        },
+        3: {
             question: 'Do you want to use this project with a Docker Container? (yes)',
             answerProp: 'docker',
             answerType: 'boolean',
@@ -27,7 +43,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             answerValue: undefined,
             endWithHR: true
         },
-        2: {
+        4: {
             question: 'To make CRUD operations a reality, Zoinx uses Mongo as the primary Data Store.\n' +
                 'There are 2 options to install and use MongoDB:\n' +
                 '1. Install MongoDB locally anywhere you like\n' +
@@ -41,7 +57,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             answerValue: undefined,
             endWithHR: true
         },
-        3: {
+        5: {
             question: 'Security is also a major feature for any application. Currently, Zoinx supports authentication against Azure, and it will handle all token validation and extracting roles.\n' +
                 'Each endpoint can have a role assigned to it. Zoinx will automatically enforce role based security.\n' +
                 'Would you like to enable Role Based security? (yes)',
@@ -51,7 +67,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             answerValue: undefined,
             endWithHR: true
         },
-        4: {
+        6: {
             question: 'Part of the built-in security for Zoinx is the ability to set up a local account that can be used for development or application config changes. The username created will be used as a new role for endpoint security.\n' +
                 'Would you like to make use of local security auth? (yes)',
             answerProp: 'localAccts',
@@ -61,7 +77,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             endWithHR: false,
             skipToIfFalse: 2
         },
-        5: {
+        7: {
             question: 'What username would you like to use for your admin account? (ROOT)',
             answerProp: 'username',
             answerType: 'string',
@@ -69,7 +85,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             answerValue: undefined,
             endWithHR: false
         },
-        6: {
+        8: {
             question: 'What is the password for the admin account? ' +
                 'A local password should be very secure and complex but can be changed at anytime.',
             answerProp: 'password',
@@ -78,7 +94,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             answerValue: undefined,
             endWithHR: true
         },
-        7: {
+        9: {
             question: 'Zoinx offers telemetry where messages are sent to a Kafka data streaming service. Similar to MongoDB, you can install it locally on your own or user a Docker instance.\n' +
                 '1. Install Kafka locally anywhere you like\n' +
                 '2. Use a Docker instance of Kafka\n' +
@@ -133,7 +149,8 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         await this.#cliParent.horizontalLine();
 
         await this.#initProjectDirectory();
-        await this.createDottedFiles();
+        await this.#createDottedFiles();
+        await this.#createProjectFiles();
 
         await this.#cliParent.exit();
     }
@@ -192,7 +209,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
 
     }
 
-    async createDottedFiles(){
+    async #createDottedFiles(){
         try {
             let fileContents = await this.getTemplateContent(this.#installPath,'env.txt');
             await this.writeSourceFile(this.#installPath, '.env', fileContents);
@@ -214,4 +231,13 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         }
     }
 
+    async #createProjectFiles() {
+        try {
+            let fileContents = await this.getTemplateContent(this.#installPath,'package.json.txt');
+            await this.writeSourceFile(this.#installPath, 'package.json', fileContents);
+        }
+        catch (e) {
+            Log.error(e);
+        }
+    }
 }
