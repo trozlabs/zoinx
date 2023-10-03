@@ -9,6 +9,24 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
     #cliPrompt
     #cliParent
     #installPath
+    #dottedFiles = {
+        'env':              { templateFile: 'env.txt',                      destinationFile: '.env',                    subDir: ''},
+        'editorConfig':     { templateFile: 'editorConfig.txt',             destinationFile: '.editorConfig',           subDir: ''},
+        'gitignore':        { templateFile: 'gitignore.txt',                destinationFile: '.gitignore',              subDir: ''},
+        'nvmrc':            { templateFile: 'nvmrc.txt',                    destinationFile: '.nvmrc',                  subDir: ''},
+        'prettierrc':       { templateFile: 'prettierrc.json.txt',          destinationFile: '.prettierrc.json',        subDir: ''},
+        'dockerignore':     { templateFile: 'dockerignore.txt',             destinationFile: '.dockerignore',           subDir: ''}
+    }
+    #projectFiles = {
+        'docker':           { templateFile: 'docker-compose.yaml.txt',      destinationFile: 'docker-compose.yaml',     subDir: ''},
+        'package':          { templateFile: 'package.json.txt',             destinationFile: 'package.json',            subDir: ''},
+        'mainIndex':        { templateFile: 'index.js.txt',                 destinationFile: 'index.js',                subDir: 'src'},
+        'db':               { templateFile: 'db.js.txt',                    destinationFile: 'db.js',                   subDir: 'src'},
+        'app':              { templateFile: 'app.js.txt',                   destinationFile: 'app.js',                  subDir: 'src'},
+        'AppConfig':        { templateFile: 'AppConfig.js.txt',             destinationFile: 'AppConfig.js',            subDir: 'src'},
+        'www':              { templateFile: 'www.js.txt',                   destinationFile: 'www.js',                  subDir: 'bin'},
+        'ZoinxCli':         { templateFile: 'ZoinxCli.js.txt',              destinationFile: 'ZoinxCli.js',             subDir: 'bin'}
+    }
     #appBannerMsg = 'Thank you for choosing Zoinx.\n' +
         'A core vision for Zoinx is the ability to create API endpoints fully CRUD (Create, Read, Update, Delete) enabled and secure in minutes.\n' +
         'This script sets up the basics of a Zoinx project but will still need configuration to be fully functional.\n';
@@ -77,7 +95,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             answerDefault: true,
             answerValue: undefined,
             endWithHR: false,
-            skipToIfFalse: 2
+            skipForwardIfFalse: 2
         },
         7: {
             question: 'What username would you like to use for your admin account? (ROOT)',
@@ -115,6 +133,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         this.#cliPrompt = cliPrompt;
         this.#cliParent = cliParent;
         this.#cliPath = __dirname;
+        // console.log(`This platform is ${process.platform}`); //win32, anything else is *nix
     }
 
     async askQuestions() {
@@ -132,9 +151,9 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             qaObj = this.#questionsAnswers[i];
             qaObj.answerValue = await this.#askQuestion(qaObj);
 
-            if (!_.isUndefined(qaObj.skipToIfFalse) && qaObj.answerValue !== qaObj.answerDefault) {
-                if (!isNaN(qaObj.skipToIfFalse)) {
-                    i += qaObj.skipToIfFalse ;
+            if (!_.isUndefined(qaObj.skipForwardIfFalse) && qaObj.answerValue !== qaObj.answerDefault) {
+                if (!isNaN(qaObj.skipForwardIfFalse)) {
+                    i += qaObj.skipForwardIfFalse ;
                     await this.#cliParent.horizontalLine();
                     console.log('');
                 }
@@ -205,7 +224,6 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
 
         try {
             this.#installPath =  (this.#cliPath.includes('_npx')) ? process.env.PWD : `${__dirname}/tmpFiles`;
-            // console.log(this.#installPath);
 
             if (!await this.doesDirExist(this.#installPath)) {
                 await this.writeSourceFile(this.#installPath, '.env');
@@ -219,24 +237,18 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
 
     async #createDottedFiles(){
         try {
-            let fileContents = await this.getTemplateContent(this.#installPath,'env.txt');
-            await this.writeSourceFile(this.#installPath, '.env', fileContents);
+            let entryKeys = Object.keys(this.#dottedFiles),
+                fileContents, mapRef;
 
-            fileContents = await this.getTemplateContent(this.#installPath,'editorConfig.txt');
-            await this.writeSourceFile(this.#installPath, '.editorConfig', fileContents);
+            for (let i=0; i<entryKeys.length; i++) {
+                mapRef = this.#dottedFiles[entryKeys[i]];
 
-            fileContents = await this.getTemplateContent(this.#installPath,'gitignore.txt');
-            await this.writeSourceFile(this.#installPath, '.gitignore', fileContents);
-
-            fileContents = await this.getTemplateContent(this.#installPath,'nvmrc.txt');
-            await this.writeSourceFile(this.#installPath, '.nvmrc', fileContents);
-
-            fileContents = await this.getTemplateContent(this.#installPath,'prettierrc.json.txt');
-            await this.writeSourceFile(this.#installPath, '.prettierrc.json', fileContents);
-
-            if (this.configObj.docker) {
-                fileContents = await this.getTemplateContent(this.#installPath, 'dockerignore.txt');
-                await this.writeSourceFile(this.#installPath, '.dockerignore', fileContents);
+                // need to see if this can be done with above config.
+                if (entryKeys[i] === 'dockerignore') {
+                    if (!this.configObj.docker) continue;
+                }
+                fileContents = await this.getTemplateContent(this.#installPath, mapRef.templateFile);
+                await this.writeSourceFile(this.#installPath, mapRef.destinationFile, fileContents);
             }
         }
         catch (e) {
@@ -246,30 +258,19 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
 
     async #createProjectFiles() {
         try {
-            let fileContents = await this.getTemplateContent(this.#installPath,'package.json.txt');
-            await this.writeSourceFile(this.#installPath, 'package.json', fileContents);
+            let entryKeys = Object.keys(this.#projectFiles),
+                fileContents, mapRef, tmpSubDir;
 
-            fileContents = await this.getTemplateContent(this.#installPath,'/src/index.js.txt');
-            await this.writeSourceFile(`${this.#installPath}/src/`, 'index.js', fileContents);
+            for (let i=0; i<entryKeys.length; i++) {
+                mapRef = this.#projectFiles[entryKeys[i]];
+                tmpSubDir = mapRef.subDir;
+                if (!_.isEmpty(tmpSubDir)) tmpSubDir = `/${mapRef.subDir}/`;
 
-            fileContents = await this.getTemplateContent(this.#installPath,'/src/db.js.txt');
-            await this.writeSourceFile(`${this.#installPath}/src/`, 'db.js', fileContents);
-
-            fileContents = await this.getTemplateContent(this.#installPath,'/src/app.js.txt');
-            await this.writeSourceFile(`${this.#installPath}/src/`, 'app.js', fileContents);
-
-            fileContents = await this.getTemplateContent(this.#installPath,'/src/AppConfig.js.txt');
-            await this.writeSourceFile(`${this.#installPath}/src/`, 'AppConfig.js', fileContents);
-
-            fileContents = await this.getTemplateContent(this.#installPath,'/bin/www.js.txt');
-            await this.writeSourceFile(`${this.#installPath}/bin/`, 'www.js', fileContents);
-
-            fileContents = await this.getTemplateContent(this.#installPath,'/bin/ZoinxCli.js.txt');
-            await this.writeSourceFile(`${this.#installPath}/bin/`, 'ZoinxCli.js', fileContents);
-
-            if (this.configObj.docker) {
-                fileContents = await this.getTemplateContent(this.#installPath, 'docker-compose.yaml.txt');
-                await this.writeSourceFile(this.#installPath, 'docker-compose.yaml', fileContents);
+                if (entryKeys[i] === 'docker') {
+                    if (!this.configObj.docker) continue;
+                }
+                fileContents = await this.getTemplateContent(this.#installPath, `${tmpSubDir}${mapRef.templateFile}`);
+                await this.writeSourceFile(`${this.#installPath}${tmpSubDir}`, mapRef.destinationFile, fileContents);
             }
         }
         catch (e) {
