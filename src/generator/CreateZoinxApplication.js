@@ -10,7 +10,8 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
     #cliParent
     #installPath
     #appBannerMsg = 'Thank you for choosing Zoinx.\n' +
-        'A core vision for Zoinx is the ability to create API endpoints fully CRUD (Create, Read, Update, Delete) enabled and secure in minutes.\n';
+        'A core vision for Zoinx is the ability to create API endpoints fully CRUD (Create, Read, Update, Delete) enabled and secure in minutes.\n' +
+        'This script sets up the basics of a Zoinx project but will still need configuration to be fully functional.';
     #questionsAnswers = {
         0: {
             question: 'What is the name of your project/application? (zoinx)',
@@ -150,8 +151,8 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
 
         this.configObj = configObj;
 
-        console.log('Configured installation: ', this.configObj);
-        await this.#cliParent.horizontalLine();
+        // console.log('Configured installation: ', this.configObj);
+        // await this.#cliParent.horizontalLine();
 
         await this.#initProjectDirectory();
         await this.#createDottedFiles();
@@ -296,6 +297,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         try {
             let cmd = new ShellCmd(`npm install`);
             await cmd.run(true);
+            console.log('Installing dependencies...');
             console.log(await cmd.getCmdResults());
         }
         catch (e) {
