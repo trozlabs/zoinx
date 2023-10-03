@@ -11,7 +11,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
     #installPath
     #appBannerMsg = 'Thank you for choosing Zoinx.\n' +
         'A core vision for Zoinx is the ability to create API endpoints fully CRUD (Create, Read, Update, Delete) enabled and secure in minutes.\n' +
-        'This script sets up the basics of a Zoinx project but will still need configuration to be fully functional.';
+        'This script sets up the basics of a Zoinx project but will still need configuration to be fully functional.\n';
     #questionsAnswers = {
         0: {
             question: 'What is the name of your project/application? (zoinx)',
