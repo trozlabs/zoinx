@@ -1,0 +1,38 @@
+ARG VARIANT=bookworm
+
+FROM node:bookworm AS builder
+
+# Required to build application
+# RUN npm install --no-audit --no-fund --loglevel=warn
+
+WORKDIR /usr/src/app
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# where available (npm@5+)
+COPY ../package*.json ./
+ARG NODE_ENV=development
+# RUN npm ci --no-audit --no-fund --loglevel=warn
+COPY . .
+# RUN npm start
+
+FROM node:\$\{VARIANT\}
+
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
+
+RUN wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | apt-key add -
+RUN touch /etc/apt/sources.list.d/mongodb-enterprise.list
+RUN echo "deb http://repo.mongodb.com/apt/debian buster/mongodb-enterprise/6.0 main" | tee /etc/apt/sources.list.d/mongodb-enterprise.list
+RUN apt-get update
+RUN apt-get install -y iputils-ping
+RUN apt-get install -y mongocli
+RUN apt-get install -y sudo
+RUN apt-get install -y vim
+RUN apt-get install -y netcat
+RUN apt-get install -y git
+
+WORKDIR /usr/src/app
+COPY --from=builder --chown=node:node /usr/src/app .
+RUN chmod +x ./docker/node/docker-entrypoint.sh
+USER node
+ENV PORT=8080
+ENV NODE_ENV=production
+ENTRYPOINT ["./docker/node/docker-entrypoint.sh"]

@@ -1,0 +1,23 @@
+#!/bin/bash
+
+echo "RUN_APP: $RUN_APP"
+
+echo ""
+echo "################################################"
+echo "Show OS Release"
+echo "################################################"
+
+cat /etc/os-release
+
+hostname -I | awk '{print $1}'
+
+if [ "$RUN_APP" != 0 ]; then
+    # Start the app
+    npm run "$@" &
+fi
+
+# Wait for any process to exit
+wait -n
+
+# Exit with status of process that exited first
+exit $?
