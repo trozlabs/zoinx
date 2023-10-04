@@ -13,7 +13,7 @@ hostname -I | awk '{print $1}'
 
 if [ "$RUN_APP" != 0 ]; then
     # Start the app
-    npm run "$@" &
+    npm run start &
 fi
 
 # Wait for any process to exit
