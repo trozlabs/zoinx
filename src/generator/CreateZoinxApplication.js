@@ -5,6 +5,7 @@ const ShellCmd = require("../shellCmds/CmdExec");
 
 module.exports = class CreateZoinxApplication extends GeneratorBase{
 
+    #platform
     #cliPath
     #cliPrompt
     #cliParent
@@ -61,7 +62,8 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             answerType: 'boolean',
             answerDefault: true,
             answerValue: undefined,
-            endWithHR: true
+            endWithHR: true,
+            skipForwardIfFalse: 6
         },
         4: {
             question: 'To make CRUD operations a reality, Zoinx uses Mongo as the primary Data Store.\n' +
@@ -75,44 +77,47 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             answerType: 'string',
             answerDefault: 'docker',
             answerValue: undefined,
-            endWithHR: true
+            endWithHR: false
         },
         5: {
-            question: 'Security is also a major feature for any application. Currently, Zoinx supports authentication against Azure, and it will handle all token validation and extracting roles.\n' +
-                'Each endpoint can have a role assigned to it. Zoinx will automatically enforce role based security.\n' +
-                'Would you like to enable Role Based security? (yes)',
-            answerProp: 'roleBased',
-            answerType: 'boolean',
-            answerDefault: true,
+            question: 'What admin username would you like to use for your Mongo DB? (doadmin)',
+            answerProp: 'mongoRootUsr',
+            answerType: 'string',
+            answerDefault: 'doadmin',
             answerValue: undefined,
-            endWithHR: true
+            endWithHR: false
         },
         6: {
-            question: 'Part of the built-in security for Zoinx is the ability to set up a local account that can be used for development or application config changes. The username created will be used as a new role for endpoint security.\n' +
-                'Would you like to make use of local security auth? (yes)',
-            answerProp: 'localAccts',
-            answerType: 'boolean',
-            answerDefault: true,
+            question: 'What is the password for the admin account?\n' +
+                '(Must have a minimum eight characters, one uppercase letter, one lowercase letter, one number and one special character.)',
+            answerProp: 'mongoRootPw',
+            answerType: 'string',
+            answerDefault: undefined,
             answerValue: undefined,
             endWithHR: false,
-            skipForwardIfFalse: 2
+            exitOnFail: true,
+            exitOnFailLabel: 'Mongo DB admin password',
+            regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/mg
         },
         7: {
-            question: 'What username would you like to use for your admin account? (ROOT)',
-            answerProp: 'username',
+            question: 'What DB username would you like to use for your Mongo DB? (mainUser)',
+            answerProp: 'mongoUsr',
             answerType: 'string',
-            answerDefault: 'ROOT',
+            answerDefault: 'mainUser',
             answerValue: undefined,
             endWithHR: false
         },
         8: {
-            question: 'What is the password for the admin account? ' +
-                'A local password should be very secure and complex but can be changed at anytime.',
-            answerProp: 'password',
+            question: 'What is the password for the DB account?\n' +
+                '(Must have a minimum eight characters, one uppercase letter, one lowercase letter, one number and one special character.)',
+            answerProp: 'mongoPw',
             answerType: 'string',
-            answerDefault: '----',
+            answerDefault: undefined,
             answerValue: undefined,
-            endWithHR: true
+            endWithHR: true,
+            exitOnFail: true,
+            exitOnFailLabel: 'Mongo DB account password',
+            regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/mg
         },
         9: {
             question: 'Zoinx offers telemetry where messages are sent to a Kafka data streaming service. Similar to MongoDB, you can install it locally on your own or user a Docker instance.\n' +
@@ -125,6 +130,46 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             answerDefault: 'docker',
             answerValue: undefined,
             endWithHR: true
+        },
+        10: {
+            question: 'Security is also a major feature for any application. Currently, Zoinx supports authentication against Azure, and it will handle all token validation and role extraction.\n' +
+                'Zoinx will automatically enforce role based security with each endpoint having a role assigned to it.\n' +
+                'Would you like to enable Role Based security? (yes)',
+            answerProp: 'roleBased',
+            answerType: 'boolean',
+            answerDefault: true,
+            answerValue: undefined,
+            endWithHR: true
+        },
+        11: {
+            question: 'Part of the built-in security for Zoinx is the ability to set up a local account that can be used for development or application config changes. The username created will be used as a new role for endpoint security.\n' +
+                'Would you like to make use of local security auth? (yes)',
+            answerProp: 'localAccts',
+            answerType: 'boolean',
+            answerDefault: true,
+            answerValue: undefined,
+            endWithHR: false,
+            skipForwardIfFalse: 2
+        },
+        12: {
+            question: 'What username would you like to use for your admin account? (ROOT)',
+            answerProp: 'username',
+            answerType: 'string',
+            answerDefault: 'ROOT',
+            answerValue: undefined,
+            endWithHR: false
+        },
+        13: {
+            question: 'What is the password for the admin account?\n' +
+                '(Must have a minimum 10 characters, one uppercase letter, one lowercase letter, one number and one special character.)',
+            answerProp: 'password',
+            answerType: 'string',
+            answerDefault: '----',
+            answerValue: undefined,
+            endWithHR: true,
+            exitOnFail: true,
+            exitOnFailLabel: 'Local admin account password',
+            regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$/mg
         }
     }
 
@@ -133,7 +178,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         this.#cliPrompt = cliPrompt;
         this.#cliParent = cliParent;
         this.#cliPath = __dirname;
-        // console.log(`This platform is ${process.platform}`); //win32, anything else is *nix
+        this.#platform = process.platform;
     }
 
     async askQuestions() {
@@ -158,15 +203,24 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
                     console.log('');
                 }
             }
+
+            if (!_.isUndefined(qaObj.exitOnFail) && _.isUndefined(qaObj.answerValue) && qaObj.exitOnFail) {
+                console.log('___________________________________________________________________');
+                console.log(`Input can not be empty for ${qaObj.exitOnFailLabel}.`);
+                await this.#cliParent.exit();
+            }
+
+            if (!_.isUndefined(qaObj.regex) && !qaObj.regex.test(qaObj.answerValue)) {
+                console.log('___________________________________________________________________');
+                console.log(`Invalid input for ${qaObj.exitOnFailLabel}.`);
+                await this.#cliParent.exit();
+            }
         }
 
         let configObj = {};
         for (const key of qaKeys) {
             configObj[this.#questionsAnswers[key].answerProp] = this.#questionsAnswers[key].answerValue;
         }
-        //temporary placeholders till questions get created.
-        configObj.mongoRootUsr = '';
-        configObj.mongoRootPw = '';
 
         this.configObj = configObj;
 
@@ -177,6 +231,8 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         await this.#createDottedFiles();
         await this.#createProjectFiles();
         await this.#createPlaceholders();
+        await this.#doesDockerExist();
+        await this.#doesMongoshExist();
         await this.#execNpmInstall();
 
         await this.#cliParent.exit();
@@ -305,4 +361,65 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             Log.error(e);
         }
     }
+
+    async #doesDockerExist() {
+        if (!this.configObj?.docker) return;
+
+        try {
+            let found = true,
+                cmd;
+
+            if (this.#platform === 'win32') {
+                cmd = new ShellCmd('docker --version');
+                await cmd.run(true, true);
+                if (await cmd.getCmdResults().includes('is not recognized'))
+                    found = false
+            }
+            else {
+                cmd = new ShellCmd(`which docker`);
+                await cmd.run(true, true);
+                if (_.isEmpty(await cmd.getCmdResults()))
+                    found = false;
+            }
+
+            if (!found) {
+                console.log('Appears Docker is not installed. Docker will need to be installed before running the docker installation.');
+            }
+        }
+        catch (e) {
+            Log.warn('Appears Docker is not installed. Docker will need to be installed before running the docker installation.');
+        }
+    }
+
+
+    async #doesMongoshExist() {
+        if (!this.configObj?.docker) return;
+
+        try {
+            let found = true,
+                cmd;
+
+            if (this.#platform === 'win32') {
+                cmd = new ShellCmd('mongosh --version');
+                await cmd.run(true, true);
+                if (await cmd.getCmdResults().includes('is not recognized'))
+                    found = false
+            }
+            else {
+                cmd = new ShellCmd(`which mongosh`);
+                await cmd.run(true, true);
+                let shit = await cmd.getCmdResults();
+                if (_.isEmpty(shit))
+                    found = false;
+            }
+
+            if (!found) {
+                console.log('Appears Mongo Shell is not installed. Mongo Shell should be installed for best results.');
+            }
+        }
+        catch (e) {
+            Log.warn('Appears Mongo Shell is not installed. Mongo Shell should be installed for best results.');
+        }
+    }
+
 }

@@ -22,7 +22,7 @@ module.exports = class CmdExec {
         this.#cmdOptions = (!_.isEmpty(tmpCmdParts[1])) ? tmpCmdParts.slice()  : []; //
     }
 
-    async run(processResults=false) {
+    async run(processResults=false, suppressException=false) {
         try {
             const { stdout, stderr } = await exec(this.#rawCmd);
             if (!stdout && stderr)
@@ -35,7 +35,8 @@ module.exports = class CmdExec {
             }
         }
         catch (ex) {
-            Log.error(ex);
+            if (!suppressException)
+                Log.error(ex);
         }
     }
 

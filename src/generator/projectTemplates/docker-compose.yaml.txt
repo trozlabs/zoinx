@@ -54,9 +54,9 @@ services:
     hostname: <%= projectName %>-db
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: \$\{MONGO_USER\}
-      MONGO_INITDB_ROOT_PASSWORD: \$\{MONGO_PASS\}
-      MONGO_INITDB_DATABASE: \$\{MONGO_DB_NAME\}
+      MONGO_INITDB_ROOT_USERNAME: \$\{MONGO_INITDB_ROOT_USERNAME\}
+      MONGO_INITDB_ROOT_PASSWORD: \$\{MONGO_INITDB_ROOT_PASSWORD\}
+      MONGO_INITDB_DATABASE: \$\{MONGO_INITDB_DATABASE\}
     networks:
       - api-network
     ports:
