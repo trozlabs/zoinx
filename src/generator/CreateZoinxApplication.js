@@ -42,7 +42,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             endWithHR: false,
             exitOnFail: true,
             exitOnFailLabel: 'Project name; must consist only of lowercase alphanumeric characters, hyphens, and underscores as well as start with a letter or number',
-            regex: /^[a-zA-Z\d-_]{0,127}$/
+            regex: /^[a-z0-9][a-z\d-_]{0,127}$/
         },
         1: {
             question: 'What is the project/application description? (Zoinx API)',
