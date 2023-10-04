@@ -34,11 +34,15 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
     #questionsAnswers = {
         0: {
             question: 'What is the name of your project/application? (zoinx)',
+                // '(Must consist only of lowercase alphanumeric characters, hyphens, and underscores as well as start with a letter or number)',
             answerProp: 'projectName',
             answerType: 'string',
             answerDefault: 'zoinx',
             answerValue: undefined,
-            endWithHR: false
+            endWithHR: false,
+            exitOnFail: true,
+            exitOnFailLabel: 'Project name; must consist only of lowercase alphanumeric characters, hyphens, and underscores as well as start with a letter or number',
+            regex: /^[a-zA-Z\d-_]{0,127}$/
         },
         1: {
             question: 'What is the project/application description? (Zoinx API)',
@@ -97,7 +101,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             endWithHR: false,
             exitOnFail: true,
             exitOnFailLabel: 'Mongo DB admin password',
-            regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/mg
+            regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
         },
         7: {
             question: 'What DB username would you like to use for your Mongo DB? (mainUser)',
@@ -117,7 +121,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             endWithHR: true,
             exitOnFail: true,
             exitOnFailLabel: 'Mongo DB account password',
-            regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/mg
+            regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
         },
         9: {
             question: 'Zoinx offers telemetry where messages are sent to a Kafka data streaming service. Similar to MongoDB, you can install it locally on your own or user a Docker instance.\n' +
@@ -390,7 +394,6 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             Log.warn('Appears Docker is not installed. Docker will need to be installed before running the docker installation.');
         }
     }
-
 
     async #doesMongoshExist() {
         if (!this.configObj?.docker) return;
