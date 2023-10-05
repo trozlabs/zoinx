@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# MongoDB connection information
+MONGO_HOST="localhost"                    # Change this to your MongoDB server host
+MONGO_PORT=27017                          # Change this to your MongoDB server port
+MONGO_ADMIN_USER="<%= mongoRootUsr %>"           # MongoDB admin username
+MONGO_ADMIN_PASS="<%= mongoRootPw %>"       # MongoDB admin password
+NEW_DB_NAME="<%= projectName %>-dev"                # Name of the new database to create
+NEW_DB_USER="<%= mongoUsr %>"               # Name of the new user to create
+NEW_DB_PASS="<%= mongoPw %>"            # Password for the new user
+#JS_FILE="init/loadInitialData.js"         # File to create and insert data into needed collections
+
+# Create the new database and user
+mongosh --host $MONGO_HOST --port $MONGO_PORT -u $MONGO_ADMIN_USER -p $MONGO_ADMIN_PASS <<EOF
+use $NEW_DB_NAME
+db.createUser({
+  user: "$NEW_DB_USER",
+  pwd: "$NEW_DB_PASS",
+  roles: [
+    { role: "readWrite", db: "$NEW_DB_NAME" }
+  ]
+})
+EOF
+
+# Check if the user creation was successful
+if [ $? -eq 0 ]; then
+  echo "MongoDB database '$NEW_DB_NAME' and user '$NEW_DB_USER' created successfully."
+else
+  echo "Error creating MongoDB database or user."
+fi
+
+#mongosh --host $MONGO_HOST --port $MONGO_PORT $NEW_DB_NAME -u $NEW_DB_USER -p $NEW_DB_PASS $JS_FILE

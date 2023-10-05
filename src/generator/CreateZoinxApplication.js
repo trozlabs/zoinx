@@ -36,7 +36,6 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
     #questionsAnswers = {
         0: {
             question: 'What is the name of your project/application? (zoinx)',
-                // '(Must consist only of lowercase alphanumeric characters, hyphens, and underscores as well as start with a letter or number)',
             answerProp: 'projectName',
             answerType: 'string',
             answerDefault: 'zoinx',
