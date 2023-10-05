@@ -41,7 +41,8 @@ services:
       - 9222:9222
       - 9229:9229
     volumes:
-      - .:/usr/src/app
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
       # developing zoinx as a local package, so we need to mount it to the container
       # - ../zoinx:/usr/src/app/node_modules/zoinx
     depends_on:

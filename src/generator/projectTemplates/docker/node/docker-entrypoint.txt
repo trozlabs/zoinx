@@ -13,6 +13,7 @@ hostname -I | awk '{print $1}'
 
 if [ "$RUN_APP" != 0 ]; then
     # Start the app
+    npm install
     npm run start &
 fi
 

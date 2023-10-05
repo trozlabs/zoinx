@@ -30,10 +30,15 @@
   "author": "<%= projectAuthor %>",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "express": "^4.17.3",
     "lodash": "^4.17.21",
     "zoinx": "github:trozlabs/zoinx"
+  },
+  "devDependencies": {
+      "nodemon": "^2.0.22",
+      "prettier": "2.5.1"
   }
 }
