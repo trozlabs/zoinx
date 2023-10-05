@@ -1,6 +1,6 @@
 const { ResponseObj, APIError, Route, Controller, AppCache } = require('../../core');
 const { TestHarness } = require('../../testing');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const {VerifyAuth} = require("../../middleware");
 
 const routeLabel = 'LocalAccts';

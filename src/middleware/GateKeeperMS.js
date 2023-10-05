@@ -9,7 +9,7 @@ const laService = require('../routes/localAccts/service');
 const vaService = require('../routes/validatedAuths/service');
 const rrService = require('../routes/routeRoles/service');
 const {Filter} = require("zoinx/util");
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 const GateKeeperMS = async (req, res, next) => {
 
