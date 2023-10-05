@@ -35,4 +35,4 @@ RUN chmod +x ./docker/mongo/CreateDbAndUsers.sh
 USER node
 ENV PORT=8080
 ENV NODE_ENV=production
-ENTRYPOINT ["/bin/bash", "-c" , "./docker/node/docker-entrypoint.sh"]
+ENTRYPOINT ["./docker/node/docker-entrypoint.sh"]
