@@ -42,7 +42,6 @@ services:
       - 9229:9229
     volumes:
       - ./:/usr/src/app
-      - /usr/src/app/node_modules
       # developing zoinx as a local package, so we need to mount it to the container
       # - ../zoinx:/usr/src/app/node_modules/zoinx
     depends_on:
@@ -63,6 +62,7 @@ services:
     ports:
       - 27017-27019:27017-27019
     volumes:
+      - /usr/src/app/docker/mongo/CreateDbAndUsers.sh
       - api-db-volume:/data/db
 
   # optional services
