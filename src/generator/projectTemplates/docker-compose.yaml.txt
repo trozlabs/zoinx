@@ -25,13 +25,11 @@ services:
     build:
       context: .
       dockerfile: ./docker/node/Dockerfile
-      # dockerfile: ./docker/node/Dockerfile.debug
       args:
         ENV: \$\{ENV\}
         NODE_ENV: \$\{NODE_ENV\}
         PORT: \$\{PORT\}
     restart: unless-stopped
-    # command: [ start-dev ]
     command: npm run develop
     networks:
       - api-network
@@ -42,8 +40,6 @@ services:
       - 9229:9229
     volumes:
       - ./:/usr/src/app
-      # developing zoinx as a local package, so we need to mount it to the container
-      # - ../zoinx:/usr/src/app/node_modules/zoinx
     depends_on:
       - <%= projectName %>-db
 
