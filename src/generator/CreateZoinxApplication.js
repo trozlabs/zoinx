@@ -28,7 +28,8 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         'www':              { templateFile: 'www.js.txt',                   destinationFile: 'www.js',                  subDir: 'bin'},
         'ZoinxCli':         { templateFile: 'ZoinxCli.js.txt',              destinationFile: 'ZoinxCli.js',             subDir: 'bin'},
         'dockerfile':       { templateFile: 'Dockerfile.txt',               destinationFile: 'Dockerfile',              subDir: 'docker/node'},
-        'dockerscript':     { templateFile: 'docker-entrypoint.txt',        destinationFile: 'docker-entrypoint.sh',    subDir: 'docker/node'}
+        'dockerscript':     { templateFile: 'docker-entrypoint.txt',        destinationFile: 'docker-entrypoint.sh',    subDir: 'docker/node'},
+        'mongoscript':      { templateFile: 'CreateDbAndUsers.txt',         destinationFile: 'CreateDbAndUsers.sh',     subDir: 'docker/mongo'}
     }
     #appBannerMsg = 'Thank you for choosing Zoinx.\n' +
         'A core vision for Zoinx is the ability to create API endpoints fully CRUD (Create, Read, Update, Delete) enabled and secure in minutes.\n' +
