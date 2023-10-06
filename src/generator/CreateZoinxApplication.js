@@ -366,6 +366,9 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             let cmd = new ShellCmd(`npm install`);
             await cmd.run(true);
             console.log(await cmd.getCmdResults());
+            await this.#cliParent.horizontalLine();
+            console.log('Zoinx application is installed. Run the below command to spin up the application in Docker.');
+            console.log('npm run docker:build-start');
         }
         catch (e) {
             Log.error(e);
