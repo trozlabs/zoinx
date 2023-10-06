@@ -58,7 +58,7 @@ services:
     ports:
       - 27017-27019:27017-27019
     volumes:
-      - /usr/src/app/docker/mongo/init.js
+      - ./docker/mongo/init.js:/docker-entrypoint-initdb.d/init.js:ro
       - api-db-volume:/data/db
 
   # optional services
