@@ -44,7 +44,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             endWithHR: false,
             exitOnFail: true,
             exitOnFailLabel: 'Project name; must consist only of lowercase alphanumeric characters, hyphens, and underscores as well as start with a letter or number',
-            regex: /^[a-z0-9][a-z\d-_]{0,127}$/
+            regex: /^[a-z0-9][a-z\d-_]{1,127}$/
         },
         1: {
             question: 'What is the project/application description? (Zoinx API)',
@@ -175,7 +175,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             endWithHR: true,
             exitOnFail: true,
             exitOnFailLabel: 'Local admin account password',
-            regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$/mg
+            regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$/
         }
     }
 
@@ -333,6 +333,10 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
                 }
                 fileContents = await this.getTemplateContent(this.#installPath, `${tmpSubDir}${mapRef.templateFile}`);
                 await this.writeSourceFile(`${this.#installPath}${tmpSubDir}`, mapRef.destinationFile, fileContents);
+
+                if (mapRef.destinationFile.endsWith('.sh')) {
+                    await this.chmodFile(`${this.#installPath}${tmpSubDir}/${mapRef.destinationFile}`, '754');
+                }
             }
         }
         catch (e) {

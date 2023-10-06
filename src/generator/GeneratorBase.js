@@ -94,4 +94,20 @@ module.exports = class GeneratorBase {
 
          return fileContents;
     }
+
+    async chmodFile(fileName, perms='754'){
+        let result = true;
+
+        try {
+            if (!_.isEmpty(fileName) && _.isString(fileName)) {
+                fs.chmodSync(fileName, perms);
+            }
+        }
+        catch (e) {
+            result = false;
+            Log.error(e);
+        }
+
+        return result;
+    }
 }

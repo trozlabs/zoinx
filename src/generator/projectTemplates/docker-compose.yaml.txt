@@ -58,7 +58,7 @@ services:
     ports:
       - 27017-27019:27017-27019
     volumes:
-      - /usr/src/app/docker/mongo
+      - /usr/src/app/docker/mongo/init.js
       - api-db-volume:/data/db
 
   # optional services
