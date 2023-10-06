@@ -1,12 +1,4 @@
 
-db.createUser({
-  user: "<%= mongoUsr %>",
-  pwd: "<%= mongoPw %>",
-  roles: [
-    { role: "readWrite", db: "<%= projectName %>-dev" }
-  ]
-})
-
 db.static.picklists.deleteMany({ list_key: 'locales' });
 db.static.picklists.insert([
     {"val": "af","lbl": "Afrikaans", "list_key": "locales", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 1, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
@@ -138,47 +130,52 @@ db.static.picklists.insert([
 
 
 db.static.picklists.deleteMany( { list_key: "form_elements" } );
-db.static.picklists.insert(
-    [
-        {"val":"form", "lbl": "Form", "desc": "Defines an HTML form for user input", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"input", "lbl": "Input", "desc": "Defines an input control with numerous types", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(),  "__v": 0 },
-        {"val":"textarea", "lbl": "Textarea", "desc": "Defines a multiline input control (text area)", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"label", "lbl": "Label", "desc": "Defines a label for an <input> element", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"fieldset", "lbl": "Fieldset", "desc": "Groups related elements in a form", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"legend", "lbl": "Legend", "desc": "Defines a caption for a <fieldset> element", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"select", "lbl": "Select", "desc": "Defines a drop-down list", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"optgroup", "lbl": "Option Group", "desc": "Defines a group of related options in a drop-down list", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"option", "lbl": "Option", "desc": "Defines an option in a drop-down list", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"button", "lbl": "Button", "desc": "Defines a clickable button", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"datalist", "lbl": "Datalist", "desc": "Specifies a list of pre-defined options for input controls", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"output", "lbl": "Output", "desc": "Defines the result of a calculation", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 }
-    ]
-)
+db.static.picklists.insert([
+    {"val":"form", "lbl": "Form", "desc": "Defines an HTML form for user input", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"input", "lbl": "Input", "desc": "Defines an input control with numerous types", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(),  "__v": 0 },
+    {"val":"textarea", "lbl": "Textarea", "desc": "Defines a multiline input control (text area)", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"label", "lbl": "Label", "desc": "Defines a label for an <input> element", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"fieldset", "lbl": "Fieldset", "desc": "Groups related elements in a form", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"legend", "lbl": "Legend", "desc": "Defines a caption for a <fieldset> element", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"select", "lbl": "Select", "desc": "Defines a drop-down list", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"optgroup", "lbl": "Option Group", "desc": "Defines a group of related options in a drop-down list", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"option", "lbl": "Option", "desc": "Defines an option in a drop-down list", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"button", "lbl": "Button", "desc": "Defines a clickable button", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"datalist", "lbl": "Datalist", "desc": "Specifies a list of pre-defined options for input controls", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"output", "lbl": "Output", "desc": "Defines the result of a calculation", "list_key": "form_elements", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 }
+]);
 
 
 db.static.picklists.deleteMany( { list_key: "input_types" } );
-db.static.picklists.insert(
-    [
-        {"val":"button", "lbl": "Button", "desc": "Button control", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"reset", "lbl": "Reset Button", "desc": "Reset button", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"submit", "lbl": "Submit Button", "desc": "Submit button", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"checkbox", "lbl": "Checkbox", "desc": "Checkbox control", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"color", "lbl": "Color", "desc": "Color picker control", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"date", "lbl": "Date", "desc": "Date used for input fields that should contain a date", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"datetime-local", "lbl": "Date & Time", "desc": "Date and Time control, specifies a date and time input field, with no time zone", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"email", "lbl": "Email", "desc": "Email control", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"file", "lbl": "File", "desc": "File control", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"hidden", "lbl": "Hidden", "desc": "Hidden field", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"image", "lbl": "Image", "desc": "Image element", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"month", "lbl": "Image", "desc": "Input for selecting a month and year, i.e. Birthday (month and year)", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"number", "lbl": "Number", "desc": "Number spinner", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"password", "lbl": "Password", "desc": "Password input with masked display", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"radio", "lbl": "Radio", "desc": "Radio button input", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"range", "lbl": "Range", "desc": "Range control can be displayed as a slider", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"tel", "lbl": "Telephone Number", "desc": "Telephone number control", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"text", "lbl": "Text Input", "desc": "Text input control", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"time", "lbl": "Text Input", "desc": "Time input control, if the browser supports it, a time picker pops up when entering the input field", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"url", "lbl": "URL Input", "desc": "URL input control", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
-        {"val":"week", "lbl": "Week Input", "desc": "Week input control, if the browser supports it, a date picker pops up when entering the input field", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 }
-    ]
-)
+db.static.picklists.insert([
+    {"val":"button", "lbl": "Button", "desc": "Button control", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"reset", "lbl": "Reset Button", "desc": "Reset button", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"submit", "lbl": "Submit Button", "desc": "Submit button", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"checkbox", "lbl": "Checkbox", "desc": "Checkbox control", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"color", "lbl": "Color", "desc": "Color picker control", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"date", "lbl": "Date", "desc": "Date used for input fields that should contain a date", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"datetime-local", "lbl": "Date & Time", "desc": "Date and Time control, specifies a date and time input field, with no time zone", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"email", "lbl": "Email", "desc": "Email control", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"file", "lbl": "File", "desc": "File control", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"hidden", "lbl": "Hidden", "desc": "Hidden field", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"image", "lbl": "Image", "desc": "Image element", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"month", "lbl": "Image", "desc": "Input for selecting a month and year, i.e. Birthday (month and year)", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"number", "lbl": "Number", "desc": "Number spinner", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"password", "lbl": "Password", "desc": "Password input with masked display", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"radio", "lbl": "Radio", "desc": "Radio button input", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"range", "lbl": "Range", "desc": "Range control can be displayed as a slider", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"tel", "lbl": "Telephone Number", "desc": "Telephone number control", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"text", "lbl": "Text Input", "desc": "Text input control", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"time", "lbl": "Text Input", "desc": "Time input control, if the browser supports it, a time picker pops up when entering the input field", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"url", "lbl": "URL Input", "desc": "URL input control", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
+    {"val":"week", "lbl": "Week Input", "desc": "Week input control, if the browser supports it, a date picker pops up when entering the input field", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 }
+]);
+
+db = db.getSiblingDB("admin");
+db.createUser({
+  user: "<%= mongoUsr %>",
+  pwd: "<%= mongoPw %>",
+  roles: [
+    { role: "readWrite", db: "<%= projectName %>-dev" }
+  ]
+});

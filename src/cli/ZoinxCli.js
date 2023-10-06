@@ -21,14 +21,14 @@ module.exports = class ZoinxCli extends BaseCli {
         Log.info('ZoinxCli is running.');
         this.addInputs(
             {
-                'create local acct': {fn: 'createLocalAcct', desc: 'Create an account to be used for local only operations.'},
-                'set route roles': {fn: 'setRouteRoles', desc: 'Set route role either per route or for all roles {"route":["all"], "role":"exampleRole"}'},
+                'create local acct': {fn: 'createLocalAcct', desc: 'Create an account to be used for local only operations. Example usage: create local acct --{"username":"yourSpecialUser", "password":"12345678"}'},
+                'set route roles': {fn: 'setRouteRoles', desc: 'Set route role either per route or for all roles. Example usage: set route roles --{"route":["all"], "role":"exampleRole"}'},
                 'stats': {fn: 'sysStats', desc: 'Get Statistic on the underlying OS and resource utilities'},
                 'mongo ping': {fn: 'mongoPing', desc:'Pings Mongo DB'},
                 'mongo stats': {fn: 'mongoStats', desc:'Returns Mongo DB statistics'},
                 'mongo currentops': {fn: 'mongoCurrentops', desc: 'Returns a list of currnet Mongo DB operations'},
                 'shell': {fn: 'execShellCmd', desc: 'Execute shell commands i.e. shell --ls -ltr'},
-                'create': {fn: 'createZoinxElements', desc: 'create --entity|feature\': Creates a new Entity file structure for a simple CRUD route. \n' +
+                'create': {fn: 'createZoinxElements', desc: 'create --entity|feature\': Creates a new Entity or Feature file structure for a simple CRUD route. \n' +
                         '            \'Example usage: create --entity={"name": "newEntity", "className": "NewEntity", "schemaName": "dork.newEntity"} Supported templates: index, route, service, domain, statics, controller'},
                 "playground": {fn: 'playground', desc: 'JS programming examples'}
             }
