@@ -133,19 +133,19 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             exitOnFailLabel: 'Mongo DB account password',
             regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
         },
+        // 9: {
+        //     question: 'Zoinx offers telemetry where messages are sent to a Kafka data streaming service. Similar to MongoDB, you can install it locally on your own or user a Docker instance.\n' +
+        //         '1. Install Kafka locally anywhere you like\n' +
+        //         '2. Use a Docker instance of Kafka\n' +
+        //         'If Docker is selected, the installation process will set up needed Docker config and set initial build to run. This version will be a Kraft version removing the need for Zookeeper.\n' +
+        //         'How would you prefer to run Kafka with docker or locally? (docker)',
+        //     answerProp: 'kafka',
+        //     answerType: 'string',
+        //     answerDefault: 'docker',
+        //     answerValue: undefined,
+        //     endWithHR: true
+        // },
         9: {
-            question: 'Zoinx offers telemetry where messages are sent to a Kafka data streaming service. Similar to MongoDB, you can install it locally on your own or user a Docker instance.\n' +
-                '1. Install Kafka locally anywhere you like\n' +
-                '2. Use a Docker instance of Kafka\n' +
-                'If Docker is selected, the installation process will set up needed Docker config and set initial build to run. This version will be a Kraft version removing the need for Zookeeper.\n' +
-                'How would you prefer to run Kafka with docker or locally? (docker)',
-            answerProp: 'kafka',
-            answerType: 'string',
-            answerDefault: 'docker',
-            answerValue: undefined,
-            endWithHR: true
-        },
-        10: {
             question: 'Security is also a major feature for any application. Currently, Zoinx supports authentication against Azure, and it will handle all token validation and role extraction.\n' +
                 'Zoinx will automatically enforce role based security with each endpoint having a role assigned to it.\n' +
                 'Would you like to enable Role Based security? (yes)',
@@ -155,7 +155,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             answerValue: undefined,
             endWithHR: true
         },
-        11: {
+        10: {
             question: 'Part of the built-in security for Zoinx is the ability to set up a local account that can be used for development or application config changes. The username created will be used as a new role for endpoint security.\n' +
                 'Would you like to make use of local security auth? (yes)',
             answerProp: 'localAccts',
@@ -165,7 +165,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             endWithHR: false,
             skipForwardIfFalse: 2
         },
-        12: {
+        11: {
             question: 'What username would you like to use for your admin account? (ROOT)',
             answerProp: 'username',
             answerType: 'string',
@@ -174,7 +174,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             endWithHR: false,
             escDblQuotes: true
         },
-        13: {
+        12: {
             question: 'What is the password for the admin account?\n' +
                 '-> Must have a minimum of 10 characters\n' +
                 '-> One uppercase letter\n' +

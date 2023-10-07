@@ -113,8 +113,8 @@ async function addRoutes(app, routes = {}, srcPath) {
                 }
             }, routes);
 
-            addMissingRouteRoles(routes);
-            processProjectInit();
+            await addMissingRouteRoles(routes);
+            await processProjectInit();
 
             // Add Middleware functions here.
             app.use(error);
