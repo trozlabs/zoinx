@@ -184,7 +184,7 @@ async function addMissingRouteRoles(routes) {
 }
 
 async function processProjectInit() {
-    Log.warn(`About to process project init stuff. ${process.env.PWD}`);
+    
     try {
         let projectInitStr = fs.readFileSync(`${process.env.PWD}/docker/node/projectInit.json`, { encoding: 'utf8' }),
             projectInit, routeRolesService, localAcctsService;
