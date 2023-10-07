@@ -56,4 +56,39 @@ module.exports = TestHarness(class RouteRolesService extends Service {
         return rtn
     }
 
+    async setRouteRoles(routes=[], role='') {
+
+        try {
+            let filterArry = [
+                    {field: 'route_path', term: routes, oper: 'in'}
+                ],
+                filters = new Filter(filterArry),
+                filterObject = {filters: []},
+                roles;
+
+            if (routes[0].toLowerCase() !== 'all') {
+                filterObject = {filters: filters.getFilters()};
+            }
+
+            let existingRouteRoles = await this.find(filterObject);
+
+            for (let i=0; i<existingRouteRoles.length; i++) {
+                roles = existingRouteRoles[i].get('role_names');
+                if (!roles.includes(role)) {
+                    roles.push(role);
+                    existingRouteRoles[i].set('role_names', roles);
+
+                    let rtn = await this.save(existingRouteRoles[i].get('id'), existingRouteRoles[i], {user: 'SYSTEM'});
+                    Log.info(`Updated roles for: ${existingRouteRoles[i].get('route_path')}`);
+                }
+                else {
+                    Log.warn(`Role ${role} already exists for: ${existingRouteRoles[i].get('route_path')}`);
+                }
+            }
+        }
+        catch (e) {
+            Log.error(e);
+        }
+    }
+
 });

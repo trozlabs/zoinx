@@ -8,11 +8,10 @@ const v8 = require("v8");
 const ShellCmd = require("../shellCmds/CmdExec");
 const CreateEntityOrFeature = require("../generator/CreateEntityOrFeature");
 const Playground = require('../playground/Playground');
-const LocalAccountService = require('../routes/localAccts/service');
+const laService = require('../routes/localAccts/service');
 const bcrypt = require("bcryptjs");
 const rrService = require("../routes/routeRoles/service");
 const {Filter} = require("zoinx/util");
-const CreateZoinxApplication = require('../generator/CreateZoinxApplication');
 
 module.exports = class ZoinxCli extends BaseCli {
 
@@ -73,7 +72,7 @@ module.exports = class ZoinxCli extends BaseCli {
 
     async createLocalAcct(inputStr, _interface) {
         let cmdSplit = inputStr.trim().split('--'),
-            inputJson, laService, createResult;
+            inputJson;
 
         try {
             inputJson= (cmdSplit.length > 1 && typeof(cmdSplit[1]) === 'string') ? JSON.parse(cmdSplit[1]) : undefined;
@@ -81,23 +80,19 @@ module.exports = class ZoinxCli extends BaseCli {
                 Log.info('Must provide username and password to create a local account. i.e. {"username": "your user name", "password": "your special password"}');
             }
             else {
-                const salt = await bcrypt.genSalt(10);
-                inputJson.password = await bcrypt.hash(inputJson.password, salt);
-
-                laService = new LocalAccountService();
-                createResult = await laService.save(undefined, inputJson, {user: 'SYSTEM'});
-                Log.info(createResult);
-                _interface.prompt();
+                let LocalAccountService = new laService();
+                await LocalAccountService.createAcct(inputJson.username, inputJson.password);
             }
         }
         catch (e) {
             Log.error(e);
         }
+        _interface.prompt();
     }
 
     async setRouteRoles(inputStr, _interface) {
         let cmdSplit = inputStr.trim().split('--'),
-            inputJson, laService, createResult;
+            inputJson;
 
         try {
             inputJson = (cmdSplit.length > 1 && typeof (cmdSplit[1]) === 'string') ? JSON.parse(cmdSplit[1]) : undefined;
@@ -108,40 +103,14 @@ module.exports = class ZoinxCli extends BaseCli {
                 Log.warn('CLI must be connected to DB for this process. Us the "with DB" option when starting this CLI.');
             }
             else {
-                // Log.info(inputJson.route);
-                // Log.info(inputJson.role);
-                let filterArry = [
-                        {field: 'route_path', term: inputJson.route, oper: 'in'}
-                    ],
-                    filters = new Filter(filterArry),
-                    filterObject = {filters: []},
-                    roles;
-
-                if (inputJson.route[0].toLowerCase() !== 'all') {
-                    filterObject = {filters: filters.getFilters()};
-                }
-
-                let routeRolesService = new rrService(),
-                    existingRouteRoles = await routeRolesService.find(filterObject);
-
-                for (let i=0; i<existingRouteRoles.length; i++) {
-                    roles = existingRouteRoles[i].get('role_names');
-                    if (!roles.includes(inputJson.role)) {
-                        roles.push(inputJson.role);
-                        existingRouteRoles[i].set('role_names', roles);
-
-                        let rtn = await routeRolesService.save(existingRouteRoles[i].get('id'), existingRouteRoles[i], {user: 'SYSTEM'});
-                        Log.info(`Updated roles for: ${existingRouteRoles[i].get('route_path')}`);
-                    }
-                    else {
-                        Log.warn(`Role ${inputJson.role} already exists for: ${existingRouteRoles[i].get('route_path')}`);
-                    }
-                }
+                let routeRolesService = new rrService();
+                await routeRolesService.setRouteRoles(inputJson.route, inputJson.role);
             }
         }
         catch (e) {
             Log.error(e);
         }
+        _interface.prompt();
     }
 
     async mongoPing(inputStr, _interface) {

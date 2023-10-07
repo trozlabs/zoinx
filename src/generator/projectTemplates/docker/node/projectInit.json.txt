@@ -1,0 +1,4 @@
+{
+    "routeRole": {"route":["all"], "role":"<%= username %>"},
+    "localAcct": {"username": "<%= username %>", "password": "<%= password %>"}
+}

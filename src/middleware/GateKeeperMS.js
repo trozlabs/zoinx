@@ -86,8 +86,8 @@ async function assignVerifiedRoles(req, parsedToken, basicAuthResult) {
             req.verifiedAuth.preferred_username = parsedToken.payload.preferred_username;
             req.verifiedAuth.user_agent = req.get('user-agent') ?? 'MISSING';
             req.verifiedAuth.ip_address = req.socket.remoteAddress;
-            if (!_.isEmpty(process.env.AZURE_TEST_ROLES)) {
-                req.verifiedAuth.roles = JSON.parse(process.env.AZURE_TEST_ROLES);
+            if (!_.isEmpty(process.env.RBA_TEST_ROLES)) {
+                req.verifiedAuth.roles = JSON.parse(process.env.RBA_TEST_ROLES);
             } else {
                 req.verifiedAuth.roles = parsedToken.payload.roles;
             }

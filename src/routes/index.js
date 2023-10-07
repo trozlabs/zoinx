@@ -10,6 +10,7 @@ const express = require('express');
 const error = require('./RouteError');
 const _ = require('lodash');
 const rrService = require('./routeRoles/service');
+const laService = require('./localAccts/service');
 
 // require('express-async-errors');
 
@@ -113,6 +114,7 @@ async function addRoutes(app, routes = {}, srcPath) {
             }, routes);
 
             addMissingRouteRoles(routes);
+            processProjectInit();
 
             // Add Middleware functions here.
             app.use(error);
@@ -179,6 +181,41 @@ async function addMissingRouteRoles(routes) {
         Log.warn(e.message);
     }
 
+}
+
+async function processProjectInit() {
+    Log.warn(`About to process project init stuff. ${process.env.PWD}`);
+    try {
+        let projectInitStr = fs.readFileSync(`${process.env.PWD}/docker/node/projectInit.json`, { encoding: 'utf8' }),
+            projectInit, routeRolesService, localAcctsService;
+
+        projectInit = JSON.parse(projectInitStr);
+
+        if (projectInit.localAcct) {
+            Log.info('Creating local account from project config.');
+            localAcctsService = new laService();
+            await localAcctsService.createAcct(projectInit.localAcct.username, projectInit.localAcct.password);
+        }
+
+        if (projectInit.routeRole) {
+            Log.info('Assigning role to routes defined in project config.');
+            routeRolesService = new rrService();
+            await routeRolesService.setRouteRoles(projectInit.routeRole.route, projectInit.routeRole.role);
+        }
+
+        fs.unlink(`${process.env.PWD}/docker/node/projectInit.json`, function(err) {
+            if(err && err.code === 'ENOENT') {
+                console.info("Project config file doesn't exist..");
+            } else if (err) {
+                console.error("Error occurred while trying to remove proejct config file");
+            }
+        });
+
+        console.log();
+    }
+    catch (e) {
+        //Log.error(e);
+    }
 }
 
 exports.add = addRoutes;
