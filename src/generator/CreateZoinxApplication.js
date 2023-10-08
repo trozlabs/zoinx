@@ -32,6 +32,9 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         'projectInit':      { templateFile: 'projectInit.json.txt',         destinationFile: 'projectInit.json',        subDir: 'docker/node'},
         'mongoscript':      { templateFile: 'init.js.txt',                  destinationFile: 'init.js',                 subDir: 'docker/mongo'}
     }
+    #projectDirectories = {
+        'picklists':        { templateDir: 'src/entities/picklists',        destinationDir: 'src/entities/picklists' }
+    }
     #appBannerMsg = 'Thank you for choosing Zoinx.\n' +
         'A core vision for Zoinx is the ability to create API endpoints fully CRUD (Create, Read, Update, Delete) enabled and secure in minutes.\n' +
         'This script sets up the basics of a Zoinx project but will still need configuration to be fully functional.\n';
@@ -254,9 +257,10 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         await this.#createDottedFiles();
         await this.#createProjectFiles();
         await this.#createPlaceholders();
+        await this.#createProjectDirectories();
         await this.#doesDockerExist();
         // await this.#doesMongoshExist();
-        await this.#execNpmInstall();
+        // await this.#execNpmInstall();
 
         await this.#cliParent.exit();
     }
@@ -371,6 +375,21 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
 
             fileContents = await this.getTemplateContent(this.#installPath,'/src/index.empty.txt');
             await this.writeSourceFile(`${this.#installPath}/src/integrations/`, 'index.js', fileContents);
+        }
+        catch (e) {
+            Log.error(e);
+        }
+    }
+
+    async #createProjectDirectories() {
+        try {
+            let entryKeys = Object.keys(this.#projectDirectories),
+                mapRef;
+
+            for (let i=0; i<entryKeys.length; i++) {
+                mapRef = this.#projectDirectories[entryKeys[i]];
+                await this.copyDirectory(`${__dirname}/${this.templateSrc}/${mapRef.templateDir}`, `${this.#installPath}/${mapRef.destinationDir}`);
+            }
         }
         catch (e) {
             Log.error(e);

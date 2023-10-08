@@ -110,4 +110,20 @@ module.exports = class GeneratorBase {
 
         return result;
     }
+
+    async copyDirectory(source, destination, recursive=true) {
+        let result = true;
+
+        try {
+            if (!_.isEmpty(source) && _.isString(source) && !_.isEmpty(destination) && _.isString(destination)) {
+                fs.cpSync(source, destination, {recursive: recursive});
+            }
+        }
+        catch (e) {
+            result = false;
+            Log.error(e);
+        }
+
+        return result;
+    }
 }
