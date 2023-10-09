@@ -1,4 +1,15 @@
 
+db = db.getSiblingDB("admin");
+db.createUser({
+  user: "<%= mongoUsr %>",
+  pwd: "<%= mongoPw %>",
+  roles: [
+    { role: "readWrite", db: "<%= projectName %>-dev" }
+  ]
+});
+
+db = db.getSiblingDB("<%= projectName %>-dev");
+
 db.static.picklists.deleteMany({ list_key: 'locales' });
 db.static.picklists.insert([
     {"val": "af","lbl": "Afrikaans", "list_key": "locales", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 1, "updated_at": new Date(), "created_at": new Date(), "__v": 0 },
@@ -171,11 +182,3 @@ db.static.picklists.insert([
     {"val":"week", "lbl": "Week Input", "desc": "Week input control, if the browser supports it, a date picker pops up when entering the input field", "list_key": "input_types", "enabled": true, "locale": "en", "updated_user": "SYSTEM", "created_user": "SYSTEM",  "sort_order": 0, "updated_at": new Date(), "created_at": new Date(), "__v": 0 }
 ]);
 
-db = db.getSiblingDB("admin");
-db.createUser({
-  user: "<%= mongoUsr %>",
-  pwd: "<%= mongoPw %>",
-  roles: [
-    { role: "readWrite", db: "<%= projectName %>-dev" }
-  ]
-});
