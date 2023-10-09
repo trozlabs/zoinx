@@ -30,7 +30,7 @@ async function runit(workerData) {
         await kafkaClient.sendMessage({
             key: randomUUID(),
             value: telemetryMsg
-        }, 'Telemetry');
+        }, process.env.TELEMETRY_TOPIC_NAME);
         kafkaClient.disconnectProducer();
     }
     catch (e) {
