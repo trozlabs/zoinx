@@ -148,18 +148,20 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         //     answerValue: undefined,
         //     endWithHR: true
         // },
+        // 9: {
+        //     question: 'Security is also a major feature for any application. Currently, Zoinx supports authentication against Azure, and it will handle all token validation and role extraction.\n' +
+        //         'Zoinx will automatically enforce role based security with each endpoint having a role assigned to it.\n' +
+        //         'Would you like to enable Role Based security? (yes)',
+        //     answerProp: 'roleBased',
+        //     answerType: 'boolean',
+        //     answerDefault: true,
+        //     answerValue: undefined,
+        //     endWithHR: true
+        // },
         9: {
             question: 'Security is also a major feature for any application. Currently, Zoinx supports authentication against Azure, and it will handle all token validation and role extraction.\n' +
                 'Zoinx will automatically enforce role based security with each endpoint having a role assigned to it.\n' +
-                'Would you like to enable Role Based security? (yes)',
-            answerProp: 'roleBased',
-            answerType: 'boolean',
-            answerDefault: true,
-            answerValue: undefined,
-            endWithHR: true
-        },
-        10: {
-            question: 'Part of the built-in security for Zoinx is the ability to set up a local account that can be used for development or application config changes. The username created will be used as a new role for endpoint security.\n' +
+                'Part of the built-in security for Zoinx is the ability to set up a local account that can be used for development or application config changes. The username created will be used as a new role for endpoint security.\n' +
                 'Would you like to make use of local security auth? (yes)',
             answerProp: 'localAccts',
             answerType: 'boolean',
@@ -168,7 +170,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             endWithHR: false,
             skipForwardIfFalse: 2
         },
-        11: {
+        10: {
             question: 'What username would you like to use for your admin account? (ROOT)',
             answerProp: 'username',
             answerType: 'string',
@@ -177,7 +179,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             endWithHR: false,
             escDblQuotes: true
         },
-        12: {
+        11: {
             question: 'What is the password for the admin account?\n' +
                 '-> Must have a minimum of 10 characters\n' +
                 '-> One uppercase letter\n' +

@@ -3,7 +3,7 @@ const routes = require('zoinx/routes');
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
-// const { GateKeeperMS } = require('zoinx/middle');
+const { GateKeeperMS } = require('zoinx/middle');
 
 
 /**
@@ -38,7 +38,7 @@ app.use(express.json());
 app.use(express.text());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-// app.use(GateKeeperMS);
+app.use(GateKeeperMS);
 
 routes.mount(app, `\$\{__dirname\}`);
 
