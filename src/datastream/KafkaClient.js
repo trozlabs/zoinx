@@ -15,7 +15,7 @@ module.exports = class KafkaClient {
     #initialRetryTime = 10000;
     #retries = 3;
 
-    constructor(clientId = 'FogLight', brokers = ['localhost:9092'], env='dev',  logOptions = false) {
+    constructor(clientId = 'ZoinxClient', brokers = ['localhost:9092'], env='dev',  logOptions = false) {
         if (!_.isEmpty(clientId) && _.isString(clientId)) this.#clientId = clientId;
         if (!_.isEmpty(brokers) && _.isArray(brokers)) this.#brokers = brokers;
         if (_.isEmpty(env)) env = 'dev';

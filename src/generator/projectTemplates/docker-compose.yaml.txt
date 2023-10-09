@@ -86,6 +86,8 @@ services:
       - 9093:9093
     volumes:
       - ./docker/kafka:/etc/kafka/configs
+    networks:
+      - api-network
 
   nifi:
     profiles: [ optional ]

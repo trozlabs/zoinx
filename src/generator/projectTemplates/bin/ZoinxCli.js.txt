@@ -4,6 +4,7 @@ const _ = require('lodash');
 const AppConfig = require('../src/AppConfig');
 const { Log } = require('zoinx/log');
 const { ZoinxCli } = require('zoinx/cli');
+const { KafkaClient } = require('zoinx/datastream');
 
 class Zoinx extends ZoinxCli {
 
@@ -19,6 +20,33 @@ class Zoinx extends ZoinxCli {
             AppConfig.initConfigNoDB('.env').catch((err) => {
                 Log.error(err);
             });
+        }
+        this.addInputs(
+            {
+                'run kafka consumer': {fn: 'runKafkaConsumer', desc: 'Run a simple Kafka consumer for a specified topic'},
+                'rkc': {fn: 'runKafkaConsumer', desc: 'Run a simple Kafka consumer for a specified topic'}
+            }
+        )
+    }
+
+    async runKafkaConsumer(inputStr, _interface){
+        let inputParts = inputStr.trim().split('--'),
+            topic;
+
+        try {
+            if (!_.isEmpty(inputParts[1])) topic = inputParts[1];
+
+            if (!_.isEmpty(topic)) {
+                let kafkaClient = new KafkaClient('Telemetry', [AppConfig.get('TELEMETRY_MESSAGE_SERVERS')]);
+                kafkaClient.setClientConfig('TELEMETRY_KAFKA');
+                await kafkaClient.readMessage(topic);
+            }
+            else {
+                Log.warn('No topic supplied to create a consumer for.');
+            }
+        }
+        catch (e) {
+            Log.error(e);
         }
     }
 
