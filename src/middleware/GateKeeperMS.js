@@ -43,7 +43,7 @@ const GateKeeperMS = async (req, res, next) => {
                 next(new APIError(401, `Invalid authorization header: ${authHeader}`, `Invalid authorization: ${req.url}`));
             }
         }
-        else if (_.isEmpty(parsedToken) && authHeader.includes('Basic')) {
+        else if (_.isEmpty(parsedToken) && authHeader?.includes('Basic')) {
             let basicAuthResult = await isBasicAuthHeaderValid(authHeader);
             if (basicAuthResult.valid) {
                 Log.info('Successful basic auth login');
