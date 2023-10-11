@@ -11,7 +11,7 @@ volumes:
 networks:
   default:
     name: \$\{SERVICE_NAME\}-default-network-\$\{ENV\}
-  zoinx-network:
+  <%= projectName %>-network:
     name: \$\{SERVICE_NAME\}-network-\$\{ENV\}
     driver: bridge
 
@@ -32,7 +32,7 @@ services:
     restart: unless-stopped
     command: npm run develop
     networks:
-      - zoinx-network
+      - <%= projectName %>-network
     ports:
       - 3000:3000
       - 8080:8080
@@ -54,7 +54,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: \$\{MONGO_INITDB_ROOT_PASSWORD\}
       MONGO_INITDB_DATABASE: \$\{MONGO_INITDB_DATABASE\}
     networks:
-      - zoinx-network
+      - <%= projectName %>-network
     ports:
       - 27017-27019:27017-27019
     volumes:
@@ -73,21 +73,25 @@ services:
     environment:
       KAFKA_BROKER_ID: \$\{KAFKA_BROKER_ID\}
       KRAFT_ADVERTISED_HOST_NAME: \$\{KRAFT_CONTAINER_HOST_NAME\}
+      KAFKA_ADVERTISED_HOST_NAME: \$\{KAFKA_ADVERTISED_HOST_NAME\}
       KAFKA_ADVERTISED_LISTENERS: \$\{KAFKA_ADVERTISED_LISTENERS\}
+      KAFKA_LISTENERS: \$\{KAFKA_LISTENERS\}
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: \$\{KAFKA_LISTENER_SECURITY_PROTOCOL_MAP\}
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: \$\{KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR\}
-      KRAFT_CREATE_TOPICS: \$\{KRAFT_CREATE_TOPICS\}
-      KRAFT_PARTITIONS_PER_TOPIC: \$\{KRAFT_PARTITIONS_PER_TOPIC\}
+      KRAFT_CREATE_TOPICS: \$\{KAFKA_CREATE_TOPICS\}
+      KRAFT_PARTITIONS_PER_TOPIC: \$\{KAFKA_PARTITIONS_PER_TOPIC\}
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: \$\{KAFKA_AUTO_CREATE_TOPICS_ENABLE\}
       KAFKA_DELETE_TOPIC_ENABLE: \$\{KAFKA_DELETE_TOPIC_ENABLE\}
+      KAFKA_INTER_BROKER_LISTENER_NAME: \$\{KAFKA_INTER_BROKER_LISTENER_NAME\}
     ports:
-      - 19092:19092
+      - 29092:29092
       - 9092:9092
       - 9093:9093
     volumes:
       - ./docker/kafka:/etc/kafka/configs
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - zoinx-network
+      - <%= projectName %>-network
 
   nifi:
     profiles: [ optional ]
@@ -101,4 +105,4 @@ services:
     ports:
       - 8181:8181
     networks:
-      - zoinx-network
+      - <%= projectName %>-network

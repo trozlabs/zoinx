@@ -35,7 +35,7 @@ module.exports = class KafkaClient {
         }
     }
 
-    async setClientConfig(varNamePrefix='DEFAULT_KAFKA', env='dev', ssl=false) {
+    async setClientConfig(varNamePrefix='DEFAULT_KAFKA', env='dev', ssl=true) {
 
         if (!_.isEmpty(varNamePrefix)) {
             try {
