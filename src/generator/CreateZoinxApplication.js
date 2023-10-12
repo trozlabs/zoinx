@@ -12,6 +12,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
     #installPath
     #dottedFiles = {
         'env':              { templateFile: 'env.txt',                      destinationFile: '.env',                    subDir: ''},
+        'env.local':        { templateFile: 'env.local.txt',                destinationFile: '.env.local',              subDir: ''},
         'editorConfig':     { templateFile: 'editorConfig.txt',             destinationFile: '.editorConfig',           subDir: ''},
         'gitignore':        { templateFile: 'gitignore.txt',                destinationFile: '.gitignore',              subDir: ''},
         'nvmrc':            { templateFile: 'nvmrc.txt',                    destinationFile: '.nvmrc',                  subDir: ''},
