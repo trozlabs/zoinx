@@ -17,7 +17,6 @@ const { GateKeeperMS } = require('zoinx/middle');
  * !!!!!!!
  */
 AppConfig.initConfig(
-    false,
     // '.env',          // default file loaded
     // '.env.test',
     // '.env.dev',

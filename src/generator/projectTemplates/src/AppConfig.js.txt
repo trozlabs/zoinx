@@ -3,7 +3,7 @@ const { AppConfig, env } = require('zoinx/util');
 
 module.exports = class ZoinxAppConfig extends AppConfig {
 
-    static async initConfig(withAuth, ...files) {
+    static async initConfig(...files) {
         try {
             await this.init(...files);
             await this.logEnvVars();
