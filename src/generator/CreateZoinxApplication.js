@@ -211,14 +211,17 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
 
     async askQuestions() {
 
+        console.log('');
+        console.log(process.versions.node);
+        console.log(process.version);
+
+        await this.#checkNodeVersion();
 
         const bannerSplit = this.#appBannerMsg.split('\n');
         for (const line of bannerSplit) {
             console.log(line);
         }
         console.log('');
-
-        await this.#checkNodeVersion();
 
         let qaKeys = Object.keys(this.#questionsAnswers),
             key, qaObj;
@@ -312,16 +315,17 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
     }
 
     async #checkNodeVersion() {
-        console.log('==============================================================================');
         try {
             const version = process.versions.node;
             const versionNumb = parseInt(version.split('.')[0]);
             if (versionNumb < this.#minNodeVersion) {
+                console.log('');
+                console.log('==============================================================================');
                 console.log(`Minimum NodeJs version for Zoinx is ${this.#minNodeVersion}.`);
+                console.log(`Please upgrade or change to version ${this.#minNodeVersion} to install Zoinx.`);
+                console.log('==============================================================================');
                 await this.#cliParent.exit();
             }
-            console.log(`current version: ${versionNumb}`);
-            console.log(`min version: ${this.#minNodeVersion}`);
         }
         catch (e) {
             Log.error(e);
