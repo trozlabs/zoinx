@@ -212,7 +212,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
     async askQuestions() {
 
         await this.#checkNodeVersion();
-        
+
         const bannerSplit = this.#appBannerMsg.split('\n');
         for (const line of bannerSplit) {
             console.log(line);
@@ -318,6 +318,8 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
                 console.log(`Minimum NodeJs version for Zoinx is ${this.#minNodeVersion}.`);
                 await this.#cliParent.exit();
             }
+            console.log(`current version: ${versionNumb}`);
+            console.log(`min version: ${this.#minNodeVersion}`);
         }
         catch (e) {
             Log.error(e);
