@@ -211,13 +211,14 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
 
     async askQuestions() {
 
-        await this.#checkNodeVersion();
 
         const bannerSplit = this.#appBannerMsg.split('\n');
         for (const line of bannerSplit) {
             console.log(line);
         }
         console.log('');
+
+        await this.#checkNodeVersion();
 
         let qaKeys = Object.keys(this.#questionsAnswers),
             key, qaObj;
@@ -311,6 +312,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
     }
 
     async #checkNodeVersion() {
+        console.log('==============================================================================');
         try {
             const version = process.versions.node;
             const versionNumb = parseInt(version.split('.')[0]);
