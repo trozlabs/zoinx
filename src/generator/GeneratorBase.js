@@ -116,6 +116,8 @@ module.exports = class GeneratorBase {
 
         try {
             if (!_.isEmpty(source) && _.isString(source) && !_.isEmpty(destination) && _.isString(destination)) {
+                console.log(source);
+                console.log(destination);
                 fs.cpSync(source, destination, {recursive: recursive});
             }
         }
