@@ -5,6 +5,7 @@ const ShellCmd = require("../shellCmds/CmdExec");
 
 module.exports = class CreateZoinxApplication extends GeneratorBase{
 
+    #minNodeVersion = 18
     #platform
     #cliPath
     #cliPrompt
@@ -210,6 +211,8 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
 
     async askQuestions() {
 
+        await this.#checkNodeVersion();
+        
         const bannerSplit = this.#appBannerMsg.split('\n');
         for (const line of bannerSplit) {
             console.log(line);
@@ -305,6 +308,20 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         }
 
         return answer;
+    }
+
+    async #checkNodeVersion() {
+        try {
+            const version = process.versions.node;
+            const versionNumb = parseInt(version.split('.')[0]);
+            if (versionNumb < this.#minNodeVersion) {
+                console.log(`Minimum NodeJs version for Zoinx is ${this.#minNodeVersion}.`);
+                await this.#cliParent.exit();
+            }
+        }
+        catch (e) {
+            Log.error(e);
+        }
     }
 
     async #initProjectDirectory() {
