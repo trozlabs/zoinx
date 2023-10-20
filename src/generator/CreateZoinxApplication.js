@@ -211,10 +211,6 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
 
     async askQuestions() {
 
-        console.log('');
-        console.log(process.versions.node);
-        console.log(process.version);
-
         await this.#checkNodeVersion();
 
         const bannerSplit = this.#appBannerMsg.split('\n');
