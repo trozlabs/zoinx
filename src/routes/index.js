@@ -32,7 +32,7 @@ const routes = {
 const defs = [];
 
 async function addZoinxRoutes(app, routeGroups=[]) {
-    const directories = ['./validatedAuths', './routeRoles', './localAccts', './telemetrySendFails', './testingResultsRealtime'];
+    const directories = ['./validatedAuths', './routeRoles', './telemetrySendFails', './testingResultsRealtime'];
 
     try {
         for (let i = 0; i < directories.length; i++) {
@@ -184,7 +184,7 @@ async function addMissingRouteRoles(routes) {
 }
 
 async function processProjectInit() {
-    
+
     try {
         let projectInitStr = fs.readFileSync(`${process.env.PWD}/docker/node/projectInit.json`, { encoding: 'utf8' }),
             projectInit, routeRolesService, localAcctsService;
