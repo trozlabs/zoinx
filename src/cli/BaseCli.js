@@ -17,6 +17,7 @@ module.exports = class BaseCli {
     #process
     #events
     #useDB = false
+    #envArg = '.env'
 
     constructor(cliProcessName='!!!!! NO NAME !!!!!', process) {
         this.#cliProcessName = cliProcessName;
@@ -24,6 +25,16 @@ module.exports = class BaseCli {
         this.#events = new events();
 
         const userArgs = process.argv.slice(2);
+        if (userArgs.length > 0) {
+            for (let i=0; i<userArgs.length; i++) {
+                if (userArgs[i].startsWith('.env')) {
+                    this.#envArg = userArgs[i];
+                }
+                else if (userArgs[i] === 'usedb') {
+                    this.#useDB = true;
+                }
+            }
+        }
 
         let _interface = readline.createInterface({
             input: process.stdin,
@@ -31,12 +42,6 @@ module.exports = class BaseCli {
             prompt: `\n\r[${cliProcessName}] -> `
         });
         this.#_interface = _interface;
-
-        switch (userArgs[0]) {
-            case 'usedb':
-                this.#useDB = true;
-                break;
-        }
 
         _interface.on('line', async (str, clazz=this) => {
             if (str === '\n') _interface.write('\n\n');

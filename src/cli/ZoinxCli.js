@@ -11,7 +11,6 @@ const Playground = require('../playground/Playground');
 const laService = require('../routes/localAccts/service');
 const bcrypt = require("bcryptjs");
 const rrService = require("../routes/routeRoles/service");
-const {Filter} = require("zoinx/util");
 
 module.exports = class ZoinxCli extends BaseCli {
 
