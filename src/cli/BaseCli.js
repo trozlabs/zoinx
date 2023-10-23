@@ -64,6 +64,10 @@ module.exports = class BaseCli {
         return this.#useDB;
     }
 
+    get envArg() {
+        return this.#envArg;
+    }
+
     get uniqueInputs() {
         return this.#uniqueInputs;
     }
