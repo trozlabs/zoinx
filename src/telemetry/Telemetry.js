@@ -70,8 +70,15 @@ module.exports = class Telemetry {
 
     async send() {
         try {
+
             const worker = new Worker(path.resolve(`${__dirname}/Telemetry2Kafka.js`), {
-                workerData: {telemetryModel: this.#telemetryModel.json, zoinxPath: __dirname, runningAppPath: path.resolve(process.cwd()), libPath: __dirname}
+                workerData: {
+                    telemetryModel: this.#telemetryModel.json,
+                    zoinxPath: __dirname,
+                    runningAppPath: path.resolve(process.cwd()),
+                    libPath: __dirname,
+                    env: process.env
+                }
             });
             worker.on('error', (error) => {
                 this.saveTelemetrySendFail(error.workerData, error);

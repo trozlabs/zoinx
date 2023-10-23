@@ -24,15 +24,16 @@ module.exports = class Database {
         return pool;
     }
 
-    static create4Cli(config) {
-        return new this(config);
+    static async create4Cli(config) {
+        const db = new this(config, false);
+        return await db.createSingleConnection(db.uri, db.options);
     }
 
     async close() {
         await this.mongoosePool.disconnect();
     }
 
-    constructor(config) {
+    constructor(config, withPool=true) {
 
         let host, port, name, user, password, maxPoolSize, dbOptions;
         if (_.isEmpty(config)) {
@@ -46,7 +47,7 @@ module.exports = class Database {
         }
         else {
             host = config.host;
-            port = config.host;
+            port = config.port;
             name = config.name;
             user = config.user;
             password = config.password;
@@ -69,21 +70,41 @@ module.exports = class Database {
             maxPoolSize: maxPoolSize
         }
 
-        mongoose.connect(this.uri, this.options)
-            .then((mongoose) => {
-                Log.info('Connected to Mongo DB via Mongoose');
-                mongoose.connections[0].on('disconnecting', () => console.info('database disconnecting'));
-                mongoose.connections[0].on('disconnected', () => console.info('database disconnected'));
-                mongoose.connections[0].on('error', () => console.error('database error'));
-            })
-            .catch(errors => {
-                Log.error(`Failed to connect ${errors.message}`);
-            });
+        if (withPool) {
+            this.createPooledConnections().then(r => {});
+        }
+    }
 
-        this.connections = mongoose.connections;
-        this.client = this.connections[0].client;
-        this.db = this.client.db();
-        this.mongoosePool = mongoose;
-        global.mongoosePool = this.mongoosePool;
+    async createPooledConnections() {
+        try {
+            mongoose.connect(this.uri, this.options)
+                .then((mongoose) => {
+                    Log.info('Connected to Mongo DB via Mongoose');
+                    mongoose.connections[0].on('disconnecting', () => console.info('database disconnecting'));
+                    mongoose.connections[0].on('disconnected', () => console.info('database disconnected'));
+                    mongoose.connections[0].on('error', () => console.error('database error'));
+                })
+                .catch(errors => {
+                    Log.error(`Failed to connect ${errors.message}`);
+                });
+
+            this.connections = mongoose.connections;
+            this.client = this.connections[0].client;
+            this.db = this.client.db();
+            this.mongoosePool = mongoose;
+            global.mongoosePool = this.mongoosePool
+        }
+        catch (e) {
+            Log.error(e);
+        }
+    }
+
+    async createSingleConnection(uri, options) {
+        try {
+            return await mongoose.createConnection(uri, options).asPromise();
+        }
+        catch (e) {
+            Log.error(e);
+        }
     }
 }

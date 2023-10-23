@@ -24,8 +24,6 @@ module.exports = class BaseCli {
         this.#events = new events();
 
         const userArgs = process.argv.slice(2);
-        // if (_.isEmpty(userArgs)) Log.info('No arguments passed to CLI Interface');
-        // else Log.info(userArgs);
 
         let _interface = readline.createInterface({
             input: process.stdin,
@@ -136,7 +134,16 @@ module.exports = class BaseCli {
     }
 
     async getMongoConnectionDB() {
-        const conn = MongoDB.create4Cli();
+        const adminConf = {
+            host: process.env.MONGO_HOST,
+            port: process.env.MONGO_PORT,
+            name: process.env.MONGO_INITDB_DATABASE,
+            user: process.env.MONGO_INITDB_ROOT_USERNAME,
+            password: process.env.MONGO_INITDB_ROOT_PASSWORD,
+            maxPoolSize: 1,
+            dbOptions: process.env.MONGO_OPTIONS
+        }
+        const conn = await MongoDB.create4Cli(adminConf);
         return { conn: conn, db: conn.db };
     }
 

@@ -2,6 +2,7 @@ const _ = require('lodash');
 const { Kafka, logLevel } = require('kafkajs');
 const Log = require('../log/Log');
 const AppConfig = require('../util/AppConfig');
+const StaticUtil = require('../util/StaticUtil');
 
 module.exports = class KafkaClient {
     #logOptions = false;
@@ -39,6 +40,7 @@ module.exports = class KafkaClient {
 
         if (!_.isEmpty(varNamePrefix)) {
             try {
+                if (_.isString(ssl)) ssl = StaticUtil.StringToBoolean(ssl);
                 let mech = AppConfig.get(`${varNamePrefix}_MECHANISM_${env.toUpperCase()}`),
                     protocal = AppConfig.get(`${varNamePrefix}_PROTOCOL_${env.toUpperCase()}`),
                     user = AppConfig.get(`${varNamePrefix}_USER_${env.toUpperCase()}`),

@@ -116,12 +116,11 @@ module.exports = class ZoinxCli extends BaseCli {
     async mongoPing(inputStr, _interface) {
         try {
             const dbConn =  await this.getMongoConnectionDB();
-            await dbConn.db.admin().command({ping: 1},
-                (err, result) => {
-                    Log.info('Result: ', result);
-                    dbConn.conn.close();
-                    _interface.prompt();
-                })
+            const result = await dbConn.db.admin().command({ping: 1});
+            if (!_.isUndefined(result)) {
+                Log.info('Result: ', result);
+                dbConn.conn.close();
+            }
         }
         catch (ex) {
             Log.error(ex);
@@ -131,11 +130,11 @@ module.exports = class ZoinxCli extends BaseCli {
     async mongoStats(inputStr, _interface) {
         try {
             const dbConn = await this.getMongoConnectionDB();
-            await dbConn.db.admin().serverStatus(function(err, result) {
-                Log.info('Result: ', result);
+            const result = await dbConn.db.admin().serverStatus();
+            if (!_.isUndefined(result)) {
+                Log.info(result);
                 dbConn.conn.close();
-                _interface.prompt();
-            });
+            }
         }
         catch (ex) {
             Log.error(ex);
@@ -145,12 +144,11 @@ module.exports = class ZoinxCli extends BaseCli {
     async mongoCurrentops(inputStr, _interface) {
         try {
             const dbConn =  await this.getMongoConnectionDB();
-            await dbConn.db.admin().command({currentOp: 1},
-                (err, result) => {
-                    Log.info('Result: ', result);
-                    dbConn.conn.close();
-                    _interface.prompt();
-                })
+            const result = await dbConn.db.admin().command({currentOp: 1});
+            if (!_.isUndefined(result)) {
+                Log.info('Result: ', result);
+                dbConn.conn.close();
+            }
         }
         catch (ex) {
             Log.error(ex);

@@ -11,7 +11,7 @@ class Network {
     }
 
     static getHostInterface() {
-        const interfaceCategories = ['en', 'eth'];
+        const interfaceCategories = ['en', 'eth', 'Ethernet'];
         const networkInterfaces = os.networkInterfaces();
         const addresses = [];
 
