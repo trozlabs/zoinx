@@ -81,6 +81,7 @@ module.exports = class Telemetry {
                 }
             });
             worker.on('error', (error) => {
+                delete error.workerData.env;
                 this.saveTelemetrySendFail(error.workerData, error);
             });
             // worker.on("exit", (code) =>
