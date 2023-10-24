@@ -36,7 +36,13 @@
         <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
-    <li><a href="#usage">Usage</a></li>
+    <li>
+      <a href="#efi">Entities and Features and Integrations</a>
+      <ul>
+        <li><a href="#code-gen">Code Generators</a></li>
+        <li><a href="#blah">Blah</a></li>
+      </ul>
+    </li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
@@ -67,6 +73,7 @@ Why use Zoinx:
 ### Built With
 Zoinx is based in NodeJS with MongoDB as the main datastore. It does not support using any SQL based datastore for the primary datastore.<br/>
 It is of course possible to add connectivity to any SQL datastore but that is a per-project decision.
+
 Zoinx is also event driven out of the box. Support an event driven architecture, Kafka is used to produce and consume messages. Kafka is more than a pub/sub model but Zoinx does not dictate how it can be used but sets up the basic functionality inside of Docker.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -76,8 +83,9 @@ Zoinx is also event driven out of the box. Support an event driven architecture,
 <a name="getting-started"></a>
 <!-- GETTING STARTED -->
 ## Getting Started
-Getting up and running with any framework can be clumsy but Zoinx works to make this process painless and as fast as your development machine will allow. <br/>
-The development setup is based in Docker which can be resource intensive.
+Getting up and running with any framework can be clumsy but Zoinx works to make this process painless and as fast as your development machine will allow.
+
+The development setup is based in Docker which can be resource intensive. The NodeJS container can be turned off and run from an IDE where the NodeJS app can connect to and make use of the resources inside Docker. This will be covered later along with env vars.
 
 <a name="prerequisites"></a>
 ### Prerequisites
@@ -130,47 +138,46 @@ This will get Zoinx downloaded to your project but will not include any config o
 
 
 
+<a name="efi"></a>
+## Entities and Features and Integrations
+There are 3 core concepts in this framework: Entities & Features & Integrations.
 
-## Template Code Generation
+All needed files to make a fully functional Entity or Feature are included in these folders. This means no bouncing around many locations to find the referenced classes/files. They are contained as a single unit and because of this organization, Entities can easily be copied and pasted between projects.
 
-There are 2 big concepts in this framework: Entities & Features.
+**Entities** -- are a 1-to-1 representation of a data collection in Mongo. It creates a fully enabled REST CRUD API with security applied.
+For example: a user collection or single SQL table holding data defined in the domain file.
 
-Entities can be thought of as a full CRUD stack where there is an API route a
-corresponding Service and Domain. The Domain file is responsible for defining
-the MongoDB Schema. A collection with the Schema name, provided in the
-options, will be created if the application server is run.
+**Features** -- are REST APIs that make use of 1 or many Entities and/or Integrations. Features are where composite functionality is needed.
+They do NOT have a domain file as they are not responsible for the data store in and out.
 
-Features can be treated as an Entity but features define a broader set of
-functionality. Feature Services can make use of as many Entity services as
-needed and provide an entry point for complex data needs. A GraphQL
-approach is similar in nature.
+**Integrations** -- are where outside services, i.e. other microservices or outside 3rd party APIs, are integrated.
+These don't have any template generators as they are completely custom to what is needed to accomplish define requirements.
 
-To generate code templates, the CLI can be run by using the node script:
+
+<a name="code-gen"></a>
+### Code Generators
+To generate code templates, the ZoinxCLI can be run by using the node script:
 
 ```bash
-npm run start-cli
+npm run zoinxcli
 ```
 
-### Example Template Generators
-
-Template generator will create 1 to 4 files for an entity or a feature
+Template generator will create 1 to 6 files for an entity or a feature
 depending on configuration. The files created are:
 
-1. `index.js`    - Used by express to define API routes
-2. `route.js`    - Used to define actionable API endpoints which handle
-   permission enforcement, simple input validation, error
-   handling, consistent response output, etc.
+1. `index.js`    - Used by express to define API routes is also used to define subroutes
+2. `route.js`    - Used to setup the relationship between controllers, services and domains and will likely not be modified. (might be hidden in future versions)
 3. `service.js`  - Used to contain actual logic and operations that can
    range from simple CRUD to related Domain or more complex
-   hybrid operations across services or to remote services
+   hybrid operations across services or to remote services. These are meant to be the organizing functionality and/or internal orchestration
 4. `domain.js`   - Used to define the Schema used in Mongo to store data
    into collections. Domains are not strictly needed for
-   services to be functional
+   services to be functional and are NOT present when creating Features
 5. `controller.js`   - Used to define the actual endpoints, their method and
    the function that handles the incoming request. These methods are generally
    used to verify incoming data and access perms then pass the request and
-   needed data to the service class. Permission handling can occur in the
-   route as well.
+   needed data to the service class. Role based controls are placed on each defined endpoint.
+6. `statics.js` - Used to define static methods that are specific to the Entity or Feature or Integration
 
 
 </br>The CLI will provide a prompt in the command line where the following example
@@ -194,6 +201,7 @@ optional but will be set using `name` if absent.
     │   ├── route.js
     │   └── service.js
     │   └── controller.js
+    │   └── statics.js
 
 
 ```json
@@ -202,14 +210,14 @@ create --entity={"name": "newEntity", "className": "NewEntity", "schemaName": "t
 
 This line will overwrite all 4 existing files if the Entity already exists.
 If the first command is run twice, it will state it already exists and
-`overwrite` will need to be provided.
+`overwrite` will need to be provided.<br/><br/>
 
 ```json
 create --entity={"name": "newEntity", "className": "NewEntity", "schemaName": "test.newEntity", "only": "index"}
 ```
 
 This line will ONLY generate the `index` file for a specified Entity or
-Feature. Add `"overwrite":"true"` to overwrite the single file.
+Feature. Add `"overwrite":"true"` to overwrite the single file.<br/><br/>
 
 ```json
 create --entity={"name": "newEntity", "className": "NewEntity", "schemaName": "test.newEntity", "exclude": ["domain","service"]}
