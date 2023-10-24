@@ -185,7 +185,7 @@ differences will be noted.</br></br></br>
 create --entity={"name": "newEntity", "className": "NewEntity", "schemaName": "test.newEntity"}
 ```
 
-This line will create all 4 entity files with the supplied names, `name`
+This line will create all 6 entity files with the supplied names, `name`
 and `schemaName` are required for generating an Entity. `className` is
 optional but will be set using `name` if absent.
 
