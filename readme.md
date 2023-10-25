@@ -179,7 +179,7 @@ AppConfig.initConfig(
 
 <a name="envs-default"></a>
 ### Default env
-.evn is the default environment variable file. These values are primarily used to ensure a working application in the Docker containers.<br/>
+.env is the default environment variable file. These values are primarily used to ensure a working application in the Docker containers.<br/>
 .env is also used by default by the CLIs provided with Zoinx.<br/>
 The two CLI options using the .env file:
 ```bash
