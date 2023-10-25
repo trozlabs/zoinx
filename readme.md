@@ -163,6 +163,8 @@ This will get Zoinx downloaded to your project but will not include any config o
 ## Environments & AppConfig
 Zoinx has a built-in application configuration. AppConfig.js is used to set up specific needs for any application. It by default uses the .env file to set up environment variables.
 
+The app.js, AppConfig.js, .env, .env.local files are created for the developer when using the npx installation option.
+
 In modern applications, most environment variables are defined either as secrets or public variables stored in cloud provider systems. This isn't required and can also make development more complicated. It is for these reasons, Zoinx supports environment variable files.
 
 In app.js, there is a block to use AppConfig and this is where to define which env file should be used. If none are specified, the .env is used by default.
@@ -287,6 +289,7 @@ create --entity={"name": "newEntity", "className": "NewEntity", "schemaName": "t
 
 This line will create all files NOT mentioned in the `exclude` array.
 Add `"overwrite":"true"` to overwrite the generated files.
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <a name="optional-tools"></a>
 ## Optional Tools:
@@ -296,7 +299,7 @@ Add `"overwrite":"true"` to overwrite the generated files.
 - [Postman](https://www.postman.com/downloads/) REST Client
 - [GIT](https://git-scm.com/downloads) Installer (windows will have GitBash Included)
 - [GitHub Desktop](https://desktop.github.com/) Installer for Desktop Client
-
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 [contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
 [contributors-url]: https://github.com/trozlabs/zoinx/graphs/contributors
