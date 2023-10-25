@@ -71,6 +71,9 @@
       </ul>
     </li>
     <li>
+      <a href="#logging">Logging</a>
+    </li>
+    <li>
       <a href="#optional-tools">Optional Tools Links</a>
     </li>
   </ol>
@@ -304,13 +307,65 @@ This line is an explicit example for creating a Feature and will create the stru
     │   ├── controller.js
     │   └── statics.js
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<a name="security"></a>
+## Security
+Zoinx security is role based tooled from OAuth standards. The default OAuth is via Azure and has needed environment variables in place making it simple to implement. We will add needed OAuth providers as they are requested.
+
+Security is enabled and applied via middleware before the request makes it to the endpoint controller.
+
+Most systems need another way to execute special command but also admin capabilities if the OAuth provider is down. This is where basic local authentication is available.
+
+<a name="oauth"></a>
+### OAuth
+Gatekeeper is the internal Zoinx class that enables OAuth to be enabled and applied. When a JWT is verified by the issuer, the application caches verified credentials and set to expire by the time-to-live (ttl) from the provider.
+
+Zoinx application will not auto refresh tokens. It is the client's responsibility to send valid tokens and Zoinx will enforce.
+
+<a name="basic"></a>
+### Basic Auth
+When using the npx installer, it will ask for a username and password to automatically create the login and assign the . Basic Auth is not cached and will only work for a single request. This means the name and password has to be sent as a basic auth header each time.
+
+It is possible to have multiple local accounts but the fewer, the better. To create a local account after the project is up and running, use the ZoinxCLI to create. Run the ZoinxCli and then execute the following command.
+```bash
+create local acct --{"username":"yourSpecialUser", "password":"12345678"}
+```
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
+<a name="telemetry"></a>
+## Telemetry
+Coming soon
+
+<a name="telemetry-ex"></a>
+### Telemetry Example
+Coming soon
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+
+<a name="testing"></a>
+## Testing
+Coming soon
+
+<a name="test-harness"></a>
+### Test Harness
+Coming soon
+
+<a name="test-conf"></a>
+### Test Configuration
+Coming soon
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+<a name="logging"></a>
+## Logging
+Coming soon
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 <a name="optional-tools"></a>
-## Optional Tools:
+## Optional Tools
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) Installer
 - [Compass](https://www.mongodb.com/products/compass): MongoDB Client
 - [Insomnia](https://insomnia.rest/download) REST Client
