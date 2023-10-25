@@ -9,15 +9,18 @@
         "initProject": "./bin/initProject.js"
     },
     "scripts": {
-        "preversion": "echo '-- preversion --' && npm test",
-        "version": "echo '-- version --'",
         "create-zoinx": "node ./bin/initProject.js",
         "format": "prettier --write \"**/*.{js,ts,tsx,json,md}\"",
         "test": "npm run test:cjs && npm run test:mjs",
         "test:cjs": "cd test/cjs && npm install && npm start && cd ../..",
         "test:mjs": "cd test/mjs && npm install && npm start && cd ../..",
         "develop:cjs": "npm install && nodemon --trace-warnings --inspect=0.0.0.0 test/cjs/index.cjs",
-        "develop:mjs": "npm install && nodemon --trace-warnings --inspect=0.0.0.0 test/cjs/index.mjs"
+        "develop:mjs": "npm install && nodemon --trace-warnings --inspect=0.0.0.0 test/cjs/index.mjs",
+        "major": "npm version major",
+        "minor": "npm version minor",
+        "patch": "npm version patch",
+        "preversion": "echo '-- preversion --'",
+        "postversion": "git push && git push --tags"
     },
     "keywords": [],
     "author": "",
