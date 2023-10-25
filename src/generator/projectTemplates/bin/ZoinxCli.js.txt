@@ -38,7 +38,7 @@ class Zoinx extends ZoinxCli {
 
             if (!_.isEmpty(topic)) {
                 let kafkaClient = new KafkaClient('Telemetry', [AppConfig.get('TELEMETRY_MESSAGE_SERVERS')]);
-                kafkaClient.setClientConfig('TELEMETRY_KAFKA');
+                kafkaClient.setClientConfig('TELEMETRY_KAFKA',  AppConfig.get('TELEMETRY_ENV'), AppConfig.get('TELEMETRY_USE_SSL'));
                 await kafkaClient.readMessage(topic);
             }
             else {
