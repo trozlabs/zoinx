@@ -41,6 +41,9 @@ module.exports = {
     BOLD,
     FG,
     BG,
+    Background: BG,
+    Text: FG,
+
     style(...colors) {
         const color = colors.map(c => `${c}`).join('');
         return (...args) => this.log(`${color}`, ...args, RESET);
