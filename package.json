@@ -1,6 +1,6 @@
 {
     "name": "zoinx",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "zoinx module library",
     "main": "./src/index.js",
     "module": "./src/index.js",
