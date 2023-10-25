@@ -36,7 +36,8 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         'kafkaAddons':      { templateFile: 'InstallExtras.sh.txt',         destinationFile: 'InstallExtras.sh',        subDir: 'docker/kafka'}
     }
     #projectDirectories = {
-        'picklists':        { templateDir: 'src/entities/picklists',        destinationDir: 'src/entities/picklists' }
+        'picklists':        { templateDir: 'src/entities/picklists',        destinationDir: 'src/entities/picklists' },
+        'userprefs':        { templateDir: 'src/entities/userPrefs',        destinationDir: 'src/entities/userPrefs' }
     }
     #appBannerMsg = 'Thank you for choosing Zoinx.\n' +
         'A core vision for Zoinx is the ability to create API endpoints fully CRUD (Create, Read, Update, Delete) enabled and secure in minutes.\n' +
@@ -105,7 +106,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
                 '-> One uppercase letter\n' +
                 '-> One lowercase letter\n' +
                 '-> One number\n' +
-                '-> One special character',
+                '-> One special character (@$!%*?&)',
             answerProp: 'mongoRootPw',
             answerType: 'string',
             answerDefault: undefined,
@@ -129,7 +130,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
                 '-> One uppercase letter\n' +
                 '-> One lowercase letter\n' +
                 '-> One number\n' +
-                '-> One special character',
+                '-> One special character (@$!%*?&)',
             answerProp: 'mongoPw',
             answerType: 'string',
             answerDefault: undefined,
@@ -188,7 +189,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
                 '-> One uppercase letter\n' +
                 '-> One lowercase letter\n' +
                 '-> One number\n' +
-                '-> One special character.)',
+                '-> One special character (@$!%*?&)',
             answerProp: 'password',
             answerType: 'string',
             answerDefault: '----',
