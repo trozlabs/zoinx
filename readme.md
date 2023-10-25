@@ -203,18 +203,22 @@ npm run zoinxcli-localenv-usedb
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <a name="efi"></a>
-## Entities and Features and Integrations
-There are 3 core concepts in this framework: Entities & Features & Integrations.
+## Entities & Features & Integrations
+There are 3 core concepts in Zoinx framework: Entities & Features & Integrations.
+
+These are in place to suggest how to organize an application and keep separation of concerns clean and easy to find. Entities & Features are the only areas used for defining external APIs. If an endpoint route is defined outside of these directories, Zoinx will not automatically pick them up and create the route.
 
 All needed files to make a fully functional Entity or Feature are included in these folders. This means no bouncing around many locations to find the referenced classes/files. They are contained as a single unit and because of this organization, Entities can easily be copied and pasted between projects.
 
-**Entities** -- are a 1-to-1 representation of a data collection in Mongo. It creates a fully enabled REST CRUD API with security applied.
+Integrations are different as they don't have a hard definition in the framework. They are meant to be standalone functionality the rest of the app can make use of. Integrations can be used within the services of Entities or Features or any other way that might be defined.
+
+**<u>Entities</u>** -- are a 1-to-1 representation of a data collection in Mongo. It creates a fully enabled REST CRUD API with security applied.
 For example: a user collection or single SQL table holding data defined in the domain file.
 
-**Features** -- are REST APIs that make use of 1 or many Entities and/or Integrations. Features are where composite functionality is created.
+**<u>Features</u>** -- are REST APIs that make use of 1 or many Entities and/or Integrations. Features are where composite functionality is created.
 They do NOT have a domain file as they are not responsible for the data store in and out.
 
-**Integrations** -- are where outside services, i.e. other microservices or outside 3rd party APIs, are integrated.
+**<u>Integrations</u>** -- are where outside services, i.e. other microservices or outside 3rd party APIs, are integrated.
 These don't have any template generators as they are completely custom to what is needed to accomplish define requirements.
 
 
