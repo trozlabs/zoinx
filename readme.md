@@ -245,7 +245,7 @@ depending on configuration. The files created are:
 commands can be run.
 
 **NOTE**
-`--entity` and `--feature` work in nearly identical manners such as NOT having a domain class. Feature
+`--entity` and `--feature` work in nearly identical manners such as Features NOT having a domain class. Feature
 differences will be noted.</br></br>
 
 <a name="code-gen-ex"></a>
@@ -288,7 +288,25 @@ create --entity={"name": "newEntity", "className": "NewEntity", "schemaName": "t
 ```
 
 This line will create all files NOT mentioned in the `exclude` array.
-Add `"overwrite":"true"` to overwrite the generated files.
+Add `"overwrite":"true"` to overwrite the generated files.<br/><br/>
+
+
+```json
+create --feature={"name": "newFeature", "className": "NewFeature"}
+```
+This line is an explicit example for creating a Feature and will create the structure below.
+
+    features/
+    ├── newFeature/
+    │   ├── index.js
+    │   ├── route.js
+    │   ├── service.js
+    │   ├── controller.js
+    │   └── statics.js
+
+
+
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <a name="optional-tools"></a>
