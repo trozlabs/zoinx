@@ -1,0 +1,10 @@
+const { Service } = require('zoinx/core');
+const { TestHarness } = require('zoinx/testing');
+
+module.exports = TestHarness(class <%= className %>Service extends Service {
+
+    constructor() {
+        super();
+    }
+
+});

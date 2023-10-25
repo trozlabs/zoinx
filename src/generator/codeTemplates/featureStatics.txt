@@ -1,0 +1,19 @@
+const _ = require('lodash');
+const Log = require('zoinx/log');
+const { TestHarness } = require('zoinx/testing');
+
+module.exports = TestHarness(class <%= className %>Statics {
+
+    static testConfig = {
+        'additionFunc': {
+            input: ['numb1=><number>', 'numb2=><number>'],
+            output: ['result=><number, expectedOut=:["\$\{numb1\} + \$\{numb2\}">']
+        }
+    }
+
+    // Example function to illustrate a pure static function
+    static additionFunc = TestHarness(function(numb1, numb2) {
+        return numb1 + numb2;
+    })
+
+});

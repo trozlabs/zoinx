@@ -212,13 +212,13 @@ All needed files to make a fully functional Entity or Feature are included in th
 
 Integrations are different as they don't have a hard definition in the framework. They are meant to be standalone functionality the rest of the app can make use of. Integrations can be used within the services of Entities or Features or any other way that might be defined.
 
-**<u>Entities</u>** -- are a 1-to-1 representation of a data collection in Mongo. It creates a fully enabled REST CRUD API with security applied.
+**Entities**<br/>1-to-1 representation of a data collection in Mongo. It creates a fully enabled REST CRUD API with security applied.
 For example: a user collection or single SQL table holding data defined in the domain file.
 
-**<u>Features</u>** -- are REST APIs that make use of 1 or many Entities and/or Integrations. Features are where composite functionality is created.
+**Features**<br/>REST APIs that make use of 1 or many Entities and/or Integrations. Features are where composite functionality is created.
 They do NOT have a domain file as they are not responsible for the data store in and out.
 
-**<u>Integrations</u>** -- are where outside services, i.e. other microservices or outside 3rd party APIs, are integrated.
+**Integrations**<br/>Where outside services, i.e. other microservices or outside 3rd party APIs, are integrated.
 These don't have any template generators as they are completely custom to what is needed to accomplish define requirements.
 
 

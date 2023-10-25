@@ -41,6 +41,7 @@ module.exports = class CreateEntityOrFeature {
         this.#createWhat = (['entity', 'feature'].includes(createWhat.toLowerCase())) ? createWhat.toLowerCase() : 'entity';
 
         this.#templates = ['index', 'route', 'service', 'domain', 'statics', 'controller'];
+        if(this.#createWhat === 'feature') this.#templates = ['index', 'route', 'service', 'statics', 'controller'];
 
         this.#overwrite = (!_.isEmpty(this.#confObj.overwrite)) ? this.#confObj.overwrite : false;
         this.#onlyGenerate = (!_.isEmpty(this.#confObj.only) && this.#templates.includes(this.#confObj.only.toLowerCase())) ? this.#confObj.only.toLowerCase() : '';
@@ -93,7 +94,7 @@ module.exports = class CreateEntityOrFeature {
 
     async generateOnly() {
         try {
-            let templateName = `entity${_.capitalize(this.#onlyGenerate)}`,
+            let templateName = `${this.#createWhat}${_.capitalize(this.#onlyGenerate)}`,
                 fileName = `${this.#onlyGenerate.toLowerCase()}.js`,
                 fileContents = await this.getTemplateContent(templateName);
 
@@ -116,7 +117,7 @@ module.exports = class CreateEntityOrFeature {
             });
 
             for (let i = 0; i < toGenerate.length; i++) {
-                templateName = `entity${_.capitalize(toGenerate[i])}`;
+                templateName = `${this.#createWhat}${_.capitalize(toGenerate[i])}`;
                 fileName = `${toGenerate[i].toLowerCase()}.js`;
                 fileContents = await this.getTemplateContent(templateName);
                 await this.writeSourceFile(this.#confObj.name, fileName, fileContents);
@@ -135,11 +136,19 @@ module.exports = class CreateEntityOrFeature {
             fileContents = await this.getTemplateContent('entityRoute');
             await this.writeSourceFile(this.#confObj.name, 'route.js', fileContents);
 
-            fileContents = await this.getTemplateContent('entityService');
-            await this.writeSourceFile(this.#confObj.name, 'service.js', fileContents);
+            if (this.#createWhat === 'entity') {
+                fileContents = await this.getTemplateContent('entityService');
+                await this.writeSourceFile(this.#confObj.name, 'service.js', fileContents);
+            }
+            else {
+                fileContents = await this.getTemplateContent('featureService');
+                await this.writeSourceFile(this.#confObj.name, 'service.js', fileContents);
+            }
 
-            fileContents = await this.getTemplateContent('entityDomain');
-            await this.writeSourceFile(this.#confObj.name, 'domain.js', fileContents);
+            if (this.#createWhat === 'entity') {
+                fileContents = await this.getTemplateContent('entityDomain');
+                await this.writeSourceFile(this.#confObj.name, 'domain.js', fileContents);
+            }
 
             fileContents = await this.getTemplateContent('entityStatics');
             await this.writeSourceFile(this.#confObj.name, 'statics.js', fileContents);
@@ -227,5 +236,3 @@ module.exports = class CreateEntityOrFeature {
         });
     }
 }
-
-// module.exports = { CreateEntityOrFeature }
