@@ -9,6 +9,9 @@
         "initProject": "./bin/initProject.js"
     },
     "scripts": {
+        "preversion": "echo '-- postversion --' && npm test",
+        "version": "echo '-- postversion --'",
+        "postversion": "echo '-- postversion --'",
         "create-zoinx": "node ./bin/initProject.js",
         "format": "prettier --write \"**/*.{js,ts,tsx,json,md}\"",
         "test": "npm run test:cjs && npm run test:mjs",
