@@ -328,12 +328,13 @@ Zoinx application will not auto refresh tokens. It is the client's responsibilit
 
 <a name="basic"></a>
 ### Basic Auth
-When using the npx installer, it will ask for a username and password to automatically create the login and assign the . Basic Auth is not cached and will only work for a single request. This means the name and password has to be sent as a basic auth header each time.
+When using the npx installer, it will ask for a username and password to automatically create the login and assign the username as a Route Role. Basic Auth is not cached and will only work for a single request. This means the name and password has to be sent as a basic auth header each time which in turn slows down the response time.
 
-It is possible to have multiple local accounts but the fewer, the better. To create a local account after the project is up and running, use the ZoinxCLI to create. Run the ZoinxCli and then execute the following command.
+It is possible to have multiple local accounts but the fewer, the better. To create a local account after the project is up and running. Run the ZoinxCli and then execute the following command.
 ```bash
 create local acct --{"username":"yourSpecialUser", "password":"12345678"}
 ```
+When creating a local account in this manner, password rules are not enforced. Using the above password, while foolish and not recommended, is possible.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
