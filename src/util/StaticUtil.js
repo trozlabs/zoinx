@@ -153,7 +153,7 @@ module.exports = class UtilMethods {
         return regex.test(uuid);
     }
 
-    static StringToBoolean(value=false) {
+    static StringToBoolean(value='false') {
         if (!_.isBoolean(value)) {
             if (_.isEmpty(value) || !_.isString(value))
                 value = false;

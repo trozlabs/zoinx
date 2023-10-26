@@ -21,7 +21,7 @@ async function runit(workerData) {
         let kafkaClient = new KafkaClient('TelemetryProducer', [workerData.env.TELEMETRY_MESSAGE_SERVERS]),
             telemetryMsg = JSON.stringify(workerData.telemetryModel);
 
-        kafkaClient.setClientConfig('TELEMETRY_KAFKA', workerData.env.TELEMETRY_ENV, workerData.env.TELEMETRY_USE_SSL);
+        await kafkaClient.setClientConfig('TELEMETRY_KAFKA', workerData.env.TELEMETRY_ENV, workerData.env.TELEMETRY_USE_SSL);
 
         if (require(path.resolve(`${workerData.zoinxPath}/../util/StaticUtil`)).StringToBoolean(workerData.env.TELEMETRY_ENCRYPT)) {
             telemetryMsg = await require(path.resolve(`${workerData.zoinxPath}/../util/Encryption`)).encrypt(telemetryMsg, workerData.env.TELEMETRY_SECRET_KEY, workerData.env.TELEMETRY_SECRET_IV);
@@ -31,7 +31,7 @@ async function runit(workerData) {
             key: randomUUID(),
             value: telemetryMsg
         }, workerData.env.TELEMETRY_TOPIC_NAME);
-        kafkaClient.disconnectProducer();
+        await kafkaClient.disconnectProducer();
     }
     catch (e) {
         e.workerData = workerData;

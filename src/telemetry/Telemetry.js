@@ -1,12 +1,16 @@
-const { Log } = require('../log');
 const _ = require('lodash');
 const { Worker, SHARE_ENV, parentPort} = require("worker_threads");
 const path = require("path");
 const os = require('os');
 const {randomUUID} = require("crypto");
+
+const { Log } = require('../log');
 const Network = require('../util/Network');
 const TelemetryTraceModel = require('./TelemetryTraceModel');
 const tsfService = require('../routes/telemetrySendFails/service');
+const KafkaClient = require('../datastream/KafkaClient');
+const StaticUtil = require('../util/StaticUtil');
+const Encryption = require('../util/Encryption');
 
 module.exports = class Telemetry {
 
@@ -20,6 +24,20 @@ module.exports = class Telemetry {
         this.#telemetryStatus = telemetryStatus;
         this.#fillTelemetryFromRequest(configObj).catch(r => { console.log(r)});
         this.#telemetrySendFailsService = new tsfService();
+    }
+
+    async #createTelemetryProducer() {
+        try {
+            if (_.isUndefined(global.kafka)) global.kafka = {};
+            if (_.isUndefined(global.kafka.TelemetryProducer)) {
+                let kafkaClient = new KafkaClient('TelemetryProducer', [process.env.TELEMETRY_MESSAGE_SERVERS]);
+                await kafkaClient.setClientConfig('TELEMETRY_KAFKA', process.env.TELEMETRY_ENV, process.env.TELEMETRY_USE_SSL);
+                global.kafka.TelemetryProducer = kafkaClient;
+            }
+        }
+        catch (e) {
+            Log.error(e);
+        }
     }
 
     async #fillTelemetryFromRequest(req) {
@@ -70,7 +88,24 @@ module.exports = class Telemetry {
 
     async send() {
         try {
+            await this.#createTelemetryProducer();
+            let telemetryMsg = JSON.stringify(this.#telemetryModel.json);
+            if (StaticUtil.StringToBoolean(process.env.TELEMETRY_ENCRYPT)) {
+                telemetryMsg = await Encryption.encrypt(telemetryMsg, process.env.TELEMETRY_SECRET_KEY, process.env.TELEMETRY_SECRET_IV);
+            }
 
+            await global.kafka.TelemetryProducer.sendMessage({
+                key: randomUUID(),
+                value: telemetryMsg
+            }, process.env.TELEMETRY_TOPIC_NAME);
+        }
+        catch (e) {
+            await this.saveTelemetrySendFail(this.#telemetryModel.json, e);
+        }
+    }
+
+    async sendViaWorker() {
+        try {
             const worker = new Worker(path.resolve(`${__dirname}/Telemetry2Kafka.js`), {
                 workerData: {
                     telemetryModel: this.#telemetryModel.json,
