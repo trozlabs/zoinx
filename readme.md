@@ -252,8 +252,7 @@ depending on configuration. The files created are:
 commands can be run.
 
 **NOTE**
-`--entity` and `--feature` work in nearly identical manners such as Features NOT having a domain class. Feature
-differences will be noted.</br></br>
+`--entity` and `--feature` work in nearly identical manners. Feature differences will be noted i.e. Features NOT having a domain class.</br></br>
 
 <a name="code-gen-ex"></a>
 ### Code Generating Examples
