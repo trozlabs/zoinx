@@ -1,6 +1,6 @@
 let Maindomain;
 const _ = require('lodash');
-const APIError = require("./APIError.js");
+const APIError = require("./APIError");
 const telemetryEvent = require('../telemetry/TelemetryEventModel');
 const Filter = require("../util/Filter");
 const Sort = require('../util/Sort');
