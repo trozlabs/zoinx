@@ -9,7 +9,7 @@
 <div align="center">
     <img src="images/zoinxLogo.png" alt="Zoinx" width="360" height="150">
   <p>
-    An Opinionated Framework based on NodeJS, Mongo and Kafka to simplify creating full-featured applications.
+    An Opinionated Framework based on NodeJS, Mongo and Kafka to simplify creating event driven, full-featured applications.
     <br />
     <a href="https://github.com/trozlabs/zoinx/wiki"><strong>Explore the WIKI »</strong></a>
     <br />
