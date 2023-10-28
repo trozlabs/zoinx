@@ -111,7 +111,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             answerType: 'string',
             answerDefault: undefined,
             answerValue: undefined,
-            endWithHR: false,
+            endWithHR: true,
             exitOnFail: true,
             exitOnFailLabel: 'Mongo DB admin password',
             regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
@@ -225,7 +225,11 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
 
         for (let i=0; i<qaKeys.length; i++) {
             qaObj = this.#questionsAnswers[i];
+
             qaObj.answerValue = await this.#askQuestion(qaObj);
+            while (_.isUndefined(qaObj.answerValue)) {
+                qaObj.answerValue = await this.#askQuestion(qaObj);
+            }
 
             if (!_.isUndefined(qaObj.skipForwardIfFalse) && qaObj.answerValue !== qaObj.answerDefault) {
                 if (!isNaN(qaObj.skipForwardIfFalse)) {
@@ -238,12 +242,6 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             if (!_.isUndefined(qaObj.exitOnFail) && _.isUndefined(qaObj.answerValue) && qaObj.exitOnFail) {
                 console.log('___________________________________________________________________');
                 console.log(`Input can not be empty for ${qaObj.exitOnFailLabel}.`);
-                await this.#cliParent.exit();
-            }
-
-            if (!_.isUndefined(qaObj.regex) && !qaObj.regex.test(qaObj.answerValue)) {
-                console.log('___________________________________________________________________');
-                console.log(`Invalid input for ${qaObj.exitOnFailLabel}.`);
                 await this.#cliParent.exit();
             }
         }
@@ -293,6 +291,10 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
                         if (!_.isEmpty(answer)) {
                             answer = (answer.toLowerCase() === 'yes');
                         }
+                    }
+                    else if (!_.isUndefined(qaObj.regex) && !qaObj.regex.test(answer)) {
+                        console.log(`\x1b[33mInvalid input for ${qaObj.exitOnFailLabel}.`, '\x1b[0m');
+                        answer = undefined;
                     }
 
                     resolve(answer);
