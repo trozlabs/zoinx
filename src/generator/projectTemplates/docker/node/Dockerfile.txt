@@ -1,6 +1,6 @@
-ARG VARIANT=18.18.0-bookworm
+ARG VARIANT=20.9.0-bookworm
 
-FROM node:18.18.0-bookworm AS builder
+FROM node:20.9.0-bookworm AS builder
 
 # Required to build application
 # RUN npm install --no-audit --no-fund --loglevel=warn

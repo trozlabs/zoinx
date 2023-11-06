@@ -5,7 +5,7 @@ const ShellCmd = require("../shellCmds/CmdExec");
 
 module.exports = class CreateZoinxApplication extends GeneratorBase{
 
-    #minNodeVersion = 19
+    #minNodeVersion = 20
     #platform
     #cliPath
     #cliPrompt
