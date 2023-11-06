@@ -1,5 +1,4 @@
-const { ResponseObj, APIError, Route, Controller, AppCache } = require('../../core');
-const { Filter } = require('../../util');
+const { ResponseObj, APIError, Route, Controller } = require('../../core');
 const { TestHarness } = require('../../testing');
 const { VerifyAuth } = require('../../middleware');
 
