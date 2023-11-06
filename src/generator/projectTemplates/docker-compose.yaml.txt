@@ -93,16 +93,16 @@ services:
     networks:
       - <%= projectName %>-network
 
-  nifi:
-    profiles: [ optional ]
-    container_name: \$\{SERVICE_NAME\}-nifi-\$\{ENV\}
-    image: apache/nifi
-    environment:
-      NIFI_WEB_HTTP_PORT: \$\{NIFI_WEB_HTTP_PORT\}
-    depends_on:
-      - kafka
-    hostname: nifi
-    ports:
-      - 8181:8181
-    networks:
-      - <%= projectName %>-network
+#  nifi:
+#    profiles: [ optional ]
+#    container_name: \$\{SERVICE_NAME\}-nifi-\$\{ENV\}
+#    image: apache/nifi
+#    environment:
+#      NIFI_WEB_HTTP_PORT: \$\{NIFI_WEB_HTTP_PORT\}
+#    depends_on:
+#      - kafka
+#    hostname: nifi
+#    ports:
+#     - 8181:8181
+#    networks:
+#      - <%= projectName %>-network
