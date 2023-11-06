@@ -39,7 +39,7 @@ module.exports = class TestMsgProducer {
     async send(keyString=randomUUID()) {
         try {
             await this.#createTestMsgProducer();
-            let testObj = JSON.stringify(this.#testObj.json);
+            let testObj = JSON.stringify(this.#testObj);
             if (StaticUtil.StringToBoolean(process.env.TESTING_ENCRYPT)) {
                 testObj = await Encryption.encrypt(testObj, process.env.TESTING_SECRET_KEY, process.env.TESTING_SECRET_IV);
             }
@@ -56,10 +56,12 @@ module.exports = class TestMsgProducer {
 
     async #saveTestMsgSendFail(telemetryModel, error) {
         try {
+            let tmpTestObj = this.#testObj;
+            delete tmpTestObj.id;
             let saveObj = {
                     send_to_server: process.env.TESTING_MESSAGE_SERVERS,
                     ip_address: Network.getHostAddress(),
-                    telemetry_obj: this.#testObj.json,
+                    telemetry_obj: this.#testObj,
                     error_message: error.message
                 },
                 result;
