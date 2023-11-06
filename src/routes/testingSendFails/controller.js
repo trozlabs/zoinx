@@ -2,13 +2,12 @@ const { ResponseObj, APIError, Route, Controller } = require('../../core');
 const { TestHarness } = require('../../testing');
 const { VerifyAuth } = require('../../middleware');
 
-const routeLabel = 'TestingResultsRealtime';
+const routeLabel = 'TestingSendFails';
 
-module.exports = TestHarness(class TestingResultsRealtime extends Controller {
+module.exports = TestHarness(class TestingSendFails extends Controller {
 
-    route = '/testingResultsRealtime';
+    route = '/testingSendFails';
     routes = [
-        new Route({ method: 'get',      path: '/getcache',  before: [VerifyAuth],      handler: 'getCache' }),
         new Route({ method: 'get',      path: '/find',      before: [VerifyAuth],      handler: 'find' }),
         new Route({ method: 'get',      path: '/:id?',      before: [VerifyAuth],      handler: 'get' }),
         new Route({ method: 'put',      path: '/:id',       before: [VerifyAuth],      handler: 'put' }),
@@ -19,11 +18,6 @@ module.exports = TestHarness(class TestingResultsRealtime extends Controller {
     constructor(config) {
         super(config);
         this.init(this);
-    }
-
-    //global.testingConfig.testResultsMap
-    async getCache(req, res){
-        return this.service.getCache();
     }
 
     async get(req, res) {

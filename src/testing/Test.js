@@ -4,6 +4,7 @@ const ParseFunctionConfig = require('./ParseFunctionConfig');
 const TypeDefinitions = require('./TypeDefinitions');
 const UtilMethods = require('./UtilMethods');
 const { TestFuncDetails, TestParamDetails, TestExecutionDetails} = require('./model');
+const TestMsgProducer = require('./TestMsgProducer');
 
 module.exports = class RunTest {
 
@@ -199,8 +200,8 @@ module.exports = class RunTest {
                 }
 
                 testRec = await UtilMethods.getTestObjectWithoutModels(testRec);
-                testRec = await UtilMethods.getJsonWithoutCirculars(testRec.json, 4);
-                global.TestCache.set(testRec.id, testRec, 120);
+                testRec = await UtilMethods.getJsonWithoutCirculars(testRec.json, 6);
+                new TestMsgProducer(testRec).send();
                 return testRec;
             }
             catch (e) {

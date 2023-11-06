@@ -1,10 +1,57 @@
 const { ResponseObj, APIError, Route, Controller } = require('zoinx/core');
 const { Filter } = require('zoinx/util');
 const { VerifyAuth } = require('zoinx/middle');
+const {TestHarness} = require("zoinx/testing");
 
 const routeLabel = 'Picklists';
 
-module.exports = class PicklistController extends Controller {
+module.exports = TestHarness(class PicklistController extends Controller {
+
+    static testConfig = {
+        'getTypeList': {
+            input: [
+                'req=><object<IncomingMessage> required=:[{"client.server": "object"}, {"params": "object"}]>',
+                'res=><object<ServerResponse> required=:[{"socket.server": "object"}]>'
+            ],
+            output: ['result=><array>']
+        },
+        'get': {
+            input: [
+                'req=><object<IncomingMessage> required=:[{"client.server": "object"}, {"params": "object"}]>',
+                'res=><object<ServerResponse> required=:[{"socket.server": "object"}]>'
+            ],
+            output: ['result=><array>']
+        },
+        'post': {
+            input: [
+                'req=><object<IncomingMessage> required=:[{"client.server": "object"}, {"body": "object"}]>',
+                'res=><object<ServerResponse> required=:[{"socket.server": "object"}]>'
+            ],
+            output: ['record=><array>']
+        },
+        'put': {
+            input: [
+                'req=><object<IncomingMessage> required=:[{"client.server": "object"}, {"body": "object"}]>',
+                'res=><object<ServerResponse> required=:[{"socket.server": "object"}]>'
+            ],
+            output: ['record=><array>']
+        },
+        'delete': {
+            input: [
+                'req=><object<IncomingMessage> required=:[{"client.server": "object"}, {"params": "object"}]>',
+                'res=><object<ServerResponse> required=:[{"socket.server": "object"}]>'
+            ],
+            output: ['record=><array>']
+        },
+        'find': {
+            input: [
+                'req=><object<IncomingMessage> required=:[{"client.server": "object"}, {"params": "object"}]>',
+                'res=><object<ServerResponse> required=:[{"socket.server": "object"}]>'
+            ],
+            output: ['record=><array>']
+        }
+    }
+
     route = '/picklists';
     routes = [
         new Route({ method: 'get',      path: '/typelist',  handler: 'getTypeList',     before: [VerifyAuth] }),
@@ -101,4 +148,4 @@ module.exports = class PicklistController extends Controller {
         return rtn;
     }
 
-};
+});

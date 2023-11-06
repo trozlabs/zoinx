@@ -284,7 +284,7 @@ const schema = mongoose.Schema(
 module.exports = class TestingResultsRealtimeDomain extends Domain {
 
     constructor() {
-        super(mongoose.model('TestingResultsRealtime', schema, 'test.resultsRealtime'));
+        super(mongoose.model('TestingSendFails', schema, 'test.sendFails'));
     }
 
     list() {

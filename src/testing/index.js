@@ -4,5 +4,6 @@ module.exports = {
     UtilMethods: require('./UtilMethods'),
     TypeDefinitions: require('./TypeDefinitions'),
     ParseFunctionConfig: require('./ParseFunctionConfig'),
-    AutoUnitTesting: require('./AutoUnitTesting')
+    AutoUnitTesting: require('./AutoUnitTesting'),
+    TestMsgProducer: require('./TestMsgProducer')
 };
