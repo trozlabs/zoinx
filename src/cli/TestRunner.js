@@ -25,6 +25,7 @@ module.exports = class TestRunner extends BaseCli {
     //verify-test-config --userObj=><object<SpecialObject> required=:[{"token": "string"}] acceptedValues=:[{"name":"peter"}] rejectedValues=:[{"name": "boink"}] expectedOut=:["${numb1 + numb2}"]>
     //verify-test-config --req=><object required=:[{"client.server": "object"}]>
     //verify-test-config --res=><object required=:[{"socket.server": "object"}]>
+    //vtc --reqId=><string, acceptedValues=:[/^\d{2,10}$/]>
     async verifyTestConfig(inputStr, _interface) {
         let inputSplit = inputStr.trim().split('--'),
             start = Date.now(), end;

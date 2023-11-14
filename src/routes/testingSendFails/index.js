@@ -5,7 +5,7 @@ module.exports = class TestingSendFails extends RouteDef {
 
     constructor(app) {
         let routes = {
-            TestingResultsRealtime: {
+            TestingSendFails: {
                 base: '/testingSendFails',
                 router: path.join(__dirname, './route'),
                 enabled: true

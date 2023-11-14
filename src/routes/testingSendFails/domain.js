@@ -53,7 +53,7 @@ const schema = mongoose.Schema(
      }
 });
 
-module.exports = class TestingResultsRealtimeDomain extends Domain {
+module.exports = class TestingSendFailsDomain extends Domain {
 
     constructor() {
         super(mongoose.model('TestingSendFails', schema, 'test.sendFails'));
