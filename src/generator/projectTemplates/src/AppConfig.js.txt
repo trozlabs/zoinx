@@ -30,6 +30,7 @@ module.exports = class ZoinxAppConfig extends AppConfig {
             global.testingConfig = {
                 consoleOut: true,
                 isTestingEnabled: true,
+                sendResult2Kafka: true,
                 methodTestPassCount: 0,
                 maxMethodTestCount: 500,
                 testResultsMap: {},
@@ -43,6 +44,7 @@ module.exports = class ZoinxAppConfig extends AppConfig {
             global.testingConfig = {
                 consoleOut: true,
                 isTestingEnabled: true,
+                sendResult2Kafka: true,
                 methodTestPassCount: 0,
                 maxMethodTestCount: 500,
                 testResultsMap: {},
@@ -56,6 +58,7 @@ module.exports = class ZoinxAppConfig extends AppConfig {
             global.testingConfig = {
                 consoleOut: false,
                 isTestingEnabled: true,
+                sendResult2Kafka: true,
                 methodTestPassCount: 0,
                 maxMethodTestCount: 500,
                 testResultsMap: {},
