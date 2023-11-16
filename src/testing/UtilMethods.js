@@ -521,7 +521,6 @@ module.exports = class UtilMethods {
                         if (!_.isUndefined(testedParams[i])) {
                             let tmpModel = testedParams[i];
                             if (TypeDefinitions.objects.includes(tmpModel.get('jsType'))) {
-                                console.log(testObj.get('testParamConfig')[i]);
                                 let tmpTestObj = await this.getPropertyFromObject(tmpModel.get('testObject'), testObj.get('testParamConfig')[i].required[0]?.propName);
                                 if (!_.isUndefined(tmpTestObj)) {
                                     tmpModel.set('testObject', tmpTestObj);
