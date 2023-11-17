@@ -17,6 +17,56 @@ module.exports = class UtilMethods {
         global.testConfigList[configKey] = confObj;
     }
 
+    static shouldBeTested(className, funcName) {
+        let shouldTest = false;
+
+        if (UtilMethods.getTestExceptionCount() < 1) {
+            shouldTest = true;
+        }
+        else {
+            if (!_.isUndefined(className) || !_.isUndefined(funcName)) {
+                let felCount = (_.isArray(global.testingConfig.functionExclusionList)) ? global.testingConfig.functionExclusionList.length : 0
+
+                if (UtilMethods.isInClassOnly(className) || UtilMethods.isInFuncOnly(funcName)) {
+                    shouldTest = true;
+                }
+                else if (felCount > 0) {
+                    if (!UtilMethods.isClassExcluded(className)) shouldTest = true;
+                    if (shouldTest && UtilMethods.isFuncExcluded(funcName)) shouldTest = false;
+                }
+            }
+        }
+
+        return shouldTest;
+    }
+
+    static getTestExceptionCount() {
+        let gtc = global.testingConfig,
+            celCount = (_.isArray(gtc.classExclusionList)) ? gtc.classExclusionList.length : 0,
+            felCount = (_.isArray(gtc.functionExclusionList)) ? gtc.functionExclusionList.length : 0,
+            colCount = (_.isArray(gtc.classOnlyList)) ? gtc.classOnlyList.length : 0,
+            folCount = (_.isArray(gtc.functionOnlyList)) ? gtc.functionOnlyList.length : 0;
+
+        return (celCount + felCount + colCount + folCount);
+    }
+
+    static isClassExcluded(className) {
+        return global.testingConfig.classExclusionList.includes(className);
+    }
+
+    static isFuncExcluded(funcName) {
+        return global.testingConfig.functionExclusionList.includes(funcName);
+    }
+
+    static isInClassOnly(className) {
+        return global.testingConfig.classOnlyList.includes(className);
+    }
+
+    static isInFuncOnly(funcName) {
+        return global.testingConfig.functionOnlyList.includes(funcName);
+    }
+
+
     static isSimpleObject(value) {
         return value instanceof Object && value.constructor === Object;
     }

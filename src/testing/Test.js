@@ -165,8 +165,10 @@ module.exports = class RunTest {
                 UtilMethods.logTestResult('noclass', 'nomethod', 'No matching test record found.');
             }
             else {
-                if (!_.isEmpty(testRec.get('stopWatchStart')) && _.isDate(testRec.get('stopWatchStart')) && !_.isEmpty(testRec.get('stopWatchEnd')) && _.isDate(testRec.get('stopWatchEnd')))
+                if (_.isDate(testRec.get('stopWatchStart')) && _.isDate(testRec.get('stopWatchEnd')))
                     testRec.set('runningTimeMillis', (+testRec.get('stopWatchEnd') - +testRec.get('stopWatchStart')));
+                else if (_.isInteger(testRec.get('stopWatchStart')) && _.isInteger(testRec.get('stopWatchEnd')))
+                    testRec.set('runningTimeMillis', (testRec.get('stopWatchEnd') - testRec.get('stopWatchStart')));
                 await this.functionTest(clazz, func, passedArguments, testRec);
             }
         }

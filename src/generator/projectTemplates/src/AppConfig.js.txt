@@ -33,11 +33,10 @@ module.exports = class ZoinxAppConfig extends AppConfig {
                 sendResult2Kafka: true,
                 methodTestPassCount: 0,
                 maxMethodTestCount: 500,
-                testResultsMap: {},
-                classExclusionMap: {},
-                functionExclusionMap: {},
-                classOnlyMap: {},
-                functionOnlyMap: {}
+                classOnlyList: [],
+                functionOnlyList: [],
+                classExclusionList: [],
+                functionExclusionList: []
             };
         }
         else if (['qa', 'test'].includes(currentEnv)) {
@@ -47,11 +46,10 @@ module.exports = class ZoinxAppConfig extends AppConfig {
                 sendResult2Kafka: true,
                 methodTestPassCount: 0,
                 maxMethodTestCount: 500,
-                testResultsMap: {},
-                classExclusionMap: {},
-                functionExclusionMap: {},
-                classOnlyMap: {},
-                functionOnlyMap: {}
+                classOnlyList: [],
+                functionOnlyList: [],
+                classExclusionList: [],
+                functionExclusionList: []
             };
         }
         else if (['prod', 'production'].includes(currentEnv)) {
@@ -61,11 +59,10 @@ module.exports = class ZoinxAppConfig extends AppConfig {
                 sendResult2Kafka: true,
                 methodTestPassCount: 0,
                 maxMethodTestCount: 500,
-                testResultsMap: {},
-                classExclusionMap: {},
-                functionExclusionMap: {},
-                classOnlyMap: {},
-                functionOnlyMap: {}
+                classOnlyList: [],
+                functionOnlyList: [],
+                classExclusionList: [],
+                functionExclusionList: []
             };
         }
     }
