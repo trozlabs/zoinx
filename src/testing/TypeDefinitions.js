@@ -33,17 +33,18 @@ module.exports = class TypeDefinitions {
 
     static get typeTests() {
         return {
-            'string': {typeFn: _.isString, convertFn: _.toString},
-            'number': {typeFn: _.isNumber, convertFn: _.toNumber},
-            'bigint': {typeFn: this.isBigInt, convertFn: _.toNumber},
-            'boolean': {typeFn: _.isBoolean, convertFn: this.toBoolean},
-            'symbol': {typeFn: _.isSymbol, convertFn: this.toSymbol},
-            'undefined': {typeFn: _.isUndefined, convertFn: Function(`return undefined;`)},
-            'null': {typeFn: _.isNull, convertFn: Function(`return null;`)},
-            'object': {typeFn: _.isObject, convertFn: JSON.parse},
-            'array': {typeFn: _.isArray, convertFn: JSON.parse},
-            'function': {typeFn: _.isFunction, convertFn: this.toFunction},
-            'date': {typeFn: _.isDate, convertFn: this.toDate}
+            'string':       {typeFn: _.isString,    convertFn: _.toString},
+            'number':       {typeFn: _.isNumber,    convertFn: _.toNumber},
+            'bigint':       {typeFn: this.isBigInt, convertFn: _.toNumber},
+            'boolean':      {typeFn: _.isBoolean,   convertFn: this.toBoolean},
+            'symbol':       {typeFn: _.isSymbol,    convertFn: this.toSymbol},
+            'undefined':    {typeFn: _.isUndefined, convertFn: Function(`return undefined;`)},
+            'null':         {typeFn: _.isNull,      convertFn: Function(`return null;`)},
+            'object':       {typeFn: _.isObject,    convertFn: JSON.parse},
+            'array':        {typeFn: _.isArray,     convertFn: JSON.parse},
+            'function':     {typeFn: _.isFunction,  convertFn: this.toFunction},
+            'date':         {typeFn: _.isDate,      convertFn: this.toDate},
+            'regexp':       {typeFn: _.isRegExp,    convertFn: this.toRegExp}
         }
     }
 
@@ -58,6 +59,11 @@ module.exports = class TypeDefinitions {
 
     static toFunction(value) {
         return undefined;
+    }
+
+    static toRegExp(value) {
+        let regexParts = value.match(/\/(.*)\/([mgiyuvsd]*)/);
+        return new RegExp(regexParts[1], regexParts[2]);
     }
 
     static toDate(value) {

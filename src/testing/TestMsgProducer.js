@@ -44,14 +44,16 @@ module.exports = class TestMsgProducer {
                 if (StaticUtil.StringToBoolean(process.env.TESTING_ENCRYPT)) {
                     testObj = await Encryption.encrypt(testObj, process.env.TESTING_SECRET_KEY, process.env.TESTING_SECRET_IV);
                 }
-
+// TODO work out kafka keys
                 await global.kafka.TestMsgProducer.sendMessage({
                     key: keyString,
                     value: testObj
                 }, process.env.TESTING_TOPIC_NAME);
             }
-            else
-                console.log(this.#testObj);
+            else {
+                if (global.testingConfig.consoleOut)
+                    Log.info(this.#testObj);
+            }
         }
         catch (e) {
             await this.#saveTestMsgSendFail(this.#testObj.json, e);

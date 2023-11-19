@@ -38,7 +38,11 @@ module.exports = class ParseFunctionConfig {
     static getInitialTestConfig(initialSplit, inputStr='') {
         if (_.isEmpty(initialSplit) || !_.isArray(initialSplit)) return undefined;
 
-        let parsedConfig, paramName, paramOptional = false, paramType, detailsSplit;
+        let parsedConfig,
+            paramName,
+            paramOptional = false,
+            paramType,
+            detailsSplit;
 
         if (initialSplit[0].includes('?')) {
             initialSplit[0] = initialSplit[0].replace('?', '');
@@ -77,8 +81,11 @@ module.exports = class ParseFunctionConfig {
                 paramType = initialSplit[1];
         }
         else {
-            if (initialSplit[1].indexOf(' ') >= 0)
-                detailsSplit = initialSplit[1].substr(initialSplit[1].indexOf(' '), initialSplit[1].length).trim();
+            if (initialSplit[1].indexOf(' ') >= 0) {
+                detailsSplit = initialSplit[1].substring(initialSplit[1].indexOf(' '), initialSplit[1].length).trim();
+                if (detailsSplit.endsWith('>'))
+                    detailsSplit = detailsSplit.slice(0, -1);
+            }
         }
 
         let typeTest;
@@ -109,48 +116,49 @@ module.exports = class ParseFunctionConfig {
             try {
                 if (parseParts.length > 1) {
 
+// TODO make work like accepted
                     let requiredStr = '';
                     if (parseParts[1].indexOf(this.requiredPrefix) >= 0) {
-                        requiredStr = parseParts[1].substr(parseParts[1].indexOf(this.requiredPrefix), parseParts[1].length);
-                        requiredStr = requiredStr.substr(0, (requiredStr.indexOf('}]')+2));
+                        requiredStr = parseParts[1].substring(parseParts[1].indexOf(this.requiredPrefix), parseParts[1].length);
+                        requiredStr = requiredStr.substring(0, (requiredStr.indexOf('}]')+2));
                         configObj.required = this.getAdvancedObjectConf(requiredStr, this.requiredPrefix);
                     }
 
                     let acceptedStr = '';
                     if (parseParts[1].indexOf(this.acceptedPrefix) >= 0) {
-                        acceptedStr = parseParts[1].slice().substr(parseParts[1].indexOf(this.acceptedPrefix), parseParts[1].length);
+                        acceptedStr = parseParts[1].slice().substring(parseParts[1].indexOf(this.acceptedPrefix), parseParts[1].length);
                         if (acceptedStr.split(this.acceptedPrefix)[1].startsWith('[')) {
-                            acceptedStr = acceptedStr.substr(0, (acceptedStr.indexOf(']') + 1));
+                            acceptedStr = acceptedStr.substring(0, (acceptedStr.indexOf(']>') + 1));
                             configObj.acceptedValues = this.getAdvancedValueConf(acceptedStr, this.acceptedPrefix, configObj.type);
                         }
                         else {
-                            acceptedStr = acceptedStr.substr(0, (acceptedStr.indexOf('}]') + 2));
+                            acceptedStr = acceptedStr.substring(0, (acceptedStr.indexOf('}]') + 2));
                             configObj.acceptedValues = this.getAdvancedObjectConf(acceptedStr, this.acceptedPrefix);
                         }
                     }
-
+// TODO make work like accepted
                     let rejectedStr = '';
                     if (parseParts[1].indexOf(this.rejectedPrefix) >= 0) {
-                        rejectedStr = parseParts[1].slice().substr(parseParts[1].indexOf(this.rejectedPrefix), parseParts[1].length);
+                        rejectedStr = parseParts[1].slice().susubstringbstr(parseParts[1].indexOf(this.rejectedPrefix), parseParts[1].length);
                         if (rejectedStr.split(this.rejectedPrefix)[1].startsWith('[')) {
-                            rejectedStr = rejectedStr.substr(0, (rejectedStr.indexOf(']') + 1));
+                            rejectedStr = rejectedStr.substring(0, (rejectedStr.indexOf(']>') + 1));
                             configObj.rejectedValues = this.getAdvancedValueConf(rejectedStr, this.rejectedPrefix, configObj.type);
                         }
                         else {
-                            rejectedStr = rejectedStr.substr(0, (rejectedStr.indexOf('}]') + 2));
+                            rejectedStr = rejectedStr.substring(0, (rejectedStr.indexOf('}]') + 2));
                             configObj.rejectedValues = this.getAdvancedObjectConf(rejectedStr, this.rejectedPrefix);
                         }
                     }
-
+// TODO make work like accepted
                     let expectedOutStr = '';
                     if (parseParts[1].indexOf(this.expectedOutPrefix) >= 0) {
                         expectedOutStr = parseParts[1].slice().substr(parseParts[1].indexOf(this.expectedOutPrefix), parseParts[1].length);
                         if (expectedOutStr.split(this.expectedOutPrefix)[1].startsWith('[')) {
-                            expectedOutStr = expectedOutStr.substr(0, (expectedOutStr.indexOf(']') + 1));
+                            expectedOutStr = expectedOutStr.substring(0, (expectedOutStr.indexOf(']>') + 1));
                             configObj.expectedOut = this.getAdvancedValueConf(expectedOutStr, this.expectedOutPrefix, configObj.type);
                         }
                         else {
-                            expectedOutStr = expectedOutStr.substr(0, (expectedOutStr.indexOf('}]') + 2));
+                            expectedOutStr = expectedOutStr.substring(0, (expectedOutStr.indexOf('}]') + 2));
                             configObj.expectedOut = this.getAdvancedObjectConf(expectedOutStr, this.expectedOutPrefix);
                         }
                     }
@@ -168,7 +176,7 @@ module.exports = class ParseFunctionConfig {
 
         if (!_.isEmpty(configStr)) {
             try {
-                tmpSplit = configStr.split('=:');
+                tmpSplit = configStr.split(configPrefix);
 
                 if (/\[([^\]]+)\]/.test(tmpSplit[1])) {
                     let tmpArrayStr = tmpSplit[1].substring(1, (tmpSplit[1].length - 1)),
@@ -180,8 +188,13 @@ module.exports = class ParseFunctionConfig {
                         parsedArray.push(tmpConf);
                     }
                     else {
+                        if (this.rxWacks.exec(tmpSplitArray[0]) && tmpSplitArray[0].startsWith("/")) {
+                            type = 'regexp';
+                        }
+
                         for (let i = 0; i < tmpSplitArray.length; i++) {
                             parsedArray.push(TypeDefinitions.typeTests[type].convertFn(tmpSplitArray[i]));
+                            if (type === 'regexp') break;
                         }
                     }
                     tmpJson = parsedArray;

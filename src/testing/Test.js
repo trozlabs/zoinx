@@ -50,43 +50,16 @@ module.exports = class RunTest {
 
         try {
             funcTestConfig.testParamConfigStr = methodInput;
-            if (_.isEmpty(methodInput) || !_.isArray(methodInput)) expectedParams = [];
-
-            for (let i=0; i<methodInput.length; i++) {
-                if (methodInput[i].startsWith('<=>')) continue;
-
-                if ( UtilMethods.getGlobalTestConfig(`${className}.${methodName}.${methodInput[i]}`) )
-                    expectedParams.push(UtilMethods.getGlobalTestConfig(`${className}.${methodName}.${methodInput[i]}`));
-                else {
-                    let tmpParams = ParseFunctionConfig.parse(methodInput[i]);
-                    expectedParams.push(tmpParams);
-                    UtilMethods.setGlobalTestConfig(`${className}.${methodName}.${methodInput[i]}`, tmpParams);
-                }
-            }
+            expectedParams = UtilMethods.getExpectedConfig(className, methodName, methodInput, 'input');
             funcTestConfig.testParamConfig = expectedParams;
             funcTestConfig.distinctParamNames = UtilMethods.getDistinctNamesFromArray(expectedParams);
 
             funcTestConfig.testOutputConfigStr = methodOutput;
-            if (_.isEmpty(methodOutput) || !_.isArray(methodOutput)) expectedResult = [];
-            for (let i=0; i<methodOutput.length; i++) {
-                if (methodOutput[i].startsWith('<=>')) {
-                    let tmpParams = {type: 'undefined', name: 'default'};
-                    expectedResult.push(tmpParams);
-                    UtilMethods.setGlobalTestConfig(`${className}.${methodName}.${methodOutput[i]}_OUTPUT`, tmpParams);
-                    continue;
-                }
-                if ( UtilMethods.getGlobalTestConfig(`${className}.${methodName}.${methodOutput[i]}_OUTPUT`) )
-                    expectedResult.push(UtilMethods.getGlobalTestConfig(`${className}.${methodName}.${methodOutput[i]}_OUTPUT`));
-                else {
-                    let tmpParams = ParseFunctionConfig.parse(methodOutput[i], true);
-                    expectedResult.push(tmpParams);
-                    UtilMethods.setGlobalTestConfig(`${className}.${methodName}.${methodOutput[i]}_OUTPUT`, tmpParams);
-                }
-                //expectedResult.push(ParseFunctionConfig.parse(methodOutput[i], true));
-            }
+            expectedResult = UtilMethods.getExpectedConfig(className, methodName, methodOutput, 'output');
             funcTestConfig.testOutputConfig = expectedResult;
 
             //TODO check for PARSE_ERROR
+            //TODO methodCaller.file is not a function/method name
             methodCaller = UtilMethods.getCallerMethod(clazz, errorStack);
 
             funcTestConfig.className = className;
@@ -124,7 +97,7 @@ module.exports = class RunTest {
             return funcTest;
         }
         catch (e) {
-            console.error('createMethodTest failed:\n', e);
+            Log.error('createMethodTest failed:\n', e);
         }
     }
 
@@ -181,13 +154,12 @@ module.exports = class RunTest {
     }
 
     static async functionTest(clazz, func, passedArguments, testRec) {
-        let me = this;
 
         if (global.testingConfig.isTestingEnabled) {
             try {
                 if (testRec.get('distinctParamNames').length > 0) {
-                    me.execParamTests(clazz, func, passedArguments, testRec);
-                    me.execOutputTest(clazz, func, passedArguments, testRec);
+                    this.execParamTests(clazz, func, passedArguments, testRec);
+                    this.execOutputTest(clazz, func, passedArguments, testRec);
                     UtilMethods.setFuncTestPassed(testRec);
                     if (!testRec.get('passed')) {
                         testRec.set('resultMessage', '********** Function Contract for ' + testRec.get('methodName') + ' passed ' + testRec.get('paramsPassedTestCount') + ' of ' + testRec.get('paramsCount') + ' tests. **********');
@@ -198,7 +170,7 @@ module.exports = class RunTest {
                     testRec.set('paramsPassedTestCount', 0);
                     testRec.set('passed', true);
                     testRec.set('resultMessage', 'Function trace');
-                    me.execOutputTest(clazz, func, passedArguments, testRec);
+                    this.execOutputTest(clazz, func, passedArguments, testRec);
                 }
 
                 testRec = await UtilMethods.getTestObjectWithoutModels(testRec);
@@ -213,8 +185,7 @@ module.exports = class RunTest {
     }
 
     static execParamTests(clazz, func, passedArguments, funcDetails) {
-        let me = this,
-            paramConfig = funcDetails.get('testParamConfig'),
+        let paramConfig = funcDetails.get('testParamConfig'),
             paramDetails = [],
             currentParamName = '',
             passedArgIdx = -1,
@@ -250,13 +221,13 @@ module.exports = class RunTest {
                 else paramTest.set('typePassed', tmpFn(testObject));
 
                 if (TypeDefinitions.primitives.includes(paramTest.get('jsType'))) {
-                    me.testPrimitive(paramConfig[i], paramTest, passedArguments[i], testObject);
+                    this.testPrimitive(paramConfig[i], paramTest, passedArguments[i], testObject);
                 }
                 else if (TypeDefinitions.objects.includes(paramTest.get('jsType'))) {
-                    me.testObject(paramConfig[i], paramTest, passedArguments[i], testObject);
+                    this.testObject(paramConfig[i], paramTest, passedArguments[i], testObject);
                 }
                 else if (TypeDefinitions.otherTypes.includes(paramTest.get('jsType'))) {
-                    me.testOthers(paramConfig[i], paramTest, passedArguments[i], testObject);
+                    this.testOthers(paramConfig[i], paramTest, passedArguments[i], testObject);
                 }
 
                 if (UtilMethods.areRejectedInAccepted(paramConfig[i])) {
@@ -380,6 +351,8 @@ module.exports = class RunTest {
             if (paramConfig.acceptedValues.length > 0) {
                 if (!paramConfig.acceptedValues.includes(testObject)) {
                     paramTest.set('passed', false);
+                    if (_.isRegExp(paramConfig.acceptedValues[0]) && paramConfig.acceptedValues[0].test(testObject))
+                        paramTest.set('passed', true);
                 }
             }
 

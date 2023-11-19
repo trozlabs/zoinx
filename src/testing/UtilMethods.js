@@ -6,6 +6,7 @@ const { TestParamDetails, TestExecutionDetails, TestRawObject } = require('./mod
 const { readdirSync, statSync } = require('fs');
 const fs = require('fs');
 const { resolve, parse } = require('path');
+const ParseFunctionConfig = require("./ParseFunctionConfig");
 
 module.exports = class UtilMethods {
 
@@ -66,7 +67,6 @@ module.exports = class UtilMethods {
         return global.testingConfig.functionOnlyList.includes(funcName);
     }
 
-
     static isSimpleObject(value) {
         return value instanceof Object && value.constructor === Object;
     }
@@ -124,8 +124,8 @@ module.exports = class UtilMethods {
 
             if (!_.isEmpty(customMessage)) logStr = `${logStr} -- ${customMessage}`;
 
-            //if (this.getConsoleOut()) Log.warn(logStr);
-            console.error(logStr)
+            if (global.testingConfig.consoleOut) Log.info(logStr);
+            // console.error(logStr)
         }
         catch (e) {
             Log.error('logTestResult failed:\n', e);
@@ -212,8 +212,9 @@ module.exports = class UtilMethods {
                             pathParts = errorStack[i].split('/');
                             if (pathParts[pathParts.length-1].includes('TestProxy')) continue;
                             else {
+                                let pathEnd = pathParts[pathParts.length-1];
                                 returnObj.className = className;
-                                returnObj.file = `${pathParts[pathParts.length-3]}/${pathParts[pathParts.length-2]}/${pathParts[pathParts.length-1]}`;
+                                returnObj.file = `${pathParts[pathParts.length-3]}/${pathParts[pathParts.length-2]}/${pathEnd.substring(0, pathEnd.length-1)}`;
                                 break;
                             }
                         }
@@ -252,6 +253,35 @@ module.exports = class UtilMethods {
             Log.error('getCallerSignature failed:\n', e);
             return 'getCallerSignature failed';
         }
+    }
+
+    static getExpectedConfig(className, methodName, config=[], configType='input') {
+        let expected = [],
+            cacheSuffix = (_.isEmpty(configType) || !_.isString(configType)) ? 'INPUT' : configType.toUpperCase();
+
+        try {
+            for (let i=0; i<config.length; i++) {
+                if (config[i].startsWith('<=>')) {
+                    let tmpParams = {type: 'undefined', name: 'default'};
+                    expected.push(tmpParams);
+                    UtilMethods.setGlobalTestConfig(`${className}.${methodName}.${config[i]}_${cacheSuffix}`, tmpParams);
+                    continue;
+                }
+
+                if ( UtilMethods.getGlobalTestConfig(`${className}.${methodName}.${config[i]}_${cacheSuffix}`) )
+                    expected.push(UtilMethods.getGlobalTestConfig(`${className}.${methodName}.${config[i]}_${cacheSuffix}`));
+                else {
+                    let tmpParams = ParseFunctionConfig.parse(config[i]);
+                    expected.push(tmpParams);
+                    UtilMethods.setGlobalTestConfig(`${className}.${methodName}.${config[i]}_${cacheSuffix}`, tmpParams);
+                }
+            }
+        }
+        catch (e) {
+            Log.error('getExpected failed:\n', e);
+        }
+
+        return expected;
     }
 
     static getDistinctNamesFromArray(objectArray) {
@@ -826,7 +856,6 @@ module.exports = class UtilMethods {
 
         return propPresence;
     }
-
 
     static async getPropertyFromObject(testObj={}, propertyPath='') {
         let prop,
