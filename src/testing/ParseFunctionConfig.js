@@ -145,7 +145,7 @@ module.exports = class ParseFunctionConfig {
                             configObj.acceptedValues = this.getAdvancedObjectConf(acceptedStr, this.acceptedPrefix);
                         }
                     }
-// TODO make work like accepted
+// TODO verify works like accepted
                     let rejectedStr = '';
                     if (parseParts[1].indexOf(this.rejectedPrefix) >= 0) {
                         rejectedStr = parseParts[1].slice().substring(parseParts[1].indexOf(this.rejectedPrefix), parseParts[1].length);

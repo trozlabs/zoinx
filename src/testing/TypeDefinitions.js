@@ -63,6 +63,7 @@ module.exports = class TypeDefinitions {
 
     static toRegExp(value) {
         let regexParts = value.match(/\/(.*)\/([mgiyuvsd]*)/);
+        if (_.isEmpty(regexParts[1])) return;
         return new RegExp(regexParts[1], regexParts[2]);
     }
 
