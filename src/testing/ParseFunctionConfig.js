@@ -41,6 +41,7 @@ module.exports = class ParseFunctionConfig {
         let parsedConfig,
             paramName,
             paramOptional = false,
+            maskValue = false,
             paramType,
             detailsSplit;
 
@@ -48,6 +49,12 @@ module.exports = class ParseFunctionConfig {
             initialSplit[0] = initialSplit[0].replace('?', '');
             paramOptional = true;
         }
+
+        if (initialSplit[0].includes('*')) {
+            initialSplit[0] = initialSplit[0].replace('*', '');
+            maskValue = true;
+        }
+
         paramName = initialSplit[0];
 
         if (_.isEmpty(initialSplit[1])) {
@@ -55,6 +62,7 @@ module.exports = class ParseFunctionConfig {
                 name: paramName,
                 type: 'string',
                 optional: paramOptional,
+                maskValue: maskValue,
                 required: [],
                 acceptedValues: [],
                 rejectedValues: [],
@@ -100,6 +108,7 @@ module.exports = class ParseFunctionConfig {
             type: typeTest.type,
             subType: (typeTest.subType) ? typeTest.subType : paramSubType,
             optional: paramOptional,
+            maskValue: maskValue,
             required: [],
             acceptedValues: [],
             rejectedValues: [],
@@ -139,7 +148,7 @@ module.exports = class ParseFunctionConfig {
 // TODO make work like accepted
                     let rejectedStr = '';
                     if (parseParts[1].indexOf(this.rejectedPrefix) >= 0) {
-                        rejectedStr = parseParts[1].slice().susubstringbstr(parseParts[1].indexOf(this.rejectedPrefix), parseParts[1].length);
+                        rejectedStr = parseParts[1].slice().substring(parseParts[1].indexOf(this.rejectedPrefix), parseParts[1].length);
                         if (rejectedStr.split(this.rejectedPrefix)[1].startsWith('[')) {
                             rejectedStr = rejectedStr.substring(0, (rejectedStr.indexOf(']>') + 1));
                             configObj.rejectedValues = this.getAdvancedValueConf(rejectedStr, this.rejectedPrefix, configObj.type);
@@ -152,7 +161,7 @@ module.exports = class ParseFunctionConfig {
 // TODO make work like accepted
                     let expectedOutStr = '';
                     if (parseParts[1].indexOf(this.expectedOutPrefix) >= 0) {
-                        expectedOutStr = parseParts[1].slice().substr(parseParts[1].indexOf(this.expectedOutPrefix), parseParts[1].length);
+                        expectedOutStr = parseParts[1].slice().substring(parseParts[1].indexOf(this.expectedOutPrefix), parseParts[1].length);
                         if (expectedOutStr.split(this.expectedOutPrefix)[1].startsWith('[')) {
                             expectedOutStr = expectedOutStr.substring(0, (expectedOutStr.indexOf(']>') + 1));
                             configObj.expectedOut = this.getAdvancedValueConf(expectedOutStr, this.expectedOutPrefix, configObj.type);

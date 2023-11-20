@@ -165,7 +165,8 @@ module.exports = class RunTest {
                         testRec.set('resultMessage', '********** Function Contract for ' + testRec.get('methodName') + ' passed ' + testRec.get('paramsPassedTestCount') + ' of ' + testRec.get('paramsCount') + ' tests. **********');
                         UtilMethods.logTestResult(testRec.get('className'), testRec.get('methodName'), testRec.get('resultMessage'));
                     }
-                } else if (testRec.get('distinctParamNames').length < 1) {
+                }
+                else if (testRec.get('distinctParamNames').length < 1) {
                     testRec.set('paramsCount', 0);
                     testRec.set('paramsPassedTestCount', 0);
                     testRec.set('passed', true);
@@ -208,6 +209,7 @@ module.exports = class RunTest {
                 name: currentParamName,
                 testObject: testObject,
                 isOptional: paramConfig[i].optional,
+                maskValue: paramConfig[i].maskValue,
                 passed: false,
                 typePassed: false,
                 subTypePassed: true
@@ -217,6 +219,7 @@ module.exports = class RunTest {
 
                 // Use static def typeTests to easily test declared data type
                 let tmpFn = TypeDefinitions.typeTests[paramTest.get('jsType')].typeFn;
+
                 if (_.isString(tmpFn)) paramTest.set('typePassed', require(tmpFn)(testObject));
                 else paramTest.set('typePassed', tmpFn(testObject));
 
@@ -246,6 +249,9 @@ module.exports = class RunTest {
             paramTest.set('isIterable', UtilMethods.isIterable(testObject));
             paramTest.set('isFunction', _.isFunction(testObject));
             paramTest.set('successCount', (_.isBoolean(paramTest.get('passed')) && paramTest.get('passed')) ? 1 : 0);
+
+            if (paramTest.get('maskValue') && _.isString(testObject))
+                paramTest.set('testObject', UtilMethods.maskString(testObject, 2));
 
             paramDetails.push(paramTest);
         }
@@ -355,11 +361,11 @@ module.exports = class RunTest {
                         paramTest.set('passed', true);
                 }
             }
-
-            //See if testObject is in rejectedValues array
-            if (paramConfig.rejectedValues.length > 0) {
+            else if (paramConfig.rejectedValues.length > 0) {
                 if (paramConfig.rejectedValues.includes(testObject)) {
                     paramTest.get('passed', false);
+                    if (_.isRegExp(paramConfig.rejectedValues[0]) && !paramConfig.rejectedValues[0].test(testObject))
+                        paramTest.set('passed', true);
                 }
             }
         }

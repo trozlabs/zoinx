@@ -19,6 +19,7 @@ module.exports = class TestRunner extends BaseCli {
         )
     }
 
+    //vtc --simpleStr=><string, acceptedValues=:[/^\d{2,10}$/]>
     //verify-test-config --authObj=><object required=:[{"data[0].response.csrf_token.csrf_token": "string"}]>
     //verify-test-config --credentials=><object<someKindOfObjectType> acceptedValues=:[{"name":"peter"}] required=:[{"email":"string=[some@email.com|Asdf|asdaf]","password":"string=/^[a-zA-Z]{7}$/gi"}, {"snap":"number"}]>
     //verify-test-config --userObj=><object<SpecialObject> required=:[{"token": "string"}] acceptedValues=:[{"name":"peter"}] rejectedValues=:[{"name": "boink"}]>

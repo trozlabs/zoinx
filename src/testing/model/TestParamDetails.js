@@ -26,6 +26,11 @@ module.exports = class TestParamDetails extends Model {
         {
             type: 'boolean',
             defaultValue: false,
+            name: 'maskValue'
+        },
+        {
+            type: 'boolean',
+            defaultValue: false,
             name: 'passed'
         },
         {

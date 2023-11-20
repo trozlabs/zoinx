@@ -75,6 +75,24 @@ module.exports = class UtilMethods {
         return value ? value.nodeName === "#text" : false;
     }
 
+    static maskString(toBeMasked, endsCharCount=0, maskChar='*', endOnly=false) {
+        if (_.isEmpty(toBeMasked) || !_.isString(toBeMasked) || toBeMasked.length <= (endsCharCount * 2))
+            return toBeMasked;
+
+        let maskCharCount = toBeMasked.length - (endsCharCount * 2),
+            maskedStr, endOnlyStr;
+
+        if (endOnly) {
+            endOnlyStr = toBeMasked.slice(-endsCharCount);
+            maskedStr = endOnlyStr.padStart(toBeMasked.length, maskChar);
+        }
+        else {
+            maskedStr = `${toBeMasked.substring(0, endsCharCount)}${maskChar.repeat(maskCharCount)}${toBeMasked.substring((toBeMasked.length - endsCharCount), toBeMasked.length)}`;
+        }
+
+        return maskedStr;
+    }
+
     static isIterable(value) {
         const iterableRe = /\[object\s*(?:Array|Arguments|\w*Collection|\w*List|HTML\s+document\.all\s+class)\]/;
 
