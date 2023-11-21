@@ -1,7 +1,6 @@
 const os = require('os');
 const _ = require('lodash');
 const { Log } = require('../log');
-const ParseFunctionConfig = require('./ParseFunctionConfig');
 const TypeDefinitions = require('./TypeDefinitions');
 const UtilMethods = require('./UtilMethods');
 const { TestFuncDetails, TestParamDetails, TestExecutionDetails} = require('./model');
@@ -469,21 +468,3 @@ module.exports = class RunTest {
     }
 
 }
-
-
-
-/*
-        // console.log('##############################################');
-        // console.log(`SetupFuncTest was called for: ${UtilMethods.getClassName(clazz)} -- ${UtilMethods.getMethodName(func)}`);
-        // console.log(`Class/function caller function: ${UtilMethods.getCallerMethod(clazz, errorStack).file}`);
-        // console.log('#######################');
-        // console.log('methodInput config:');
-        // console.log(ParseFunctionConfig.parse(methodInput[0]));
-        // console.log('#######################');
-        // console.log('methodOutput config:');
-        // console.log(ParseFunctionConfig.parse(methodOutput[0]));
-        // console.log('#######################');
-        // console.log(randomUUID());
-        // console.log('##############################################');
-
- */
