@@ -1,3 +1,4 @@
+const os = require('os');
 const _ = require('lodash');
 const { Log } = require('../log');
 const ParseFunctionConfig = require('./ParseFunctionConfig');
@@ -5,8 +6,22 @@ const TypeDefinitions = require('./TypeDefinitions');
 const UtilMethods = require('./UtilMethods');
 const { TestFuncDetails, TestParamDetails, TestExecutionDetails} = require('./model');
 const TestMsgProducer = require('./TestMsgProducer');
+const AppCache = require("../core/AppCache");
 
 module.exports = class RunTest {
+
+    static setupTestConfigCache() {
+        if (!global.testing) global.testing = {};
+        if (!global.testing.configCache) {
+            global.testing.configCache = new AppCache(
+                {
+                    stdTTL: 300,
+                    checkperiod: 300,
+                    maxKeys: 5000
+                }
+            );
+        }
+    }
 
     static setupFuncTest(clazz, func, passedArguments, errorStack, testConfig, targetName, notes='') {
         let newFuncRec,
@@ -18,6 +33,7 @@ module.exports = class RunTest {
             return;
         }
 
+        this.setupTestConfigCache();
         methodInput = (_.isEmpty(testConfig[targetName].input)) ? ['<=><undefined>'] : testConfig[targetName].input;
         methodOutput = (_.isEmpty(testConfig[targetName].output)) ? ['<=><undefined>'] : testConfig[targetName].output;
 
@@ -69,6 +85,7 @@ module.exports = class RunTest {
 
             funcTestConfig.methodSignature = UtilMethods.getMethodSignature(func);
             funcTestConfig.paramsCount = UtilMethods.getSignatureParamsCount(funcTestConfig.methodSignature);
+            funcTestConfig.serverInstance = os.hostname();
 
             if ( !_.isString(methodInput) || methodInput.toLowerCase() !== 'trace')
                 funcTestConfig.doArgumentCountsMatch = UtilMethods.doesPassedCountEqualExpectedCount(passedArguments, expectedParams);

@@ -11,11 +11,11 @@ const ParseFunctionConfig = require("./ParseFunctionConfig");
 module.exports = class UtilMethods {
 
     static getGlobalTestConfig(configKey) {
-        return (global.testConfigList) ? global.testConfigList[configKey] : undefined;
+        return global.testing.configCache.getEntry(configKey);
     }
 
     static setGlobalTestConfig(configKey, confObj) {
-        global.testConfigList[configKey] = confObj;
+        global.testing.configCache.setEntry(configKey, confObj);
     }
 
     static shouldBeTested(className, funcName) {
@@ -279,19 +279,21 @@ module.exports = class UtilMethods {
 
         try {
             for (let i=0; i<config.length; i++) {
+
+                let tmpParamName = config[i].split('=>')[0];
                 if (config[i].startsWith('<=>')) {
                     let tmpParams = {type: 'undefined', name: 'default'};
                     expected.push(tmpParams);
-                    UtilMethods.setGlobalTestConfig(`${className}.${methodName}.${config[i]}_${cacheSuffix}`, tmpParams);
+                    UtilMethods.setGlobalTestConfig(`${className}.${methodName}.${tmpParamName}_${cacheSuffix}`, tmpParams);
                     continue;
                 }
 
-                if ( UtilMethods.getGlobalTestConfig(`${className}.${methodName}.${config[i]}_${cacheSuffix}`) )
+                if ( UtilMethods.getGlobalTestConfig(`${className}.${methodName}.${tmpParamName}_${cacheSuffix}`) )
                     expected.push(UtilMethods.getGlobalTestConfig(`${className}.${methodName}.${config[i]}_${cacheSuffix}`));
                 else {
                     let tmpParams = ParseFunctionConfig.parse(config[i]);
                     expected.push(tmpParams);
-                    UtilMethods.setGlobalTestConfig(`${className}.${methodName}.${config[i]}_${cacheSuffix}`, tmpParams);
+                    UtilMethods.setGlobalTestConfig(`${className}.${methodName}.${tmpParamName}_${cacheSuffix}`, tmpParams);
                 }
             }
         }

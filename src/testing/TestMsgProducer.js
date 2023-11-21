@@ -36,15 +36,23 @@ module.exports = class TestMsgProducer {
         }
     }
 
-    async send(keyString=randomUUID()) {
+    async send() {
+        let keyString = (process.env.SERVICE_NAME) ? process.env.SERVICE_NAME : 'DevApplication';
         try {
             if (global.testingConfig?.sendResult2Kafka) {
+                if (_.isEmpty(this.#testObj) || !_.isObject(this.#testObj)) {
+                    keyString = randomUUID();
+                }
+                else {
+                    keyString += `.${this.#testObj.className}.${this.#testObj.methodName}:${this.#testObj.stopWatchStart}`;
+                }
+
                 await this.#createTestMsgProducer();
                 let testObj = JSON.stringify(this.#testObj);
                 if (StaticUtil.StringToBoolean(process.env.TESTING_ENCRYPT)) {
                     testObj = await Encryption.encrypt(testObj, process.env.TESTING_SECRET_KEY, process.env.TESTING_SECRET_IV);
                 }
-// TODO work out kafka keys
+
                 await global.kafka.TestMsgProducer.sendMessage({
                     key: keyString,
                     value: testObj
