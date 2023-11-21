@@ -6,9 +6,6 @@ module.exports = class AppCache extends NodeCache{
     #cacheTimeMap = new Map();
 
     constructor(configObj) {
-        if (_.isEmpty(configObj)) {
-            configObj = { stdTTL: 60, checkperiod: 60 };
-        }
         super(configObj);
         this.on( "del", this.#syncMapAndCache);
         this.on( "expired", this.#syncMapAndCache);

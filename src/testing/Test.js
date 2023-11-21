@@ -15,7 +15,7 @@ module.exports = class RunTest {
             global.testing.configCache = new AppCache(
                 {
                     stdTTL: 300,
-                    checkperiod: 300,
+                    checkperiod: 100,
                     maxKeys: 5000
                 }
             );
