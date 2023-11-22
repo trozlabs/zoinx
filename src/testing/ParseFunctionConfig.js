@@ -75,16 +75,17 @@ module.exports = class ParseFunctionConfig {
 
         // See if details are contained in <>, if not return error
         // if (!this.rxCarrots.test(initialSplit[1])) return {type:'PARSE_ERROR', reason: 'Test config details must with <>', confDetails: initialSplit[1]};
-        if (!initialSplit[1].startsWith('<') || !initialSplit[1].endsWith('>')) return {type:'PARSE_ERROR', reason: 'Test config details must with <>', confDetails: initialSplit[1]};;
+        if (!initialSplit[1].startsWith('<') || !initialSplit[1].endsWith('>'))
+            return {type:'PARSE_ERROR', reason: 'Test config details must with <>', confDetails: initialSplit[1]};;
 
         let tmpObjStr = initialSplit[1].slice();
         paramType = tmpObjStr.substring(1, (tmpObjStr.length-1))
         if (paramType.includes(' '))
-            paramType = paramType.substr(0, tmpObjStr.indexOf(' '));
+            paramType = paramType.substring(0, tmpObjStr.indexOf(' '));
 
         if (_.isEmpty(paramType) && !_.isEmpty(initialSplit[1])) {
             if (initialSplit[1].includes('<'))
-                paramType = initialSplit[1].substr(0, initialSplit[1].indexOf('<'));
+                paramType = initialSplit[1].substring(0, initialSplit[1].indexOf('<'));
             else
                 paramType = initialSplit[1];
         }
@@ -257,7 +258,7 @@ module.exports = class ParseFunctionConfig {
                                 tmpArrayStr;
 
                             if (!_.isEmpty(arrayTest)) {
-                                requiredObj.type = requiredObjects[i][configKeys[j]].substr(0, arrayTest['index']-1);
+                                requiredObj.type = requiredObjects[i][configKeys[j]].substring(0, arrayTest['index']-1);
                                 tmpArrayStr = arrayTest[0];
                                 if (/\[([^\]]+)\]/.test(tmpArrayStr)) {
                                     tmpArrayStr = tmpArrayStr.substring(1, (tmpArrayStr.length-1));
@@ -265,20 +266,16 @@ module.exports = class ParseFunctionConfig {
                                 }
                             }
                             else if (!_.isEmpty(regexText)) {
-                                requiredObj.type = requiredObjects[i][configKeys[j]].substr(0, regexText['index']-1);
+                                requiredObj.type = requiredObjects[i][configKeys[j]].substring(0, regexText['index']-1);
                                 tmpArrayStr = regexText[0];
-                                if (/\/([^\/]+)\//.test(tmpArrayStr)) {
-                                    let rxSplit = regexText['input'].substr(regexText['index']).split('/');
-                                    if (rxSplit.length > 1) {
-                                        requiredObj.regex = new RegExp(rxSplit[1], (_.isEmpty(rxSplit[2]) ? '' : rxSplit[2]));
-                                    }
-                                }
+                                requiredObj.regex = TypeDefinitions.toRegExp(tmpArrayStr);
                             }
                             else {
                                 requiredObj.type = requiredObjects[i][configKeys[j]];
                             }
 
-                            requiredObj.isOr = (i > 0);
+                            // requiredObj.isOr = (i > 0);
+                            requiredObj.isOr = (requiredObjects.length > 1);
                             parsedJson.push(requiredObj);
                         }
                     }
