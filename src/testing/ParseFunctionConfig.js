@@ -229,6 +229,8 @@ module.exports = class ParseFunctionConfig {
 
     static getAdvancedObjectConf(configStr, configPrefix) {
         let parsedJson = [],
+            groupingArray = [],
+            isOr = false,
             rawRequired, requiredObjects;
 
         if (!_.isEmpty(configStr)) {
@@ -240,10 +242,7 @@ module.exports = class ParseFunctionConfig {
                     console.error('required=:[] must be an array');
                 }
                 else {
-
-                    if (configPrefix === 'acceptedValues=:')
-                        console.log('debug');
-
+                    isOr = (requiredObjects.length > 1);
                     for (let i=0; i<requiredObjects.length; i++) {
                         let configKeys = Object.keys(requiredObjects[i]);
 
@@ -266,7 +265,7 @@ module.exports = class ParseFunctionConfig {
                                 }
                             }
                             else if (!_.isEmpty(regexText)) {
-                                requiredObj.type = requiredObjects[i][configKeys[j]].substring(0, regexText['index']-1);
+                                requiredObj.type = requiredObjects[i][configKeys[j]].substring(0, regexText['index']-2);
                                 tmpArrayStr = regexText[0];
                                 requiredObj.regex = TypeDefinitions.toRegExp(tmpArrayStr);
                             }
@@ -275,8 +274,16 @@ module.exports = class ParseFunctionConfig {
                             }
 
                             // requiredObj.isOr = (i > 0);
-                            requiredObj.isOr = (requiredObjects.length > 1);
-                            parsedJson.push(requiredObj);
+                            // requiredObj.isOr = (requiredObjects.length > 1);
+                            groupingArray.push(requiredObj);
+                        }
+
+                        if (isOr) {
+                            parsedJson.push(groupingArray[0]);
+                            groupingArray = [];
+                        }
+                        else {
+                            parsedJson.push(groupingArray);
                         }
                     }
                 }

@@ -398,12 +398,20 @@ module.exports = class RunTest {
         paramTest.set('passed', false);
 
         try {
-            let successCount = 0;
+            let successCount = 0,
+                isOr = true,
+                requiredItems = paramConfig.required;
 
-            for (let j=0; j<paramConfig.required.length; j++) {
-                let objectPath = paramConfig.required[j].propName.split('.'),
+            if (_.isArray(paramConfig.required[0])) {
+                requiredItems = paramConfig.required[0];
+                isOr = false;
+            }
+
+            for (let j=0; j<requiredItems.length; j++) {
+                let objectPath = requiredItems[j].propName.split('.'),
                     objectRef = passedArgument;
 
+                // get the value of the property referred by dot notation i.e. object.someProp.toCheck
                 for (let k=0; k<objectPath.length; k++) {
                     if (!_.isEmpty(objectRef[objectPath[k]]) || objectRef.hasOwnProperty(objectPath[k]))
                         objectRef = objectRef[objectPath[k]];
@@ -413,12 +421,19 @@ module.exports = class RunTest {
                     }
                 }
 
-                paramConfig.required[j].objectRef = objectRef;
-                if (objectRef !== undefined)
+                if (requiredItems[j].values.length > 0 && requiredItems[j].values.includes(objectRef)) {
                     successCount++;
+                }
+                else if (_.isRegExp(requiredItems[j].regex) && requiredItems[j].regex.test(objectRef)) {
+                    successCount++;
+                }
+                else if (requiredItems[j].values.length < 1 && !_.isRegExp(requiredItems[j].regex) && TypeDefinitions.typeTests[requiredItems[j].type].typeFn(objectRef)) {
+                    successCount++;
+                }
+
             }
 
-            if (successCount === paramConfig.required.length) {
+            if (successCount === requiredItems.length || (isOr && successCount > 0)) {
                 paramTest.set('passed', true);
             }
         }
