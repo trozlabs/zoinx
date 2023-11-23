@@ -210,10 +210,11 @@ module.exports = class UtilMethods {
     }
 
     static getCallerMethod(clazz, errorStack) {
-        let returnObj = {
-            className: 'unknown',
-            file: ''
-        },
+        let returnObj =
+            {
+                className: 'unknown',
+                file: ''
+            },
             className = this.getClassName(clazz);
 
         try {
@@ -222,7 +223,8 @@ module.exports = class UtilMethods {
                     let match = errorStack[2].match(/at ([a-zA-Z\-_$.]+) (.*)/);
                     if (match) {
                         returnObj.className = className;
-                        returnObj.file = match[2];
+                        returnObj.methodName = match[1].split('.')[1];
+                        returnObj.file = undefined;
                     }
                     else {
                         let pathParts = [];
@@ -232,6 +234,7 @@ module.exports = class UtilMethods {
                             else {
                                 let pathEnd = pathParts[pathParts.length-1];
                                 returnObj.className = className;
+                                returnObj.methodName = undefined;
                                 returnObj.file = `${pathParts[pathParts.length-3]}/${pathParts[pathParts.length-2]}/${pathEnd.substring(0, pathEnd.length-1)}`;
                                 break;
                             }

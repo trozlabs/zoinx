@@ -100,12 +100,12 @@ module.exports = class RunTest {
                 funcTestConfig.callerClassName = methodCaller.className;
                 //if (_.isEmpty(funcTestConfig.className)) funcTestConfig.className = funcTestConfig.callerClassName;
 
-                funcTestConfig.callerMethodName = methodCaller.file;
+                funcTestConfig.callerMethodName = (methodCaller.file) ? methodCaller.file : methodCaller.methodName;
                 funcTestConfig.callerSignature = UtilMethods.getMethodSignature(func);
             }
             else {
                 funcTestConfig.callerClassName = methodCaller.className;
-                funcTestConfig.callerMethodName = methodCaller.file;
+                funcTestConfig.callerMethodName = (methodCaller.file) ? methodCaller.file : methodCaller.methodName;
                 //funcTestConfig.callerSignature = methodCaller.signature;
             }
 
