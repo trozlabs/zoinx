@@ -73,8 +73,6 @@ module.exports = class RunTest {
             expectedResult = UtilMethods.getExpectedConfig(className, methodName, methodOutput, 'output');
             funcTestConfig.testOutputConfig = expectedResult;
 
-            //TODO check for PARSE_ERROR
-            //TODO methodCaller.file is not a function/method name
             methodCaller = UtilMethods.getCallerMethod(clazz, errorStack);
 
             funcTestConfig.className = className;
@@ -98,8 +96,6 @@ module.exports = class RunTest {
             // pre-feed it's parent method, so we can use it here since closure has its own special scope.
             if (_.isEmpty(methodCaller) || _.isEmpty(methodCaller.className)) {
                 funcTestConfig.callerClassName = methodCaller.className;
-                //if (_.isEmpty(funcTestConfig.className)) funcTestConfig.className = funcTestConfig.callerClassName;
-
                 funcTestConfig.callerMethodName = (methodCaller.file) ? methodCaller.file : methodCaller.methodName;
                 funcTestConfig.callerSignature = UtilMethods.getMethodSignature(func);
             }

@@ -141,7 +141,7 @@ module.exports = class TypeDefinitions {
 
     static isBigInt(value) {
         return typeof value === 'bigint' ||
-            (this.isObjectLike(value) && this.getTag(value) === '[object BigInt]');
+            (TypeDefinitions.isObjectLike(value) && TypeDefinitions.getTag(value) === '[object BigInt]');
     }
 
     static isPrime(p) {

@@ -486,7 +486,7 @@ module.exports = class UtilMethods {
 
         if (foundType === 'unknown') {
             for (let i=0; i<TypeDefinitions.objects.length; i++) {
-                tmpFn = Diag.typeTests[TypeDefinitions.objects[i]].typeFn;
+                tmpFn = TypeDefinitions.typeTests[TypeDefinitions.objects[i]].typeFn;
 
                 if (_.isString(tmpFn)) typeFound = require(tmpFn)(untested);
                 else typeFound = tmpFn(untested);
