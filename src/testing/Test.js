@@ -389,57 +389,74 @@ module.exports = class RunTest {
     static testObject(paramConfig, paramTest, passedArgument, testObject) {
         let typeAccepted;
 
-        typeAccepted = TypeDefinitions.getTypeAccepted(`${paramTest.get("jsType")}=:${paramTest.get("subType")}`, testObject);
-        paramTest.set('typePassed', typeAccepted.typeAccepted);
-        paramTest.set('passed', false);
+        if (paramConfig.type === 'array') {
+            this.testArray(paramConfig, paramTest, passedArgument, testObject);
+        }
+        else {
+            typeAccepted = TypeDefinitions.getTypeAccepted(`${paramTest.get("jsType")}=:${paramTest.get("subType")}`, testObject);
+            paramTest.set('typePassed', typeAccepted.typeAccepted);
+            paramTest.set('passed', false);
 
-        try {
-            let successCount = 0,
-                isOr = true,
-                requiredItems = paramConfig.required;
+            try {
+                let successCount = 0,
+                    isOr = true,
+                    requiredItems = paramConfig.required;
 
-            if (_.isArray(paramConfig.required[0])) {
-                requiredItems = paramConfig.required[0];
-                isOr = false;
-            }
+                if (_.isArray(paramConfig.required[0])) {
+                    requiredItems = paramConfig.required[0];
+                    isOr = false;
+                }
 
-            for (let j=0; j<requiredItems.length; j++) {
-                let objectPath = requiredItems[j].propName.split('.'),
-                    objectRef = passedArgument;
+                for (let j = 0; j < requiredItems.length; j++) {
+                    let objectPath = requiredItems[j].propName.split('.'),
+                        objectRef = passedArgument;
 
-                // get the value of the property referred by dot notation i.e. object.someProp.toCheck
-                for (let k=0; k<objectPath.length; k++) {
-                    if (!_.isEmpty(objectRef[objectPath[k]]) || objectRef.hasOwnProperty(objectPath[k]))
-                        objectRef = objectRef[objectPath[k]];
-                    else {
-                        objectRef = undefined;
-                        break;
+                    // get the value of the property referred by dot notation i.e. object.someProp.toCheck
+                    for (let k = 0; k < objectPath.length; k++) {
+                        if (!_.isEmpty(objectRef[objectPath[k]]) || objectRef.hasOwnProperty(objectPath[k])) {
+                            objectRef = objectRef[objectPath[k]];
+                        } else {
+                            objectRef = undefined;
+                            break;
+                        }
+                    }
+
+                    if (requiredItems[j].values.length > 0 && requiredItems[j].values.includes(objectRef)) {
+                        successCount++;
+                    } else if (_.isRegExp(requiredItems[j].regex) && requiredItems[j].regex.test(objectRef)) {
+                        successCount++;
+                    } else if (requiredItems[j].values.length < 1 && !_.isRegExp(requiredItems[j].regex) && TypeDefinitions.typeTests[requiredItems[j].type].typeFn(objectRef)) {
+                        successCount++;
+                    }
+
+                    if (requiredItems[j].maskValue && _.isString(objectRef)) {
+                        let endsCharCount = (objectPath.includes('password')) ? 0 : 1,
+                            maskRef = UtilMethods.maskString(objectRef, endsCharCount),
+                            tmpObj = passedArgument;
+
+                        for (let i = 0; i < objectPath.length - 1; i++) {
+                            const key = objectPath[i];
+                            if (!tmpObj[key]) {
+                                tmpObj[key] = {};
+                            }
+                            tmpObj = tmpObj[key];
+                        }
+                        tmpObj[objectPath[objectPath.length - 1]] = maskRef;
+                        // console.log(passedArgument);
                     }
                 }
-
-                if (requiredItems[j].values.length > 0 && requiredItems[j].values.includes(objectRef)) {
-                    successCount++;
-                }
-                else if (_.isRegExp(requiredItems[j].regex) && requiredItems[j].regex.test(objectRef)) {
-                    successCount++;
-                }
-                else if (requiredItems[j].values.length < 1 && !_.isRegExp(requiredItems[j].regex) && TypeDefinitions.typeTests[requiredItems[j].type].typeFn(objectRef)) {
-                    successCount++;
+                if (successCount === requiredItems.length || (isOr && successCount > 0)) {
+                    paramTest.set('passed', true);
                 }
 
             }
-
-            if (successCount === requiredItems.length || (isOr && successCount > 0)) {
-                paramTest.set('passed', true);
+            catch (e) {
+                console.error(e.message);
             }
         }
-        catch (e) {
-            console.error(e.message);
-        }
-
     }
 
-    static testOthers(paramConfig, paramTest, passedArgument, testObject) {
+    static testArray(paramConfig, paramTest, passedArgument, testObject) {
         let typeAccepted;
 
         try {
@@ -447,11 +464,22 @@ module.exports = class RunTest {
             paramConfig.subType = typeAccepted.subType;
             paramTest.set('typePassed', typeAccepted.typeAccepted);
             paramTest.set('subTypePassed', typeAccepted.subTypeAccepted);
-            paramTest.set('passed', (typeAccepted.typeAccepted && typeAccepted.subTypeAccepted));
+
+            if (typeAccepted.typeAccepted && typeAccepted.subType !== 'N/A') {
+                if (typeAccepted.subTypeAccepted)
+                    paramTest.set('passed', testObject.every(TypeDefinitions.typeTests[paramTest.get("subType")].typeFn))
+                else
+                    paramTest.set('passed', false);
+            }
+            else {
+                paramTest.set('passed', (typeAccepted.typeAccepted && typeAccepted.subTypeAccepted));
+            }
         }
         catch (e) {
             console.error(e.message);
         }
+
+        return paramTest.get('passed');
     }
 
     static testRequired(required, testObject) {

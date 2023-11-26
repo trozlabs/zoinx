@@ -22,8 +22,7 @@ module.exports = class TypeDefinitions {
             'array',
             'function',
             'date',
-            'event',
-            'htmlelement'
+            'event'
         ]
     }
 
@@ -98,7 +97,7 @@ module.exports = class TypeDefinitions {
         if (typeSplit.length <= 1 && /<([^>]+)>/.test(type)) {
             let carrotsMatch = rxCarrots.exec(type);
             if (carrotsMatch.length > 0) {
-                type = type.substr(0, carrotsMatch['index']);
+                type = type.substring(0, carrotsMatch['index']);
                 subType = carrotsMatch[0].substring(1, (carrotsMatch[0].length-1));
             }
 
@@ -118,11 +117,15 @@ module.exports = class TypeDefinitions {
             subTypeAccepted: false,
         };
 
-        if (this.primitives.includes(type.toLowerCase())) returnObj.typeAccepted = true;
-        else if (this.objects.includes(type.split(':')[0].toLowerCase())) returnObj.typeAccepted = true;
-        else if (this.otherTypes.includes(type.split(':')[0].toLowerCase())) returnObj.typeAccepted = true;
+        if (this.primitives.includes(type.toLowerCase()))
+            returnObj.typeAccepted = true;
+        else if (this.objects.includes(type.split(':')[0].toLowerCase()))
+            returnObj.typeAccepted = true;
+        else if (this.otherTypes.includes(type.split(':')[0].toLowerCase()))
+            returnObj.typeAccepted = true;
 
-        if (!_.isEmpty(subType) && subType !== 'N/A' && !this.objects.includes(subType)) returnObj.subTypeAccepted = true;
+        if (!_.isEmpty(subType) && subType !== 'N/A' && this.objects.includes(subType))
+            returnObj.subTypeAccepted = true;
 
         if (!returnObj.typeAccepted) Log.error(`Datatype is not an accepted type for function testing: ${type}. ${testObj}`);
         return returnObj;

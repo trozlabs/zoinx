@@ -256,6 +256,10 @@ module.exports = class ParseFunctionConfig {
                                 },
                                 tmpArrayStr;
 
+                            requiredObj.maskValue = requiredObjects[i][configKeys[j]].includes('*=');
+                            if (requiredObj.maskValue)
+                                requiredObjects[i][configKeys[j]] = requiredObjects[i][configKeys[j]].replace('*=', '=');
+
                             if (!_.isEmpty(arrayTest)) {
                                 requiredObj.type = requiredObjects[i][configKeys[j]].substring(0, arrayTest['index']-1);
                                 tmpArrayStr = arrayTest[0];
