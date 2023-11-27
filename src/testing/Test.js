@@ -1,12 +1,26 @@
+const os = require('os');
 const _ = require('lodash');
 const { Log } = require('../log');
-const ParseFunctionConfig = require('./ParseFunctionConfig');
 const TypeDefinitions = require('./TypeDefinitions');
 const UtilMethods = require('./UtilMethods');
 const { TestFuncDetails, TestParamDetails, TestExecutionDetails} = require('./model');
 const TestMsgProducer = require('./TestMsgProducer');
+const AppCache = require("../core/AppCache");
 
 module.exports = class RunTest {
+
+    static setupTestConfigCache() {
+        if (!global.testing) global.testing = {};
+        if (!global.testing.configCache) {
+            global.testing.configCache = new AppCache(
+                {
+                    stdTTL: 300,
+                    checkperiod: 100,
+                    maxKeys: 5000
+                }
+            );
+        }
+    }
 
     static setupFuncTest(clazz, func, passedArguments, errorStack, testConfig, targetName, notes='') {
         let newFuncRec,
@@ -18,6 +32,7 @@ module.exports = class RunTest {
             return;
         }
 
+        this.setupTestConfigCache();
         methodInput = (_.isEmpty(testConfig[targetName].input)) ? ['<=><undefined>'] : testConfig[targetName].input;
         methodOutput = (_.isEmpty(testConfig[targetName].output)) ? ['<=><undefined>'] : testConfig[targetName].output;
 
@@ -50,43 +65,14 @@ module.exports = class RunTest {
 
         try {
             funcTestConfig.testParamConfigStr = methodInput;
-            if (_.isEmpty(methodInput) || !_.isArray(methodInput)) expectedParams = [];
-
-            for (let i=0; i<methodInput.length; i++) {
-                if (methodInput[i].startsWith('<=>')) continue;
-
-                if ( UtilMethods.getGlobalTestConfig(`${className}.${methodName}.${methodInput[i]}`) )
-                    expectedParams.push(UtilMethods.getGlobalTestConfig(`${className}.${methodName}.${methodInput[i]}`));
-                else {
-                    let tmpParams = ParseFunctionConfig.parse(methodInput[i]);
-                    expectedParams.push(tmpParams);
-                    UtilMethods.setGlobalTestConfig(`${className}.${methodName}.${methodInput[i]}`, tmpParams);
-                }
-            }
+            expectedParams = UtilMethods.getExpectedConfig(className, methodName, methodInput, 'input');
             funcTestConfig.testParamConfig = expectedParams;
             funcTestConfig.distinctParamNames = UtilMethods.getDistinctNamesFromArray(expectedParams);
 
             funcTestConfig.testOutputConfigStr = methodOutput;
-            if (_.isEmpty(methodOutput) || !_.isArray(methodOutput)) expectedResult = [];
-            for (let i=0; i<methodOutput.length; i++) {
-                if (methodOutput[i].startsWith('<=>')) {
-                    let tmpParams = {type: 'undefined', name: 'default'};
-                    expectedResult.push(tmpParams);
-                    UtilMethods.setGlobalTestConfig(`${className}.${methodName}.${methodOutput[i]}_OUTPUT`, tmpParams);
-                    continue;
-                }
-                if ( UtilMethods.getGlobalTestConfig(`${className}.${methodName}.${methodOutput[i]}_OUTPUT`) )
-                    expectedResult.push(UtilMethods.getGlobalTestConfig(`${className}.${methodName}.${methodOutput[i]}_OUTPUT`));
-                else {
-                    let tmpParams = ParseFunctionConfig.parse(methodOutput[i], true);
-                    expectedResult.push(tmpParams);
-                    UtilMethods.setGlobalTestConfig(`${className}.${methodName}.${methodOutput[i]}_OUTPUT`, tmpParams);
-                }
-                //expectedResult.push(ParseFunctionConfig.parse(methodOutput[i], true));
-            }
+            expectedResult = UtilMethods.getExpectedConfig(className, methodName, methodOutput, 'output');
             funcTestConfig.testOutputConfig = expectedResult;
 
-            //TODO check for PARSE_ERROR
             methodCaller = UtilMethods.getCallerMethod(clazz, errorStack);
 
             funcTestConfig.className = className;
@@ -96,6 +82,7 @@ module.exports = class RunTest {
 
             funcTestConfig.methodSignature = UtilMethods.getMethodSignature(func);
             funcTestConfig.paramsCount = UtilMethods.getSignatureParamsCount(funcTestConfig.methodSignature);
+            funcTestConfig.serverInstance = os.hostname();
 
             if ( !_.isString(methodInput) || methodInput.toLowerCase() !== 'trace')
                 funcTestConfig.doArgumentCountsMatch = UtilMethods.doesPassedCountEqualExpectedCount(passedArguments, expectedParams);
@@ -109,14 +96,12 @@ module.exports = class RunTest {
             // pre-feed it's parent method, so we can use it here since closure has its own special scope.
             if (_.isEmpty(methodCaller) || _.isEmpty(methodCaller.className)) {
                 funcTestConfig.callerClassName = methodCaller.className;
-                //if (_.isEmpty(funcTestConfig.className)) funcTestConfig.className = funcTestConfig.callerClassName;
-
-                funcTestConfig.callerMethodName = methodCaller.file;
+                funcTestConfig.callerMethodName = (methodCaller.file) ? methodCaller.file : methodCaller.methodName;
                 funcTestConfig.callerSignature = UtilMethods.getMethodSignature(func);
             }
             else {
                 funcTestConfig.callerClassName = methodCaller.className;
-                funcTestConfig.callerMethodName = methodCaller.file;
+                funcTestConfig.callerMethodName = (methodCaller.file) ? methodCaller.file : methodCaller.methodName;
                 //funcTestConfig.callerSignature = methodCaller.signature;
             }
 
@@ -124,7 +109,7 @@ module.exports = class RunTest {
             return funcTest;
         }
         catch (e) {
-            console.error('createMethodTest failed:\n', e);
+            Log.error('createMethodTest failed:\n', e);
         }
     }
 
@@ -165,8 +150,10 @@ module.exports = class RunTest {
                 UtilMethods.logTestResult('noclass', 'nomethod', 'No matching test record found.');
             }
             else {
-                if (!_.isEmpty(testRec.get('stopWatchStart')) && _.isDate(testRec.get('stopWatchStart')) && !_.isEmpty(testRec.get('stopWatchEnd')) && _.isDate(testRec.get('stopWatchEnd')))
+                if (_.isDate(testRec.get('stopWatchStart')) && _.isDate(testRec.get('stopWatchEnd')))
                     testRec.set('runningTimeMillis', (+testRec.get('stopWatchEnd') - +testRec.get('stopWatchStart')));
+                else if (_.isInteger(testRec.get('stopWatchStart')) && _.isInteger(testRec.get('stopWatchEnd')))
+                    testRec.set('runningTimeMillis', (testRec.get('stopWatchEnd') - testRec.get('stopWatchStart')));
                 await this.functionTest(clazz, func, passedArguments, testRec);
             }
         }
@@ -179,24 +166,32 @@ module.exports = class RunTest {
     }
 
     static async functionTest(clazz, func, passedArguments, testRec) {
-        let me = this;
 
         if (global.testingConfig.isTestingEnabled) {
             try {
                 if (testRec.get('distinctParamNames').length > 0) {
-                    me.execParamTests(clazz, func, passedArguments, testRec);
-                    me.execOutputTest(clazz, func, passedArguments, testRec);
+                    this.execParamTests(clazz, func, passedArguments, testRec);
+                    this.execOutputTest(clazz, func, passedArguments, testRec);
                     UtilMethods.setFuncTestPassed(testRec);
                     if (!testRec.get('passed')) {
-                        testRec.set('resultMessage', '********** Function Contract for ' + testRec.get('methodName') + ' passed ' + testRec.get('paramsPassedTestCount') + ' of ' + testRec.get('paramsCount') + ' tests. **********');
+                        let resultMessage = '';
+                        if (testRec.get('paramsPassedTestCount') !== testRec.get('paramsCount')) {
+                            resultMessage = `********** Function parameters for ${testRec.get('methodName')} passed ${testRec.get('paramsPassedTestCount')} of ${testRec.get('paramsCount')} tests. **********`;
+                        }
+                        else if (!testRec.get('executionPassed')) {
+                            resultMessage = `********** Function output test for ${testRec.get('methodName')} failed. **********`;
+                        }
+
+                        testRec.set('resultMessage', resultMessage);
                         UtilMethods.logTestResult(testRec.get('className'), testRec.get('methodName'), testRec.get('resultMessage'));
                     }
-                } else if (testRec.get('distinctParamNames').length < 1) {
+                }
+                else if (testRec.get('distinctParamNames').length < 1) {
                     testRec.set('paramsCount', 0);
                     testRec.set('paramsPassedTestCount', 0);
                     testRec.set('passed', true);
                     testRec.set('resultMessage', 'Function trace');
-                    me.execOutputTest(clazz, func, passedArguments, testRec);
+                    this.execOutputTest(clazz, func, passedArguments, testRec);
                 }
 
                 testRec = await UtilMethods.getTestObjectWithoutModels(testRec);
@@ -211,8 +206,7 @@ module.exports = class RunTest {
     }
 
     static execParamTests(clazz, func, passedArguments, funcDetails) {
-        let me = this,
-            paramConfig = funcDetails.get('testParamConfig'),
+        let paramConfig = funcDetails.get('testParamConfig'),
             paramDetails = [],
             currentParamName = '',
             passedArgIdx = -1,
@@ -235,6 +229,7 @@ module.exports = class RunTest {
                 name: currentParamName,
                 testObject: testObject,
                 isOptional: paramConfig[i].optional,
+                maskValue: paramConfig[i].maskValue,
                 passed: false,
                 typePassed: false,
                 subTypePassed: true
@@ -244,17 +239,18 @@ module.exports = class RunTest {
 
                 // Use static def typeTests to easily test declared data type
                 let tmpFn = TypeDefinitions.typeTests[paramTest.get('jsType')].typeFn;
+
                 if (_.isString(tmpFn)) paramTest.set('typePassed', require(tmpFn)(testObject));
                 else paramTest.set('typePassed', tmpFn(testObject));
 
                 if (TypeDefinitions.primitives.includes(paramTest.get('jsType'))) {
-                    me.testPrimitive(paramConfig[i], paramTest, passedArguments[i], testObject);
+                    this.testPrimitive(paramConfig[i], paramTest, passedArguments[i], testObject);
                 }
                 else if (TypeDefinitions.objects.includes(paramTest.get('jsType'))) {
-                    me.testObject(paramConfig[i], paramTest, passedArguments[i], testObject);
+                    this.testObject(paramConfig[i], paramTest, passedArguments[i], testObject);
                 }
                 else if (TypeDefinitions.otherTypes.includes(paramTest.get('jsType'))) {
-                    me.testOthers(paramConfig[i], paramTest, passedArguments[i], testObject);
+                    this.testOthers(paramConfig[i], paramTest, passedArguments[i], testObject);
                 }
 
                 if (UtilMethods.areRejectedInAccepted(paramConfig[i])) {
@@ -273,6 +269,9 @@ module.exports = class RunTest {
             paramTest.set('isIterable', UtilMethods.isIterable(testObject));
             paramTest.set('isFunction', _.isFunction(testObject));
             paramTest.set('successCount', (_.isBoolean(paramTest.get('passed')) && paramTest.get('passed')) ? 1 : 0);
+
+            if (paramTest.get('maskValue') && _.isString(testObject))
+                paramTest.set('testObject', UtilMethods.maskString(testObject, 2));
 
             paramDetails.push(paramTest);
         }
@@ -302,6 +301,7 @@ module.exports = class RunTest {
 
             let typeTest = TypeDefinitions.getTypeAccepted(outputConfig[0].type, testObject);
 
+            funcDetails.set('passedArguments', passedArguments);
             execTest.type = typeTest.type;
             execTest.typePassed = typeTest.typeAccepted;
             execTest.subType = typeTest.subType;
@@ -341,20 +341,22 @@ module.exports = class RunTest {
                     }
                     else {
                         execTest.passed = false;
-                        if (execTest.typePassed) {
+                        if (execTest.typePassed && TypeDefinitions.typeTests[outputConfig[0].type].typeFn(testObject[0])) {
                             execTest.passed = true;
                             execTest.resultMessage = funcDetails.get('executionResult');
                         }
                     }
                 }
                 else {
-                    // force passed till figure out how to best test complex objects
-                    execTest.passed = true;
-                    execTest.resultMessage = 'Defaulted true till near future.';
+                    // still doesn't seem correct but works for now.
+                    let testOutputConfig = new TestParamDetails(funcDetails.get('testOutputConfig')[0]);
+                    testOutputConfig.set('jsType', execTest.type);
+                    this.testObject(funcDetails.get('testOutputConfig')[0], testOutputConfig, testObject, testObject);
+                    execTest.passed = testOutputConfig.get('passed');
                 }
             }
 
-            //if (!execTest.passed) execTest.resultMessage = 'No matching output found.';
+            if (!execTest.passed) execTest.resultMessage = 'No matching output found.';
 
             outDetails.push(new TestExecutionDetails(execTest));
         }
@@ -378,13 +380,15 @@ module.exports = class RunTest {
             if (paramConfig.acceptedValues.length > 0) {
                 if (!paramConfig.acceptedValues.includes(testObject)) {
                     paramTest.set('passed', false);
+                    if (_.isRegExp(paramConfig.acceptedValues[0]) && paramConfig.acceptedValues[0].test(testObject))
+                        paramTest.set('passed', true);
                 }
             }
-
-            //See if testObject is in rejectedValues array
-            if (paramConfig.rejectedValues.length > 0) {
+            else if (paramConfig.rejectedValues.length > 0) {
                 if (paramConfig.rejectedValues.includes(testObject)) {
                     paramTest.get('passed', false);
+                    if (_.isRegExp(paramConfig.rejectedValues[0]) && !paramConfig.rejectedValues[0].test(testObject))
+                        paramTest.set('passed', true);
                 }
             }
         }
@@ -396,42 +400,74 @@ module.exports = class RunTest {
     static testObject(paramConfig, paramTest, passedArgument, testObject) {
         let typeAccepted;
 
-        typeAccepted = TypeDefinitions.getTypeAccepted(`${paramTest.get("jsType")}=:${paramTest.get("subType")}`, testObject);
-        paramTest.set('typePassed', typeAccepted.typeAccepted);
-        paramTest.set('passed', false);
+        if (paramConfig.type === 'array') {
+            this.testArray(paramConfig, paramTest, passedArgument, testObject);
+        }
+        else {
+            typeAccepted = TypeDefinitions.getTypeAccepted(`${paramTest.get("jsType")}=:${paramTest.get("subType")}`, testObject);
+            paramTest.set('typePassed', typeAccepted.typeAccepted);
+            paramTest.set('passed', false);
 
-        try {
-            let successCount = 0;
+            try {
+                let successCount = 0,
+                    isOr = true,
+                    requiredItems = paramConfig.required;
 
-            for (let j=0; j<paramConfig.required.length; j++) {
-                let objectPath = paramConfig.required[j].propName.split('.'),
-                    objectRef = passedArgument;
-
-                for (let k=0; k<objectPath.length; k++) {
-                    if (!_.isEmpty(objectRef[objectPath[k]]) || objectRef.hasOwnProperty(objectPath[k]))
-                        objectRef = objectRef[objectPath[k]];
-                    else {
-                        objectRef = undefined;
-                        break;
-                    }
+                if (_.isArray(paramConfig.required[0])) {
+                    requiredItems = paramConfig.required[0];
+                    isOr = false;
                 }
 
-                paramConfig.required[j].objectRef = objectRef;
-                if (objectRef !== undefined)
-                    successCount++;
-            }
+                for (let j = 0; j < requiredItems.length; j++) {
+                    let objectPath = requiredItems[j].propName.split('.'),
+                        objectRef = passedArgument;
 
-            if (successCount === paramConfig.required.length) {
-                paramTest.set('passed', true);
+                    // get the value of the property referred by dot notation i.e. object.someProp.toCheck
+                    for (let k = 0; k < objectPath.length; k++) {
+                        if (!_.isEmpty(objectRef[objectPath[k]]) || objectRef.hasOwnProperty(objectPath[k])) {
+                            objectRef = objectRef[objectPath[k]];
+                        } else {
+                            objectRef = undefined;
+                            break;
+                        }
+                    }
+
+                    if (requiredItems[j].values.length > 0 && requiredItems[j].values.includes(objectRef)) {
+                        successCount++;
+                    } else if (_.isRegExp(requiredItems[j].regex) && requiredItems[j].regex.test(objectRef)) {
+                        successCount++;
+                    } else if (requiredItems[j].values.length < 1 && !_.isRegExp(requiredItems[j].regex) && TypeDefinitions.typeTests[requiredItems[j].type].typeFn(objectRef)) {
+                        successCount++;
+                    }
+
+                    if (requiredItems[j].maskValue && _.isString(objectRef)) {
+                        let endsCharCount = (objectPath.includes('password')) ? 0 : 1,
+                            maskRef = UtilMethods.maskString(objectRef, endsCharCount),
+                            tmpObj = passedArgument;
+
+                        for (let i = 0; i < objectPath.length - 1; i++) {
+                            const key = objectPath[i];
+                            if (!tmpObj[key]) {
+                                tmpObj[key] = {};
+                            }
+                            tmpObj = tmpObj[key];
+                        }
+                        tmpObj[objectPath[objectPath.length - 1]] = maskRef;
+                        // console.log(passedArgument);
+                    }
+                }
+                if (successCount === requiredItems.length || (isOr && successCount > 0)) {
+                    paramTest.set('passed', true);
+                }
+
+            }
+            catch (e) {
+                console.error(e.message);
             }
         }
-        catch (e) {
-            console.error(e.message);
-        }
-
     }
 
-    static testOthers(paramConfig, paramTest, passedArgument, testObject) {
+    static testArray(paramConfig, paramTest, passedArgument, testObject) {
         let typeAccepted;
 
         try {
@@ -439,11 +475,22 @@ module.exports = class RunTest {
             paramConfig.subType = typeAccepted.subType;
             paramTest.set('typePassed', typeAccepted.typeAccepted);
             paramTest.set('subTypePassed', typeAccepted.subTypeAccepted);
-            paramTest.set('passed', (typeAccepted.typeAccepted && typeAccepted.subTypeAccepted));
+
+            if (typeAccepted.typeAccepted && typeAccepted.subType !== 'N/A') {
+                if (typeAccepted.subTypeAccepted)
+                    paramTest.set('passed', testObject.every(TypeDefinitions.typeTests[paramTest.get("subType")].typeFn))
+                else
+                    paramTest.set('passed', false);
+            }
+            else {
+                paramTest.set('passed', (typeAccepted.typeAccepted && typeAccepted.subTypeAccepted));
+            }
         }
         catch (e) {
             console.error(e.message);
         }
+
+        return paramTest.get('passed');
     }
 
     static testRequired(required, testObject) {
@@ -471,21 +518,3 @@ module.exports = class RunTest {
     }
 
 }
-
-
-
-/*
-        // console.log('##############################################');
-        // console.log(`SetupFuncTest was called for: ${UtilMethods.getClassName(clazz)} -- ${UtilMethods.getMethodName(func)}`);
-        // console.log(`Class/function caller function: ${UtilMethods.getCallerMethod(clazz, errorStack).file}`);
-        // console.log('#######################');
-        // console.log('methodInput config:');
-        // console.log(ParseFunctionConfig.parse(methodInput[0]));
-        // console.log('#######################');
-        // console.log('methodOutput config:');
-        // console.log(ParseFunctionConfig.parse(methodOutput[0]));
-        // console.log('#######################');
-        // console.log(randomUUID());
-        // console.log('##############################################');
-
- */

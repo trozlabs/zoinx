@@ -113,9 +113,8 @@ module.exports = class TestFuncDetails extends Model {
             name: 'runningTimeMillis'
         },
         {
-            type: 'boolean',
-            defaultValue: false,
-            name: 'isUserTriggered'
+            type: 'string',
+            name: 'serverInstance'
         },
         {
             type: 'boolean',

@@ -6,15 +6,65 @@ const { TestParamDetails, TestExecutionDetails, TestRawObject } = require('./mod
 const { readdirSync, statSync } = require('fs');
 const fs = require('fs');
 const { resolve, parse } = require('path');
+const ParseFunctionConfig = require("./ParseFunctionConfig");
 
 module.exports = class UtilMethods {
 
     static getGlobalTestConfig(configKey) {
-        return (global.testConfigList) ? global.testConfigList[configKey] : undefined;
+        return global.testing.configCache.getEntry(configKey);
     }
 
     static setGlobalTestConfig(configKey, confObj) {
-        global.testConfigList[configKey] = confObj;
+        global.testing.configCache.setEntry(configKey, confObj);
+    }
+
+    static shouldBeTested(className, funcName) {
+        let shouldTest = false;
+
+        if (UtilMethods.getTestExceptionCount() < 1) {
+            shouldTest = true;
+        }
+        else {
+            if (!_.isUndefined(className) || !_.isUndefined(funcName)) {
+                let felCount = (_.isArray(global.testingConfig.functionExclusionList)) ? global.testingConfig.functionExclusionList.length : 0
+
+                if (UtilMethods.isInClassOnly(className) || UtilMethods.isInFuncOnly(funcName)) {
+                    shouldTest = true;
+                }
+                else if (felCount > 0) {
+                    if (!UtilMethods.isClassExcluded(className)) shouldTest = true;
+                    if (shouldTest && UtilMethods.isFuncExcluded(funcName)) shouldTest = false;
+                }
+            }
+        }
+
+        return shouldTest;
+    }
+
+    static getTestExceptionCount() {
+        let gtc = global.testingConfig,
+            celCount = (_.isArray(gtc.classExclusionList)) ? gtc.classExclusionList.length : 0,
+            felCount = (_.isArray(gtc.functionExclusionList)) ? gtc.functionExclusionList.length : 0,
+            colCount = (_.isArray(gtc.classOnlyList)) ? gtc.classOnlyList.length : 0,
+            folCount = (_.isArray(gtc.functionOnlyList)) ? gtc.functionOnlyList.length : 0;
+
+        return (celCount + felCount + colCount + folCount);
+    }
+
+    static isClassExcluded(className) {
+        return global.testingConfig.classExclusionList.includes(className);
+    }
+
+    static isFuncExcluded(funcName) {
+        return global.testingConfig.functionExclusionList.includes(funcName);
+    }
+
+    static isInClassOnly(className) {
+        return global.testingConfig.classOnlyList.includes(className);
+    }
+
+    static isInFuncOnly(funcName) {
+        return global.testingConfig.functionOnlyList.includes(funcName);
     }
 
     static isSimpleObject(value) {
@@ -23,6 +73,24 @@ module.exports = class UtilMethods {
 
     static isTextNode(value) {
         return value ? value.nodeName === "#text" : false;
+    }
+
+    static maskString(toBeMasked, endsCharCount=0, maskChar='*', endOnly=false) {
+        if (_.isEmpty(toBeMasked) || !_.isString(toBeMasked) || toBeMasked.length <= (endsCharCount * 2))
+            return toBeMasked;
+
+        let maskCharCount = toBeMasked.length - (endsCharCount * 2),
+            maskedStr, endOnlyStr;
+
+        if (endOnly) {
+            endOnlyStr = toBeMasked.slice(-endsCharCount);
+            maskedStr = endOnlyStr.padStart(toBeMasked.length, maskChar);
+        }
+        else {
+            maskedStr = `${toBeMasked.substring(0, endsCharCount)}${maskChar.repeat(maskCharCount)}${toBeMasked.substring((toBeMasked.length - endsCharCount), toBeMasked.length)}`;
+        }
+
+        return maskedStr;
     }
 
     static isIterable(value) {
@@ -74,8 +142,8 @@ module.exports = class UtilMethods {
 
             if (!_.isEmpty(customMessage)) logStr = `${logStr} -- ${customMessage}`;
 
-            //if (this.getConsoleOut()) Log.warn(logStr);
-            console.error(logStr)
+            if (global.testingConfig.consoleOut) Log.info(logStr);
+            // console.error(logStr)
         }
         catch (e) {
             Log.error('logTestResult failed:\n', e);
@@ -142,10 +210,11 @@ module.exports = class UtilMethods {
     }
 
     static getCallerMethod(clazz, errorStack) {
-        let returnObj = {
-            className: 'unknown',
-            file: ''
-        },
+        let returnObj =
+            {
+                className: 'unknown',
+                file: ''
+            },
             className = this.getClassName(clazz);
 
         try {
@@ -154,7 +223,8 @@ module.exports = class UtilMethods {
                     let match = errorStack[2].match(/at ([a-zA-Z\-_$.]+) (.*)/);
                     if (match) {
                         returnObj.className = className;
-                        returnObj.file = match[2];
+                        returnObj.methodName = match[1].split('.')[1];
+                        returnObj.file = undefined;
                     }
                     else {
                         let pathParts = [];
@@ -162,8 +232,10 @@ module.exports = class UtilMethods {
                             pathParts = errorStack[i].split('/');
                             if (pathParts[pathParts.length-1].includes('TestProxy')) continue;
                             else {
+                                let pathEnd = pathParts[pathParts.length-1];
                                 returnObj.className = className;
-                                returnObj.file = `${pathParts[pathParts.length-3]}/${pathParts[pathParts.length-2]}/${pathParts[pathParts.length-1]}`;
+                                returnObj.methodName = undefined;
+                                returnObj.file = `${pathParts[pathParts.length-3]}/${pathParts[pathParts.length-2]}/${pathEnd.substring(0, pathEnd.length-1)}`;
                                 break;
                             }
                         }
@@ -202,6 +274,37 @@ module.exports = class UtilMethods {
             Log.error('getCallerSignature failed:\n', e);
             return 'getCallerSignature failed';
         }
+    }
+
+    static getExpectedConfig(className, methodName, config=[], configType='input') {
+        let expected = [],
+            cacheSuffix = (_.isEmpty(configType) || !_.isString(configType)) ? 'INPUT' : configType.toUpperCase();
+
+        try {
+            for (let i=0; i<config.length; i++) {
+
+                let tmpParamName = config[i].split('=>')[0];
+                if (config[i].startsWith('<=>')) {
+                    let tmpParams = {type: 'undefined', name: 'default'};
+                    expected.push(tmpParams);
+                    UtilMethods.setGlobalTestConfig(`${className}.${methodName}.${tmpParamName}_${cacheSuffix}`, tmpParams);
+                    continue;
+                }
+
+                if ( UtilMethods.getGlobalTestConfig(`${className}.${methodName}.${tmpParamName}_${cacheSuffix}`) )
+                    expected.push(UtilMethods.getGlobalTestConfig(`${className}.${methodName}.${config[i]}_${cacheSuffix}`));
+                else {
+                    let tmpParams = ParseFunctionConfig.parse(config[i]);
+                    expected.push(tmpParams);
+                    UtilMethods.setGlobalTestConfig(`${className}.${methodName}.${tmpParamName}_${cacheSuffix}`, tmpParams);
+                }
+            }
+        }
+        catch (e) {
+            Log.error('getExpected failed:\n', e);
+        }
+
+        return expected;
     }
 
     static getDistinctNamesFromArray(objectArray) {
@@ -383,7 +486,7 @@ module.exports = class UtilMethods {
 
         if (foundType === 'unknown') {
             for (let i=0; i<TypeDefinitions.objects.length; i++) {
-                tmpFn = Diag.typeTests[TypeDefinitions.objects[i]].typeFn;
+                tmpFn = TypeDefinitions.typeTests[TypeDefinitions.objects[i]].typeFn;
 
                 if (_.isString(tmpFn)) typeFound = require(tmpFn)(untested);
                 else typeFound = tmpFn(untested);
@@ -776,7 +879,6 @@ module.exports = class UtilMethods {
 
         return propPresence;
     }
-
 
     static async getPropertyFromObject(testObj={}, propertyPath='') {
         let prop,

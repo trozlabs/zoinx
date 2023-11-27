@@ -23,7 +23,6 @@ module.exports = class AppConfig {
     static async initEnv(...files) {
         try {
             await env.load(...files);
-            global.TestCache = new AppCache({ stdTTL: 120, checkperiod: 110 });
         } catch (e) {
             Log.warn(`Must have file path info init. Try using (__dirname, '.env') ... ${e.message}`);
         }

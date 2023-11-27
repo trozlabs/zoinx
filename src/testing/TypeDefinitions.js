@@ -22,8 +22,7 @@ module.exports = class TypeDefinitions {
             'array',
             'function',
             'date',
-            'event',
-            'htmlelement'
+            'event'
         ]
     }
 
@@ -33,17 +32,18 @@ module.exports = class TypeDefinitions {
 
     static get typeTests() {
         return {
-            'string': {typeFn: _.isString, convertFn: _.toString},
-            'number': {typeFn: _.isNumber, convertFn: _.toNumber},
-            'bigint': {typeFn: this.isBigInt, convertFn: _.toNumber},
-            'boolean': {typeFn: _.isBoolean, convertFn: this.toBoolean},
-            'symbol': {typeFn: _.isSymbol, convertFn: this.toSymbol},
-            'undefined': {typeFn: _.isUndefined, convertFn: Function(`return undefined;`)},
-            'null': {typeFn: _.isNull, convertFn: Function(`return null;`)},
-            'object': {typeFn: _.isObject, convertFn: JSON.parse},
-            'array': {typeFn: _.isArray, convertFn: JSON.parse},
-            'function': {typeFn: _.isFunction, convertFn: this.toFunction},
-            'date': {typeFn: _.isDate, convertFn: this.toDate}
+            'string':       {typeFn: _.isString,    convertFn: _.toString},
+            'number':       {typeFn: _.isNumber,    convertFn: _.toNumber},
+            'bigint':       {typeFn: this.isBigInt, convertFn: _.toNumber},
+            'boolean':      {typeFn: _.isBoolean,   convertFn: this.toBoolean},
+            'symbol':       {typeFn: _.isSymbol,    convertFn: this.toSymbol},
+            'undefined':    {typeFn: _.isUndefined, convertFn: Function(`return undefined;`)},
+            'null':         {typeFn: _.isNull,      convertFn: Function(`return null;`)},
+            'object':       {typeFn: _.isObject,    convertFn: JSON.parse},
+            'array':        {typeFn: _.isArray,     convertFn: JSON.parse},
+            'function':     {typeFn: _.isFunction,  convertFn: this.toFunction},
+            'date':         {typeFn: _.isDate,      convertFn: this.toDate},
+            'regexp':       {typeFn: _.isRegExp,    convertFn: this.toRegExp}
         }
     }
 
@@ -58,6 +58,12 @@ module.exports = class TypeDefinitions {
 
     static toFunction(value) {
         return undefined;
+    }
+
+    static toRegExp(value) {
+        let regexParts = value.match(/\/(.*)\/([mgiyuvsd]*)/);
+        if (_.isEmpty(regexParts[1])) return;
+        return new RegExp(regexParts[1], regexParts[2]);
     }
 
     static toDate(value) {
@@ -91,7 +97,7 @@ module.exports = class TypeDefinitions {
         if (typeSplit.length <= 1 && /<([^>]+)>/.test(type)) {
             let carrotsMatch = rxCarrots.exec(type);
             if (carrotsMatch.length > 0) {
-                type = type.substr(0, carrotsMatch['index']);
+                type = type.substring(0, carrotsMatch['index']);
                 subType = carrotsMatch[0].substring(1, (carrotsMatch[0].length-1));
             }
 
@@ -111,11 +117,15 @@ module.exports = class TypeDefinitions {
             subTypeAccepted: false,
         };
 
-        if (this.primitives.includes(type.toLowerCase())) returnObj.typeAccepted = true;
-        else if (this.objects.includes(type.split(':')[0].toLowerCase())) returnObj.typeAccepted = true;
-        else if (this.otherTypes.includes(type.split(':')[0].toLowerCase())) returnObj.typeAccepted = true;
+        if (this.primitives.includes(type.toLowerCase()))
+            returnObj.typeAccepted = true;
+        else if (this.objects.includes(type.split(':')[0].toLowerCase()))
+            returnObj.typeAccepted = true;
+        else if (this.otherTypes.includes(type.split(':')[0].toLowerCase()))
+            returnObj.typeAccepted = true;
 
-        if (!_.isEmpty(subType) && subType !== 'N/A' && !this.objects.includes(subType)) returnObj.subTypeAccepted = true;
+        if (!_.isEmpty(subType) && subType !== 'N/A' && this.objects.includes(subType))
+            returnObj.subTypeAccepted = true;
 
         if (!returnObj.typeAccepted) Log.error(`Datatype is not an accepted type for function testing: ${type}. ${testObj}`);
         return returnObj;
@@ -134,7 +144,7 @@ module.exports = class TypeDefinitions {
 
     static isBigInt(value) {
         return typeof value === 'bigint' ||
-            (this.isObjectLike(value) && this.getTag(value) === '[object BigInt]');
+            (TypeDefinitions.isObjectLike(value) && TypeDefinitions.getTag(value) === '[object BigInt]');
     }
 
     static isPrime(p) {

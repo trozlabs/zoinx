@@ -36,9 +36,17 @@ module.exports = class TestMsgProducer {
         }
     }
 
-    async send(keyString=randomUUID()) {
+    async send() {
+        let keyString = (process.env.SERVICE_NAME) ? process.env.SERVICE_NAME : 'DevApplication';
         try {
             if (global.testingConfig?.sendResult2Kafka) {
+                if (_.isEmpty(this.#testObj) || !_.isObject(this.#testObj)) {
+                    keyString = randomUUID();
+                }
+                else {
+                    keyString += `.${this.#testObj.className}.${this.#testObj.methodName}:${this.#testObj.stopWatchStart}`;
+                }
+
                 await this.#createTestMsgProducer();
                 let testObj = JSON.stringify(this.#testObj);
                 if (StaticUtil.StringToBoolean(process.env.TESTING_ENCRYPT)) {
@@ -50,8 +58,10 @@ module.exports = class TestMsgProducer {
                     value: testObj
                 }, process.env.TESTING_TOPIC_NAME);
             }
-            else
-                console.log(this.#testObj);
+            else {
+                if (global.testingConfig.consoleOut)
+                    Log.info(this.#testObj);
+            }
         }
         catch (e) {
             await this.#saveTestMsgSendFail(this.#testObj.json, e);
