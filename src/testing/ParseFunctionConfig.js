@@ -213,10 +213,11 @@ module.exports = class ParseFunctionConfig {
                 let tmpFn = TypeDefinitions.typeTests[type].typeFn;
                 if (_.isString(tmpFn)) tmpFn = require(tmpFn);
 
-                if (!isOutputConfig) {
-                    let doesTypeMatch = tmpJson.every(x => (tmpFn(x)));
-                    if (!doesTypeMatch) Log.info(`Values in ${tmpSplit[0]} are not all of type ${type}.`);
-                }
+                // don't believe this is needed any more.
+                // if (!isOutputConfig) {
+                //     let doesTypeMatch = tmpJson.every(x => (tmpFn(x)));
+                //     if (!doesTypeMatch) Log.info(`Values in ${tmpSplit[0]} are not all of type ${type}.`);
+                // }
             }
             catch (e) {
                 Log.error(`${tmpSplit[0]} did not parse passed values: ${tmpSplit[1]}`, e);
@@ -260,7 +261,7 @@ module.exports = class ParseFunctionConfig {
                             if (requiredObj.maskValue)
                                 requiredObjects[i][configKeys[j]] = requiredObjects[i][configKeys[j]].replace('*=', '=');
 
-                            if (!_.isEmpty(arrayTest)) {
+                            if (!_.isEmpty(arrayTest) && _.isEmpty(regexText)) {
                                 requiredObj.type = requiredObjects[i][configKeys[j]].substring(0, arrayTest['index']-1);
                                 tmpArrayStr = arrayTest[0];
                                 if (/\[([^\]]+)\]/.test(tmpArrayStr)) {
@@ -277,8 +278,6 @@ module.exports = class ParseFunctionConfig {
                                 requiredObj.type = requiredObjects[i][configKeys[j]];
                             }
 
-                            // requiredObj.isOr = (i > 0);
-                            // requiredObj.isOr = (requiredObjects.length > 1);
                             groupingArray.push(requiredObj);
                         }
 
@@ -293,7 +292,7 @@ module.exports = class ParseFunctionConfig {
                 }
             }
             catch (ex) {
-                console.error(`${configPrefix} input is invalid: ${rawRequired}`)
+                Log.error(`${configPrefix} input is invalid: ${rawRequired}`)
             }
         }
 

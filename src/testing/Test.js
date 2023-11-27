@@ -174,7 +174,15 @@ module.exports = class RunTest {
                     this.execOutputTest(clazz, func, passedArguments, testRec);
                     UtilMethods.setFuncTestPassed(testRec);
                     if (!testRec.get('passed')) {
-                        testRec.set('resultMessage', '********** Function Contract for ' + testRec.get('methodName') + ' passed ' + testRec.get('paramsPassedTestCount') + ' of ' + testRec.get('paramsCount') + ' tests. **********');
+                        let resultMessage = '';
+                        if (testRec.get('paramsPassedTestCount') !== testRec.get('paramsCount')) {
+                            resultMessage = `********** Function parameters for ${testRec.get('methodName')} passed ${testRec.get('paramsPassedTestCount')} of ${testRec.get('paramsCount')} tests. **********`;
+                        }
+                        else if (!testRec.get('executionPassed')) {
+                            resultMessage = `********** Function output test for ${testRec.get('methodName')} failed. **********`;
+                        }
+
+                        testRec.set('resultMessage', resultMessage);
                         UtilMethods.logTestResult(testRec.get('className'), testRec.get('methodName'), testRec.get('resultMessage'));
                     }
                 }
@@ -293,6 +301,7 @@ module.exports = class RunTest {
 
             let typeTest = TypeDefinitions.getTypeAccepted(outputConfig[0].type, testObject);
 
+            funcDetails.set('passedArguments', passedArguments);
             execTest.type = typeTest.type;
             execTest.typePassed = typeTest.typeAccepted;
             execTest.subType = typeTest.subType;
@@ -332,20 +341,22 @@ module.exports = class RunTest {
                     }
                     else {
                         execTest.passed = false;
-                        if (execTest.typePassed) {
+                        if (execTest.typePassed && TypeDefinitions.typeTests[outputConfig[0].type].typeFn(testObject[0])) {
                             execTest.passed = true;
                             execTest.resultMessage = funcDetails.get('executionResult');
                         }
                     }
                 }
                 else {
-                    // force passed till figure out how to best test complex objects
-                    execTest.passed = true;
-                    execTest.resultMessage = 'Defaulted true till near future.';
+                    // still doesn't seem correct but works for now.
+                    let testOutputConfig = new TestParamDetails(funcDetails.get('testOutputConfig')[0]);
+                    testOutputConfig.set('jsType', execTest.type);
+                    this.testObject(funcDetails.get('testOutputConfig')[0], testOutputConfig, testObject, testObject);
+                    execTest.passed = testOutputConfig.get('passed');
                 }
             }
 
-            //if (!execTest.passed) execTest.resultMessage = 'No matching output found.';
+            if (!execTest.passed) execTest.resultMessage = 'No matching output found.';
 
             outDetails.push(new TestExecutionDetails(execTest));
         }

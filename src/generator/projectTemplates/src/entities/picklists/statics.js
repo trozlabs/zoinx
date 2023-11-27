@@ -7,7 +7,7 @@ module.exports = TestHarness(class UserPrefsStatics {
     static testConfig = {
         'additionFunc': {
             input: ['numb1=><number>', 'numb2=><number>'],
-            output: ['result=><number, expectedOut=:["${numb1} + ${numb2}">']
+            output: ['result=><number, expectedOut=:["${numb1} + ${numb2}"]>']
         }
     }
 
