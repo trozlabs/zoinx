@@ -386,7 +386,7 @@ module.exports = class RunTest {
             }
             else if (paramConfig.rejectedValues.length > 0) {
                 if (paramConfig.rejectedValues.includes(testObject)) {
-                    paramTest.get('passed', false);
+                    paramTest.set('passed', false);
                     if (_.isRegExp(paramConfig.rejectedValues[0]) && !paramConfig.rejectedValues[0].test(testObject))
                         paramTest.set('passed', true);
                 }
