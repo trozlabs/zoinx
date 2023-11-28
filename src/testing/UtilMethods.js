@@ -278,7 +278,8 @@ module.exports = class UtilMethods {
 
     static getExpectedConfig(className, methodName, config=[], configType='input') {
         let expected = [],
-            cacheSuffix = (_.isEmpty(configType) || !_.isString(configType)) ? 'INPUT' : configType.toUpperCase();
+            cacheSuffix = (_.isEmpty(configType) || !_.isString(configType)) ? 'INPUT' : configType.toUpperCase(),
+            cacheKey, cacheResult;
 
         try {
             for (let i=0; i<config.length; i++) {
@@ -291,12 +292,14 @@ module.exports = class UtilMethods {
                     continue;
                 }
 
-                if ( UtilMethods.getGlobalTestConfig(`${className}.${methodName}.${tmpParamName}_${cacheSuffix}`) )
-                    expected.push(UtilMethods.getGlobalTestConfig(`${className}.${methodName}.${config[i]}_${cacheSuffix}`));
+                cacheKey = `${className}.${methodName}.${tmpParamName}_${cacheSuffix}`;
+                cacheResult = UtilMethods.getGlobalTestConfig(cacheKey);
+                if (cacheResult)
+                    expected.push(cacheResult);
                 else {
                     let tmpParams = ParseFunctionConfig.parse(config[i]);
                     expected.push(tmpParams);
-                    UtilMethods.setGlobalTestConfig(`${className}.${methodName}.${tmpParamName}_${cacheSuffix}`, tmpParams);
+                    UtilMethods.setGlobalTestConfig(cacheKey, tmpParams);
                 }
             }
         }
