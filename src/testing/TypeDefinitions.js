@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const { Log } = require('../log');
 const crypto = require('crypto');
+const path = require('path');
 
 module.exports = class TypeDefinitions {
 
@@ -43,7 +44,8 @@ module.exports = class TypeDefinitions {
             'array':        {typeFn: _.isArray,     convertFn: JSON.parse},
             'function':     {typeFn: _.isFunction,  convertFn: this.toFunction},
             'date':         {typeFn: _.isDate,      convertFn: this.toDate},
-            'regexp':       {typeFn: _.isRegExp,    convertFn: this.toRegExp}
+            'regexp':       {typeFn: _.isRegExp,    convertFn: this.toRegExp},
+            'dynaFunc':     {typeFn: _.isFunction,  convertFn: this.toDynaFunction}
         }
     }
 
@@ -58,6 +60,24 @@ module.exports = class TypeDefinitions {
 
     static toFunction(value) {
         return undefined;
+    }
+
+    static toDynaFunction(value) {
+        // based on a string like /src/testing/UtilMethods.isIterable
+        let funcStr = value.match(/\((.*)\)/),
+            funcStrSplit, classPath, tmpReq, newFunc;
+        if (_.isEmpty(funcStr[1])) return;
+
+        funcStrSplit = funcStr[1].split('.');
+        classPath = path.resolve(`${process.cwd()}${funcStrSplit[0]}`);
+        try {
+            tmpReq = require(classPath);
+            newFunc = (funcStrSplit[1]) ? tmpReq[funcStrSplit[1]] : undefined;
+        }
+        catch (e) {
+            newFunc = undefined;
+        }
+        return newFunc;
     }
 
     static toRegExp(value) {

@@ -5,7 +5,8 @@ const TypeDefinitions = require('./TypeDefinitions');
 const UtilMethods = require('./UtilMethods');
 const { TestFuncDetails, TestParamDetails, TestExecutionDetails} = require('./model');
 const TestMsgProducer = require('./TestMsgProducer');
-const AppCache = require("../core/AppCache");
+const AppCache = require('../core/AppCache');
+const path = require('path');
 
 module.exports = class RunTest {
 
@@ -380,8 +381,12 @@ module.exports = class RunTest {
             if (paramConfig.acceptedValues.length > 0) {
                 if (!paramConfig.acceptedValues.includes(testObject)) {
                     paramTest.set('passed', false);
-                    if (_.isRegExp(paramConfig.acceptedValues[0]) && paramConfig.acceptedValues[0].test(testObject))
+                    if (_.isRegExp(paramConfig.acceptedValues[0]) && paramConfig.acceptedValues[0].test(testObject)) {
                         paramTest.set('passed', true);
+                    }
+                    else if (_.isFunction(paramConfig.acceptedValues[0])) {
+                        paramTest.set('passed', TypeDefinitions.toBoolean(paramConfig.acceptedValues[0](testObject)));
+                    }
                 }
             }
             else if (paramConfig.rejectedValues.length > 0) {
@@ -432,11 +437,19 @@ module.exports = class RunTest {
                         }
                     }
 
+                    let regexTest = requiredItems[j].regex?.test(objectRef),
+                        funcTest = (requiredItems[j].dynaFunc) ? TypeDefinitions.toBoolean(requiredItems[j].dynaFunc(objectRef)) : undefined;
+
                     if (requiredItems[j].values.length > 0 && requiredItems[j].values.includes(objectRef)) {
                         successCount++;
-                    } else if (_.isRegExp(requiredItems[j].regex) && requiredItems[j].regex.test(objectRef)) {
+                    }
+                    else if (regexTest) {
                         successCount++;
-                    } else if (requiredItems[j].values.length < 1 && !_.isRegExp(requiredItems[j].regex) && TypeDefinitions.typeTests[requiredItems[j].type].typeFn(objectRef)) {
+                    }
+                    else if (funcTest) {
+                        successCount++;
+                    }
+                    else if (requiredItems[j].values.length < 1 && _.isUndefined(regexTest) && _.isUndefined(funcTest) && TypeDefinitions.typeTests[requiredItems[j].type].typeFn(objectRef)) {
                         successCount++;
                     }
 

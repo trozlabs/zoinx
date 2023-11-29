@@ -6,7 +6,7 @@ module.exports = class ParseFunctionConfig {
 
     static rxCurlies = /\.?(\{.+\})/gi;
     static rxBrackets = /\.?(\[.+\])/gi;
-    static rxBananas = /\.?(\(|.+\))/gi; ///\.?(\(|\))/gi;
+    static rxBananas = /\.?(\(|.+\))/gi;
     static rxCarrots = /\.?(\<.+\>)/gi;
     static rxWacks = /\.?(\/.+\/)/gi;
 
@@ -126,7 +126,6 @@ module.exports = class ParseFunctionConfig {
             try {
                 if (parseParts.length > 1) {
 
-// TODO make work like accepted
                     let requiredStr = '';
                     if (parseParts[1].indexOf(this.requiredPrefix) >= 0) {
                         requiredStr = parseParts[1].substring(parseParts[1].indexOf(this.requiredPrefix), parseParts[1].length);
@@ -146,7 +145,7 @@ module.exports = class ParseFunctionConfig {
                             configObj.acceptedValues = this.getAdvancedObjectConf(acceptedStr, this.acceptedPrefix);
                         }
                     }
-// TODO verify works like accepted
+
                     let rejectedStr = '';
                     if (parseParts[1].indexOf(this.rejectedPrefix) >= 0) {
                         rejectedStr = parseParts[1].slice().substring(parseParts[1].indexOf(this.rejectedPrefix), parseParts[1].length);
@@ -201,23 +200,17 @@ module.exports = class ParseFunctionConfig {
                         if (this.rxWacks.exec(tmpSplitArray[0]) && tmpSplitArray[0].startsWith("/")) {
                             type = 'regexp';
                         }
+                        else if (this.rxBananas.exec(tmpSplitArray[0]) && tmpSplitArray[0].startsWith('(')) {
+                            type = 'dynaFunc';
+                        }
 
                         for (let i = 0; i < tmpSplitArray.length; i++) {
                             parsedArray.push(TypeDefinitions.typeTests[type].convertFn(tmpSplitArray[i]));
-                            if (type === 'regexp') break;
+                            if (type === 'regexp' || type === 'dynaFunc') break;
                         }
                     }
                     tmpJson = parsedArray;
                 }
-
-                let tmpFn = TypeDefinitions.typeTests[type].typeFn;
-                if (_.isString(tmpFn)) tmpFn = require(tmpFn);
-
-                // don't believe this is needed any more.
-                // if (!isOutputConfig) {
-                //     let doesTypeMatch = tmpJson.every(x => (tmpFn(x)));
-                //     if (!doesTypeMatch) Log.info(`Values in ${tmpSplit[0]} are not all of type ${type}.`);
-                // }
             }
             catch (e) {
                 Log.error(`${tmpSplit[0]} did not parse passed values: ${tmpSplit[1]}`, e);
@@ -248,8 +241,9 @@ module.exports = class ParseFunctionConfig {
                         let configKeys = Object.keys(requiredObjects[i]);
 
                         for (let j=0; j<configKeys.length; j++) {
-                            let arrayTest = this.rxBrackets.exec(requiredObjects[i][configKeys[j]]),
-                                regexText = this.rxWacks.exec(requiredObjects[i][configKeys[j]]),
+                            let arrayTest   = this.rxBrackets.exec(requiredObjects[i][configKeys[j]]),
+                                regexText   = this.rxWacks.exec(requiredObjects[i][configKeys[j]]),
+                                functionText= /\[([^\]]+)\]/.exec(requiredObjects[i][configKeys[j]]),
                                 requiredObj = {
                                     propName: configKeys[j],
                                     values: [],
@@ -268,6 +262,11 @@ module.exports = class ParseFunctionConfig {
                                     tmpArrayStr = tmpArrayStr.substring(1, (tmpArrayStr.length-1));
                                     requiredObj.values = tmpArrayStr.split('|');
                                 }
+                            }
+                            else if (!_.isEmpty(functionText) && functionText[1].endsWith(')')) {
+                                requiredObj.type = requiredObjects[i][configKeys[j]].substring(0, functionText['index']-1);
+                                tmpArrayStr = functionText[1];
+                                requiredObj.dynaFunc = TypeDefinitions.toDynaFunction(tmpArrayStr);
                             }
                             else if (!_.isEmpty(regexText)) {
                                 requiredObj.type = requiredObjects[i][configKeys[j]].substring(0, regexText['index']-2);

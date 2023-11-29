@@ -211,10 +211,10 @@ module.exports = class UtilMethods {
 
     static getCallerMethod(clazz, errorStack) {
         let returnObj =
-            {
-                className: 'unknown',
-                file: ''
-            },
+                {
+                    className: 'unknown',
+                    file: ''
+                },
             className = this.getClassName(clazz);
 
         try {
