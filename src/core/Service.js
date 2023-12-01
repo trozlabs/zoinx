@@ -5,6 +5,7 @@ const telemetryEvent = require('../telemetry/TelemetryEventModel');
 const Filter = require("../util/Filter");
 const Sort = require('../util/Sort');
 const SelectInclude = require('../util/SelectInclude');
+const Log = require('../log/Log');
 
 module.exports = class Service {
 
@@ -178,4 +179,22 @@ module.exports = class Service {
         );
         return await this.domain.insertMany(rawObjects, { ordered: false, populate: null });
     }
+
+    async deleteMany(queryParams) {
+        const { filters, sorters, select, limit, offset } = queryParams;
+
+        if (!filters) {
+            Log.error('Must supply filters to delete many.');
+            return undefined;
+        }
+
+        this.#telemetryEvents.push(
+            new telemetryEvent({
+                name: `${this.constructor.name}.deleteMany`,
+                attributes: { filters: filters, sorters: sorters, select: select, limit: limit, offset: offset }
+            })
+        );
+        return await this.domain.find(queryParams, false, true);
+    }
+
 }

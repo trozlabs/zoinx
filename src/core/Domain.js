@@ -38,13 +38,23 @@ module.exports = class Domain {
         return this.#Domain.find().select(this.#defaultExclude);
     }
 
-    find(queryParams, count=false) {
+    find(queryParams, count=false, deleteMany=false) {
         const { filters, sorters, select, limit, offset } = queryParams;
 
         count = StaticUtil.StringToBoolean(count);
+        deleteMany = StaticUtil.StringToBoolean(deleteMany);
 
-        let thisMdl = (count) ? this.#Domain.count() : this.#Domain.find(),
-            action = (count) ? 'count' : 'find';
+        let thisMdl = this.#Domain.find(),
+            action = 'find';
+        if (count) {
+            thisMdl = this.#Domain.count();
+            action = 'count';
+        }
+        else if (deleteMany) {
+            thisMdl = this.#Domain.deleteMany();
+            action = 'deleteMany';
+        }
+
         this.#telEvent = new telemetryEvent({
             name: `${this.constructor.name}.${action}`,
             attributes: queryParams
