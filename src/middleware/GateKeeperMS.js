@@ -73,16 +73,26 @@ async function assignVerifiedRoles(req, parsedToken, basicAuthResult) {
             req.verifiedAuth = {};
 
         if (!_.isEmpty(basicAuthResult)) {
+            let user = basicAuthResult.name;
+            if (basicAuthResult.id)
+                user = `${user} (${basicAuthResult.id})`;
+            else
+                user = `${user} (local)`;
+
             req.verifiedAuth.oid = basicAuthResult.id;
-            req.verifiedAuth.user = `${basicAuthResult.name} (${basicAuthResult.id})`
+            req.verifiedAuth.user = user;
             if (_.isEmpty(req.verifiedAuth.roles))
                 req.verifiedAuth.roles = [];
 
             req.verifiedAuth.roles.push(basicAuthResult.role);
         }
         else {
+            let user = parsedToken.payload.preferred_username;
+            if (parsedToken.payload?.oid)
+                user = `${user} (${parsedToken.payload.oid})`;
+
             req.verifiedAuth.oid = parsedToken.payload.oid;
-            req.verifiedAuth.user = `${parsedToken.payload.preferred_username} (${parsedToken.payload.oid})`
+            req.verifiedAuth.user = user;
             req.verifiedAuth.preferred_username = parsedToken.payload.preferred_username;
             req.verifiedAuth.user_agent = req.get('user-agent') ?? 'MISSING';
             req.verifiedAuth.ip_address = req.socket.remoteAddress;
