@@ -495,6 +495,9 @@ module.exports = class RunTest {
                 else
                     paramTest.set('passed', false);
             }
+            else if (typeAccepted.typeAccepted && typeAccepted.subType === 'N/A') {
+                paramTest.set('passed', true);
+            }
             else {
                 paramTest.set('passed', (typeAccepted.typeAccepted && typeAccepted.subTypeAccepted));
             }

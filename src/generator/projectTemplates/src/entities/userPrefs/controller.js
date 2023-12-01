@@ -12,28 +12,28 @@ module.exports = TestHarness(class UserPrefs extends Controller {
                 'req=><object<IncomingMessage> required=:[{"client.server": "object"}, {"params": "object"}]>',
                 'res=><object<ServerResponse> required=:[{"socket.server": "object"}]>'
             ],
-            output: ['result=><array>']
+            output: ['result=><object>']
         },
         'post': {
             input: [
                 'req=><object<IncomingMessage> required=:[{"client.server": "object"}, {"body": "object"}]>',
                 'res=><object<ServerResponse> required=:[{"socket.server": "object"}]>'
             ],
-            output: ['record=><array>']
+            output: ['record=><object>']
         },
         'put': {
             input: [
                 'req=><object<IncomingMessage> required=:[{"client.server": "object"}, {"body": "object"}]>',
                 'res=><object<ServerResponse> required=:[{"socket.server": "object"}]>'
             ],
-            output: ['record=><array>']
+            output: ['record=><object>']
         },
         'delete': {
             input: [
                 'req=><object<IncomingMessage> required=:[{"client.server": "object"}, {"params": "object"}]>',
                 'res=><object<ServerResponse> required=:[{"socket.server": "object"}]>'
             ],
-            output: ['record=><array>']
+            output: ['record=><object>']
         },
         'find': {
             input: [

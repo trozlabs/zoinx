@@ -70,7 +70,8 @@ module.exports = class Service {
                 })
             );
             body.updated_user = session.user;
-            rtn = await this.domain.save(body, id);
+            await this.domain.save(body, id);
+            rtn = await this.domain.get(id);
         } else {
             this.#telemetryEvents.push(
                 new telemetryEvent({
