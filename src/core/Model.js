@@ -39,8 +39,19 @@ module.exports = class Model {
         }
     }
 
+    getModelType() {
+        return this.constructor.name;
+    }
+
     get(fieldName) {
-        return this.#getValue(fieldName);
+        if (_.isUndefined(this.#fieldNames) || this.#fieldNames.length < 1) this.#setFieldNames();
+
+        let value = this.#getValue(fieldName),
+            defaultValue = this.getFieldDefaultValue(this.fields[this.#fieldNames.indexOf(fieldName)], value);
+        if (_.isEmpty(value) && !_.isEmpty(defaultValue))
+            value = defaultValue;
+
+        return value;
     }
 
     #getValue(fieldName) {
@@ -104,9 +115,14 @@ module.exports = class Model {
 
     getFieldDefaultValue(field, value) {
         if (_.isNull(value) || _.isUndefined(value) || _.isNaN(value)) {
-            if (!_.isUndefined(field.defaultValue) && !_.isNull(field.defaultValue)) value = field.defaultValue;
+            if (!_.isUndefined(field.defaultValue) && !_.isNull(field.defaultValue)) {
+                if (_.isFunction(field.defaultValue)) {
+                    value = field.defaultValue();
+                }
+                else
+                    value = field.defaultValue;
+            }
         }
-
         return value;
     }
 
@@ -146,7 +162,7 @@ module.exports = class Model {
         const fields = []; //new Map();
         for (let key of this.fields.keys()) {
             let field = this.fields.get(key);
-            if (field && field.value != undefined) {
+            if (field && field.value !== undefined) {
                 fields.push(field);
             }
         }
