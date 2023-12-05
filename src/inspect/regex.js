@@ -1,27 +1,27 @@
 
 /**
  * any whitespace character, newline, tab, etc
- */ 
+ */
 exports.EXCESSIVE_WHITESPACE = /(\s)+/gmi
 
 /**
  * captures anything between open and close banana-braces™: `(...)`
- */ 
+ */
 exports.BETWEEN_BANANAS = /\.?(\(|\))/gmi
 
 /**
  * captures anything between open and close curly braces: `{...}`
- */ 
+ */
 exports.BETWEEN_CURLIES = /\.?(\{.+\})/gmi
 
 /**
  * captures anything between open and close square brackets: `[...]`
- */ 
+ */
 exports.BETWEEN_BRACKETS = /\.?(\[.+\])/gmi
 
 /**
  * captures anything between open and close carrots: `<...>`
- */ 
+ */
 exports.BETWEEN_CARROTS = /\.?(\<.+\>)/gmi
 
 /**
@@ -47,3 +47,9 @@ exports.FUNCTION_METHOD_ARROW_SIGNATURE = /^.+(?=(\{|\=\>))/gmi
  * `fnName(a=1, b, c = [1, 2, 3]) {}` -> `a=1, b, c = [1, 2, 3]`
  */
 exports.FUNCTION_ARGUMENTS_SIGNATURES = /(\.{3}\w+.?)|\w+\s*(=\s*(?:\{[^\}]*\}|\[[^\]]*\]|"[^"]*"|[^,]*))?/gmi
+
+/**
+ * captures the function/method name line number and column numbers from a string like
+ * "    at functionName (filename:lineNumber:columnNumber)"
+ */
+exports.ERROR_STACKTRACE_LINE = /^\s*at (.*?)\s*\((.*?):(\d+):(\d+)\)/;
