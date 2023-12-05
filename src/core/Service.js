@@ -6,6 +6,7 @@ const Filter = require("../util/Filter");
 const Sort = require('../util/Sort');
 const SelectInclude = require('../util/SelectInclude');
 const Log = require('../log/Log');
+const TelemetryEventModel = require('../telemetry/TelemetryEventModel');
 
 module.exports = class Service {
 
@@ -34,6 +35,17 @@ module.exports = class Service {
 
     set telemetryEvents(events) {
         this.#telemetryEvents = events;
+    }
+
+    addTelemetryEvent(telemetryName, attributes={}) {
+        if (!_.isEmpty(telemetryName) && _.isString(telemetryName)) {
+            this.#telemetryEvents.push(
+                new TelemetryEventModel({
+                    name: telemetryName,
+                    attributes: attributes
+                })
+            );
+        }
     }
 
     async get(id) {
