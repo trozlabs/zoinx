@@ -51,20 +51,10 @@ module.exports = class Service {
     async get(id) {
         let rtn;
         if (id) {
-            this.#telemetryEvents.push(
-                new telemetryEvent({
-                    name: `${this.constructor.name}.get`,
-                    attributes: { recordId: id }
-                })
-            );
+            this.addTelemetryEvent('get', {recordId: id});
             rtn = await this.domain.get(id);
         } else {
-            this.#telemetryEvents.push(
-                new telemetryEvent({
-                    name: `${this.constructor.name}.list`,
-                    attributes: { recordId: id }
-                })
-            );
+            this.addTelemetryEvent('list', {recordId: id});
             rtn = await this.domain.list().where();
         }
         return rtn;
@@ -75,22 +65,12 @@ module.exports = class Service {
 
         let rtn;
         if (id) {
-            this.#telemetryEvents.push(
-                new telemetryEvent({
-                    name: `${this.constructor.name}.update`,
-                    attributes: { recordId: id, body: body, session: session }
-                })
-            );
+            this.addTelemetryEvent('update', {recordId: id, body: body, session: session});
             body.updated_user = session.user;
             await this.domain.save(body, id);
             rtn = await this.domain.get(id);
         } else {
-            this.#telemetryEvents.push(
-                new telemetryEvent({
-                    name: `${this.constructor.name}.create`,
-                    attributes: { body: body, session: session }
-                })
-            );
+            this.addTelemetryEvent('create', {body: body, session: session});
             body.updated_user = session.user;
             body.created_user = session.user;
             try {
@@ -104,12 +84,7 @@ module.exports = class Service {
     }
 
     async remove(id, session) {
-        this.#telemetryEvents.push(
-            new telemetryEvent({
-                name: `${this.constructor.name}.delete`,
-                attributes: { recordId: id }
-            })
-        );
+        this.addTelemetryEvent('delete', {recordId: id});
         let rtn = await this.domain.remove(id);
         return rtn;
     }
@@ -142,34 +117,19 @@ module.exports = class Service {
 
     async find(queryParams) {
         const { filters, sorters, select, limit, offset } = queryParams;
-        this.#telemetryEvents.push(
-            new telemetryEvent({
-                name: `${this.constructor.name}.find`,
-                attributes: { filters: filters, sorters: sorters, select: select, limit: limit, offset: offset }
-            })
-        );
+        this.addTelemetryEvent('find', {filters: filters, sorters: sorters, select: select, limit: limit, offset: offset});
         return await this.domain.find(queryParams);
     }
 
     async count(queryParams) {
         const { filters, sorters, select, limit, offset } = queryParams;
-        this.#telemetryEvents.push(
-            new telemetryEvent({
-                name: `${this.constructor.name}.count`,
-                attributes: { filters: filters, sorters: sorters, select: select, limit: limit, offset: offset }
-            })
-        );
+        this.addTelemetryEvent('count', {filters: filters, sorters: sorters, select: select, limit: limit, offset: offset});
         const result = await this.domain.find(queryParams, true);
         return { count: result };
     }
 
     async distinctList(propName) {
-        this.#telemetryEvents.push(
-            new telemetryEvent({
-                name: `${this.constructor.name}.distinctList`,
-                attributes: { propName: propName }
-            })
-        );
+        this.addTelemetryEvent('distinctList', {propName: propName});
         return await this.domain.list().distinct(propName);
     }
 
@@ -184,12 +144,7 @@ module.exports = class Service {
     }
 
     async insertMany(rawObjects =[]) {
-        this.#telemetryEvents.push(
-            new telemetryEvent({
-                name: `${this.constructor.name}.insertMany`,
-                attributes: { batchCount: rawObjects.length, note: 'putting chunks of records in telemetry will need to be considered.' }
-            })
-        );
+        this.addTelemetryEvent('insertMany', {batchCount: rawObjects.length, note: 'putting chunks of records in telemetry will need to be considered.'});
         return await this.domain.insertMany(rawObjects, { ordered: false, populate: null });
     }
 
@@ -201,12 +156,7 @@ module.exports = class Service {
             return undefined;
         }
 
-        this.#telemetryEvents.push(
-            new telemetryEvent({
-                name: `${this.constructor.name}.deleteMany`,
-                attributes: { filters: filters, sorters: sorters, select: select, limit: limit, offset: offset }
-            })
-        );
+        this.addTelemetryEvent('deleteMany', {filters: filters, sorters: sorters, select: select, limit: limit, offset: offset});
         return await this.domain.find(queryParams, false, true);
     }
 
