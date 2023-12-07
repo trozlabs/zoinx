@@ -911,7 +911,10 @@ module.exports = class UtilMethods {
         try {
             if (passedArguments.length > 0) {
                 for (let i=0; i<passedArguments.length; i++) {
-                    typeList.push(passedArguments[i].constructor.name);
+                    if (_.isUndefined(passedArguments[i]))
+                        typeList.push('undefined');
+                    else
+                        typeList.push(passedArguments[i].constructor.name);
                 }
             }
         }
