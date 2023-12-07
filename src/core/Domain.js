@@ -148,8 +148,12 @@ module.exports = class Domain {
                             if (filter.regex) {
                                 thisMdl.where(filter.propName).regex(filter.regex);
                             }
+                            // not sure why this is here
                             else if (_.isBoolean(filter.term)) {
                                 //console.log(filter.propName + '=' + filter.term);
+                                thisMdl.where(filter.propName).equals(filter.term);
+                            }
+                            else {
                                 thisMdl.where(filter.propName).equals(filter.term);
                             }
                     }
