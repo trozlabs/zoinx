@@ -6,7 +6,23 @@ const { randomUUID } = require('crypto');
 
 const schema = mongoose.Schema(
     {
-
+        created_user: {
+            type: String,
+            default: 'SYSTEM',
+            required: true,
+            immutable: true,
+            minlength: 6,
+            maxlength: 200,
+            trim: true
+        },
+        updated_user: {
+            type: String,
+            default: 'SYSTEM',
+            required: true,
+            minlength: 6,
+            maxlength: 200,
+            trim: true
+        }
     },
     {
     timestamps: {
