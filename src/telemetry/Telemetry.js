@@ -89,13 +89,19 @@ module.exports = class Telemetry {
     async send() {
         try {
             await this.#createTelemetryProducer();
-            let telemetryMsg = JSON.stringify(this.#telemetryModel.json);
+            let telemetryMsg = JSON.stringify(this.#telemetryModel.json),
+                keyString = (process.env.SERVICE_NAME) ? process.env.SERVICE_NAME : 'DevApplication';
+
             if (StaticUtil.StringToBoolean(process.env.TELEMETRY_ENCRYPT)) {
                 telemetryMsg = await Encryption.encrypt(telemetryMsg, process.env.TELEMETRY_SECRET_KEY, process.env.TELEMETRY_SECRET_IV);
             }
 
+            keyString += `.${this.#telemetryModel.get('name')}:${new Date().getTime()}`;
+            if (_.isEmpty(keyString))
+                keyString = randomUUID();
+
             await global.kafka.TelemetryProducer.sendMessage({
-                key: randomUUID(),
+                key: keyString,
                 value: telemetryMsg
             }, process.env.TELEMETRY_TOPIC_NAME);
         }

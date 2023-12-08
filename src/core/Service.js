@@ -41,7 +41,7 @@ module.exports = class Service {
         if (!_.isEmpty(telemetryName) && _.isString(telemetryName)) {
             this.#telemetryEvents.push(
                 new TelemetryEventModel({
-                    name: `${this.constructor.name}.telemetryName`,
+                    name: `${this.constructor.name}.${telemetryName}`,
                     attributes: attributes
                 })
             );
