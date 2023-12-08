@@ -169,4 +169,37 @@ module.exports = class UtilMethods {
         return value;
     }
 
+    static convertMs2TimeUnits(ms, stringOut=false, excludeCalendar=true) {
+        if ( !Number.isInteger(ms) ) {
+            return null
+        }
+
+        const allocate = msUnit => {
+            const units = Math.trunc(ms / msUnit)
+            ms -= units * msUnit
+            return units
+        }
+
+        let output = {
+            weeks: allocate(604800000),
+            days: allocate(86400000),
+            hours: allocate(3600000),
+            minutes: allocate(60000),
+            seconds: allocate(1000),
+            ms: ms
+        }
+
+        if (excludeCalendar) {
+            delete output.weeks;
+            delete output.days;
+        }
+
+        if (stringOut) {
+            return `${(output.hours < 10)?0:''}${output.hours}:${(output.minutes < 10)?0:''}${output.minutes}:${(output.seconds < 10)?0:''}${output.seconds}.${output.ms}`;
+        }
+        else {
+            return output;
+        }
+    }
+
 };
