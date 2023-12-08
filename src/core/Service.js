@@ -1,20 +1,19 @@
 let Maindomain;
 const _ = require('lodash');
 const APIError = require("./APIError");
-const telemetryEvent = require('../telemetry/TelemetryEventModel');
 const Filter = require("../util/Filter");
 const Sort = require('../util/Sort');
-const SelectInclude = require('../util/SelectInclude');
 const Log = require('../log/Log');
-const TelemetryEventModel = require('../telemetry/TelemetryEventModel');
+const SelectInclude = require('../util/SelectInclude');
+const TelemetryChain = require('../telemetry/TelemetryChain');
 
-module.exports = class Service {
+module.exports = class Service extends TelemetryChain {
 
     #domain;
     #domainPath;
-    #telemetryEvents = [];
 
     constructor(domainPath) {
+        super();
         if (domainPath && typeof domainPath === 'string') {
             Maindomain = require(domainPath);
             this.#domain = new Maindomain();
@@ -27,25 +26,6 @@ module.exports = class Service {
 
     get domain() {
         return this.#domain;
-    }
-
-    get telemetryEvents() {
-        return this.#telemetryEvents;
-    }
-
-    set telemetryEvents(events) {
-        this.#telemetryEvents = events;
-    }
-
-    addTelemetryEvent(telemetryName, attributes={}) {
-        if (!_.isEmpty(telemetryName) && _.isString(telemetryName)) {
-            this.#telemetryEvents.push(
-                new TelemetryEventModel({
-                    name: `${this.constructor.name}.${telemetryName}`,
-                    attributes: attributes
-                })
-            );
-        }
     }
 
     async get(id) {
