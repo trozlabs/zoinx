@@ -195,7 +195,7 @@ module.exports = class UtilMethods {
         }
 
         if (stringOut) {
-            return `${(output.hours < 10)?0:''}${output.hours}:${(output.minutes < 10)?0:''}${output.minutes}:${(output.seconds < 10)?0:''}${output.seconds}.${output.ms}`;
+            return `${(output.hours < 10)?0:''}${output.hours}:${(output.minutes < 10)?0:''}${output.minutes}:${(output.seconds < 10)?0:''}${output.seconds}.${(output.ms > 99)?output.ms:output.ms+'0'}`;
         }
         else {
             return output;
