@@ -26,7 +26,8 @@ module.exports = class Filter {
 
     constructor(req, dbType) {
         if (_.isArray(req)) {
-            if (!req[0]?.field || !req[0]?.term) req = [];
+            if (!req[0]?.field)
+                req = [];
             this.#queryFilters = req;
         }
         else {
