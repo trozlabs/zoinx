@@ -195,7 +195,10 @@ module.exports = class UtilMethods {
         }
 
         if (stringOut) {
-            return `${(output.hours < 10)?0:''}${output.hours}:${(output.minutes < 10)?0:''}${output.minutes}:${(output.seconds < 10)?0:''}${output.seconds}.${(output.ms > 99)?output.ms:output.ms+'0'}`;
+            let msOutput = output.ms;
+            if (output.ms < 10) msOutput = msOutput + '00';
+            else if (output.ms < 100) msOutput = msOutput + '0';
+            return `${(output.hours < 10)?0:''}${output.hours}:${(output.minutes < 10)?0:''}${output.minutes}:${(output.seconds < 10)?0:''}${output.seconds}.${msOutput}`;
         }
         else {
             return output;
