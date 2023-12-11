@@ -37,43 +37,6 @@
       </ul>
     </li>
     <li>
-      <a href="#envs">Environments & AppConfig</a>
-      <ul>
-        <li><a href="#envs-default">Default env</a></li>
-        <li><a href="#envs-local">Local env</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#efi">Entities and Features and Integrations</a>
-      <ul>
-        <li><a href="#code-gen">Code Generators</a></li>
-        <li><a href="#code-gen-ex">Code Generating Examples</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#security">Security</a>
-      <ul>
-        <li><a href="#oauth">OAuth</a></li>
-        <li><a href="#basic">Local Auth</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#telemetry">Telemetry</a>
-      <ul>
-        <li><a href="#telemetry-ex">Telemetry Examples</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#testing">Testing</a>
-      <ul>
-        <li><a href="#test-harness">Test Harness</a></li>
-        <li><a href="#test-conf">Test Configuration</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#logging">Logging</a>
-    </li>
-    <li>
       <a href="#optional-tools">Optional Tools Links</a>
     </li>
   </ol>
