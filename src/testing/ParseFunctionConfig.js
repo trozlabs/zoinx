@@ -241,19 +241,20 @@ module.exports = class ParseFunctionConfig {
                         let configKeys = Object.keys(requiredObjects[i]);
 
                         for (let j=0; j<configKeys.length; j++) {
-                            let arrayTest   = this.rxBrackets.exec(requiredObjects[i][configKeys[j]]),
-                                regexText   = this.rxWacks.exec(requiredObjects[i][configKeys[j]]),
-                                functionText= /\[([^\]]+)\]/.exec(requiredObjects[i][configKeys[j]]),
-                                requiredObj = {
+                            let requiredObj = {
                                     propName: configKeys[j],
                                     values: [],
                                     regex: undefined
                                 },
-                                tmpArrayStr;
+                                arrayTest, regexText, functionText, tmpArrayStr;
 
                             requiredObj.maskValue = requiredObjects[i][configKeys[j]].includes('*=');
                             if (requiredObj.maskValue)
                                 requiredObjects[i][configKeys[j]] = requiredObjects[i][configKeys[j]].replace('*=', '=');
+
+                            arrayTest   = this.rxBrackets.exec(requiredObjects[i][configKeys[j]]);
+                            regexText   = this.rxWacks.exec(requiredObjects[i][configKeys[j]]);
+                            functionText= /\[([^\]]+)\]/.exec(requiredObjects[i][configKeys[j]]);
 
                             if (!_.isEmpty(arrayTest) && _.isEmpty(regexText)) {
                                 requiredObj.type = requiredObjects[i][configKeys[j]].substring(0, arrayTest['index']-1);
@@ -271,7 +272,7 @@ module.exports = class ParseFunctionConfig {
                             else if (!_.isEmpty(regexText)) {
                                 requiredObj.type = requiredObjects[i][configKeys[j]].substring(0, regexText['index']-2);
                                 tmpArrayStr = regexText[0];
-                                requiredObj.regex = TypeDefinitions.toRegExp(tmpArrayStr);
+                                requiredObj.regex = TypeDefinitions.toRegExp(requiredObjects[i][configKeys[j]]);
                             }
                             else {
                                 requiredObj.type = requiredObjects[i][configKeys[j]];
@@ -298,5 +299,20 @@ module.exports = class ParseFunctionConfig {
         return parsedJson;
     }
 
+    static createAccurateVtcOutput(configObj={}) {
+
+        if (configObj.required && _.isArray(configObj.required)) {
+            for (let i=0; i<configObj.required.length; i++) {
+                for (let j=0; j<configObj.required[i].length; j++) {
+                    let regex = configObj.required[i][j].regex;
+                    if (regex) {
+                        configObj.required[i][j].regex = regex.toString();
+                    }
+                }
+            }
+        }
+
+        return configObj;
+    }
 
 }

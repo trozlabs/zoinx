@@ -33,7 +33,10 @@ module.exports = class TestRunner extends BaseCli {
 
         await this.horizontalLine();
         if (inputSplit.length > 1) {
-            console.log(ParseFunctionConfig.parse(inputSplit[1]));
+            if (inputSplit.length > 1) {
+                let output = ParseFunctionConfig.parse(inputSplit[1]);
+                console.log(JSON.stringify(ParseFunctionConfig.createAccurateVtcOutput(output), null, 4));
+            }
         }
         else {
             console.error('No test config provided to parse');
