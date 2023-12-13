@@ -12,21 +12,13 @@ module.exports = class TestRunner extends BaseCli {
         Log.info('TestRunner is running.');
         this.addInputs(
             {
-                'verify-test-config':       {fn: 'verifyTestConfig', desc:'Verify Object Config'},
-                'vtc':                      {fn: 'verifyTestConfig', desc:'Verify Object Config (alias)'},
-                'test-static':              {fn: 'testStatic', desc:'Find and auto test static methods with a test config'}
+                'verify-test-config': {fn: 'verifyTestConfig', desc: 'Verify Object Config'},
+                'vtc': {fn: 'verifyTestConfig', desc: 'Verify Object Config (alias)'},
+                'test-static': {fn: 'testStatic', desc: 'Find and auto test static methods with a test config'}
             }
         )
     }
 
-    //vtc --simpleStr=><string, acceptedValues=:[/^\d{2,10}$/]>
-    //verify-test-config --authObj=><object required=:[{"data[0].response.csrf_token.csrf_token": "string"}]>
-    //verify-test-config --credentials=><object<someKindOfObjectType> acceptedValues=:[{"name":"peter"}] required=:[{"email":"string=[some@email.com|Asdf|asdaf]","password":"string=/^[a-zA-Z]{7}$/gi"}, {"snap":"number"}]>
-    //verify-test-config --userObj=><object<SpecialObject> required=:[{"token": "string"}] acceptedValues=:[{"name":"peter"}] rejectedValues=:[{"name": "boink"}]>
-    //verify-test-config --userObj=><object<SpecialObject> required=:[{"token": "string"}] acceptedValues=:[{"name":"peter"}] rejectedValues=:[{"name": "boink"}] expectedOut=:["${numb1 + numb2}"]>
-    //verify-test-config --req=><object required=:[{"client.server": "object"}]>
-    //verify-test-config --res=><object required=:[{"socket.server": "object"}]>
-    //vtc --reqId=><string, acceptedValues=:[/^\d{2,10}$/]>
     async verifyTestConfig(inputStr, _interface) {
         let inputSplit = inputStr.trim().split('--'),
             start = Date.now(), end;
@@ -37,8 +29,7 @@ module.exports = class TestRunner extends BaseCli {
                 let output = ParseFunctionConfig.parse(inputSplit[1]);
                 console.log(JSON.stringify(ParseFunctionConfig.createAccurateVtcOutput(output), null, 4));
             }
-        }
-        else {
+        } else {
             console.error('No test config provided to parse');
         }
         end = Date.now();

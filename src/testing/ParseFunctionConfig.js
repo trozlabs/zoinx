@@ -121,6 +121,7 @@ module.exports = class ParseFunctionConfig {
     }
 
     static parseObjectTestConfig(configObj, parseParts) {
+        let rejectedRx = /\srejectedValues=:\[[^\]]+\]/;
 
         if (!_.isEmpty(parseParts) && _.isArray(parseParts)) {
             try {
@@ -133,8 +134,10 @@ module.exports = class ParseFunctionConfig {
                         configObj.required = this.getAdvancedObjectConf(requiredStr, this.requiredPrefix);
                     }
 
-                    let acceptedStr = '';
+                    let acceptedStr = '',
+                        rejectedStr = '';
                     if (parseParts[1].indexOf(this.acceptedPrefix) >= 0) {
+                        parseParts[1]= parseParts[1].replace(rejectedRx, '');
                         acceptedStr = parseParts[1].slice().substring(parseParts[1].indexOf(this.acceptedPrefix), parseParts[1].length);
                         if (acceptedStr.split(this.acceptedPrefix)[1].startsWith('[')) {
                             acceptedStr = acceptedStr.substring(0, (acceptedStr.indexOf(']>') + 1));
@@ -146,8 +149,8 @@ module.exports = class ParseFunctionConfig {
                         }
                     }
 
-                    let rejectedStr = '';
-                    if (parseParts[1].indexOf(this.rejectedPrefix) >= 0) {
+                    // let rejectedStr = '';
+                    else if (parseParts[1].indexOf(this.rejectedPrefix) >= 0) {
                         rejectedStr = parseParts[1].slice().substring(parseParts[1].indexOf(this.rejectedPrefix), parseParts[1].length);
                         if (rejectedStr.split(this.rejectedPrefix)[1].startsWith('[')) {
                             rejectedStr = rejectedStr.substring(0, (rejectedStr.indexOf(']>') + 1));
@@ -301,12 +304,45 @@ module.exports = class ParseFunctionConfig {
 
     static createAccurateVtcOutput(configObj={}) {
 
-        if (configObj.required && _.isArray(configObj.required)) {
-            for (let i=0; i<configObj.required.length; i++) {
-                for (let j=0; j<configObj.required[i].length; j++) {
-                    let regex = configObj.required[i][j].regex;
-                    if (regex) {
-                        configObj.required[i][j].regex = regex.toString();
+        if (!_.isEmpty(configObj)) {
+            let required = configObj.required,
+                accepted = configObj.acceptedValues,
+                rejected = configObj.rejectedValues,
+                expectedOut = configObj.expectedOut,
+                tmpArray, assignTo;
+
+            if (_.isArray(required) && required.length > 0) {
+                for (let i = 0; i < required.length; i++) {
+                    for (let j = 0; j < required[i].length; j++) {
+                        let regex = required[i][j].regex,
+                            dynaFunc = required[i][j].dynaFunc;
+                        if (regex) {
+                            configObj.required[i][j].regex = regex.toString();
+                        } else if (dynaFunc) {
+                            configObj.required[i][j].function = required[i][j].dynaFunc.name; //${required[i][j].dynaFunc.__proto__.constructor.name}
+                        }
+                    }
+                }
+            }
+            else {
+                if (_.isArray(accepted) && accepted?.length > 0) {
+                    tmpArray = accepted;
+                    assignTo = configObj.acceptedValues;
+                    configObj.rejectedValues = [];
+                }
+                else if (_.isArray(rejected) && rejected.length > 0) {
+                    tmpArray = rejected;
+                    assignTo = configObj.rejectedValues;
+                    configObj.acceptedValues = [];
+                }
+
+                for (let i = 0; i < tmpArray.length; i++) {
+                    let value = tmpArray[i];
+                    if (_.isRegExp(tmpArray[i])) {
+                        assignTo[i] = value.toString();
+                    }
+                    else if (_.isFunction(tmpArray[i])) {
+                        assignTo[i] = `Function: ${value.name}`;
                     }
                 }
             }
