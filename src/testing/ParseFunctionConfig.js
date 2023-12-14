@@ -304,48 +304,50 @@ module.exports = class ParseFunctionConfig {
 
     static createAccurateVtcOutput(configObj={}) {
 
-        if (!_.isEmpty(configObj)) {
-            let required = configObj.required,
-                accepted = configObj.acceptedValues,
-                rejected = configObj.rejectedValues,
-                expectedOut = configObj.expectedOut,
-                tmpArray, assignTo;
+        try {
+            if (!_.isEmpty(configObj)) {
+                let required = configObj.required,
+                    accepted = configObj.acceptedValues,
+                    rejected = configObj.rejectedValues,
+                    expectedOut = configObj.expectedOut,
+                    tmpArray, assignTo;
 
-            if (_.isArray(required) && required.length > 0) {
-                for (let i = 0; i < required.length; i++) {
-                    for (let j = 0; j < required[i].length; j++) {
-                        let regex = required[i][j].regex,
-                            dynaFunc = required[i][j].dynaFunc;
-                        if (regex) {
-                            configObj.required[i][j].regex = regex.toString();
-                        } else if (dynaFunc) {
-                            configObj.required[i][j].function = required[i][j].dynaFunc.name; //${required[i][j].dynaFunc.__proto__.constructor.name}
+                if (_.isArray(required) && required.length > 0) {
+                    for (let i = 0; i < required.length; i++) {
+                        for (let j = 0; j < required[i].length; j++) {
+                            let regex = required[i][j].regex,
+                                dynaFunc = required[i][j].dynaFunc;
+                            if (regex) {
+                                configObj.required[i][j].regex = regex.toString();
+                            } else if (dynaFunc) {
+                                configObj.required[i][j].function = required[i][j].dynaFunc.name; //${required[i][j].dynaFunc.__proto__.constructor.name}
+                            }
+                        }
+                    }
+                } else {
+                    if (_.isArray(accepted) && accepted?.length > 0) {
+                        tmpArray = accepted;
+                        assignTo = configObj.acceptedValues;
+                        configObj.rejectedValues = [];
+                    } else if (_.isArray(rejected) && rejected.length > 0) {
+                        tmpArray = rejected;
+                        assignTo = configObj.rejectedValues;
+                        configObj.acceptedValues = [];
+                    }
+
+                    for (let i = 0; i < tmpArray.length; i++) {
+                        let value = tmpArray[i];
+                        if (_.isRegExp(tmpArray[i])) {
+                            assignTo[i] = value.toString();
+                        } else if (_.isFunction(tmpArray[i])) {
+                            assignTo[i] = `Function: ${value.name}`;
                         }
                     }
                 }
             }
-            else {
-                if (_.isArray(accepted) && accepted?.length > 0) {
-                    tmpArray = accepted;
-                    assignTo = configObj.acceptedValues;
-                    configObj.rejectedValues = [];
-                }
-                else if (_.isArray(rejected) && rejected.length > 0) {
-                    tmpArray = rejected;
-                    assignTo = configObj.rejectedValues;
-                    configObj.acceptedValues = [];
-                }
-
-                for (let i = 0; i < tmpArray.length; i++) {
-                    let value = tmpArray[i];
-                    if (_.isRegExp(tmpArray[i])) {
-                        assignTo[i] = value.toString();
-                    }
-                    else if (_.isFunction(tmpArray[i])) {
-                        assignTo[i] = `Function: ${value.name}`;
-                    }
-                }
-            }
+        }
+        catch (e) {
+            Log.error(e.message);
         }
 
         return configObj;
