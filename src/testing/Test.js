@@ -438,7 +438,15 @@ module.exports = class RunTest {
                     }
 
                     let regexTest = requiredItems[j].regex?.test(objectRef),
-                        funcTest = (requiredItems[j].dynaFunc) ? TypeDefinitions.toBoolean(requiredItems[j].dynaFunc(objectRef)) : undefined;
+                        funcTest = undefined,
+                        dynaFunc = requiredItems[j].dynaFunc;
+
+                    if (dynaFunc && _.isFunction(dynaFunc)) {
+                        global.testingConfig.functionExclusionList.push(dynaFunc.name);
+                        funcTest = TypeDefinitions.toBoolean(dynaFunc(objectRef));
+                        let idx = global.testingConfig.functionExclusionList.indexOf(dynaFunc.name);
+                        global.testingConfig.functionExclusionList.slice(idx-1, idx);
+                    }
 
                     if (requiredItems[j].values.length > 0 && requiredItems[j].values.includes(objectRef)) {
                         successCount++;
