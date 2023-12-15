@@ -81,6 +81,6 @@ module.exports = {
     },
     banner(message, border = '~') {
         const line = new Array(arguments[0].length + 2).fill(border).join('');
-        console.log(`\n${BOLD}${line}\n${BOLD} ${message} \n${BOLD}${line}${RESET}\n`);
+        console.log(`\n${BOLD}${line}\n${BOLD} ${message ?? ''} \n${BOLD}${line}${RESET}\n`);
     }
 };
