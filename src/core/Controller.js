@@ -1,11 +1,11 @@
-// sibling
-const { Log } = require('../log');
+const { Log, Logger } = require('../log');
 // local
-const Route = require('./Route');
-const APIError = require('./APIError');
-const APIResponse = require('./APIResponse');
-const Telemetry = require('../telemetry/Telemetry');
-const Network = require('../util/Network');
+const Telemetry = require('../telemetry/Telemetry.js');
+const Network = require('../util/Network.js');
+const APIResponse = require('./APIResponse.js');
+const APIError = require('./APIError.js');
+const Route = require('./Route.js');
+
 const _ = require('lodash');
 const path = require('path');
 const { randomUUID } = require('crypto');
@@ -37,6 +37,7 @@ module.exports = class Controller {
 
         const { router, service, routes } = config || {};
 
+        this.logger = Logger.createLogger({ name: this.self.name });
         this.service = service || this.service;
         this.router = router || this.router;
         this.routes =
@@ -53,18 +54,18 @@ module.exports = class Controller {
     }
 
     init(instance) {
-        // console.log(`${this.constructor.name}.init`);
+        // this.logger.debug(`${this.constructor.name}.init`);
         const routes = [...this.defaultRoutes, ...(this.routes || [])];
         this.addRoutes(routes);
     }
 
     addRoutes(routes) {
-        // console.log(`${this.constructor.name}.applyRoutes`, routes.length, 'new routes');
+        // this.logger.debug(`${this.constructor.name}.applyRoutes`, routes.length, 'new routes');
         routes.forEach((route) => this.addRoute(route));
     }
 
     addRoute(route) {
-        // console.log(`${this.constructor.name}.applyRoute`, route.method, route.path);
+        // this.logger.debug(`${this.constructor.name}.addRoute`, route.method, route.path);
 
         try {
             const { method, path, handler, enabled, before } = route;
@@ -86,18 +87,18 @@ module.exports = class Controller {
 
             this.routes.push(route);
 
-            Log.debug(`Initialized: ${this.route}${route.path}`);
+            this.logger.debug(`Initialized: ${this.route}${route.path}`);
         } catch (e) {
-            console.error(`${e.message}`, route);
-            console.error(e);
+            this.logger.error(e, route);
+            // console.error(e);
         }
         return this.routes;
     }
 
     handler(fn) {
         return async function controllerResults(req, res, next) {
-            // let ugh = require('../inspect/').parseFunction(returnResutls, arguments);
-            // console.log(require('../inspect/').parseError(new Error('zippy')));
+            this.logger.debug(`${req.method} ${this.route}${req.path}`);
+
             const apiResponse = (res.apiResponse = new APIResponse());
             let telemetry;
             try {
@@ -121,13 +122,12 @@ module.exports = class Controller {
                 apiResponse.data = results;
             }
             catch (error) {
-                console.error(error);
+                this.logger.error(error);
                 if (error instanceof APIError) {
                     apiResponse.status = error.statusCode;
                 } else {
                     apiResponse.status = 500;
                 }
-                apiResponse.error = error;
                 apiResponse.error = error;
             }
             finally {
