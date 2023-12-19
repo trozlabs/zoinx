@@ -52,13 +52,23 @@ class TestHarness {
 
     static proxyFunctions(trackedEntity, options) {
         if (typeof trackedEntity === 'function') return;
-        Object.getOwnPropertyNames(trackedEntity).forEach((name) => {
-            if (typeof trackedEntity[name] === 'function') {
-                trackedEntity[name] = new Proxy(trackedEntity[name], {
+
+        // let normalFuncs = Object.getOwnPropertyNames(trackedEntity).filter(name => typeof trackedEntity[name] === 'function'),
+        let staticFuncs = Object.getOwnPropertyNames(trackedEntity.constructor).filter(name => typeof trackedEntity.constructor[name] === 'function'),
+            testConfig = (trackedEntity.constructor.testConfig) ? Object.keys(trackedEntity.constructor.testConfig) : [];
+
+        if (testConfig?.length > 0) {
+            for (let i=0; i<testConfig.length; i++) {
+                let objRef = trackedEntity;
+                if (staticFuncs.includes(testConfig[i])) {
+                    objRef = trackedEntity.constructor;
+                }
+
+                objRef[testConfig[i]] = new Proxy(objRef[testConfig[i]], {
                     apply: this.execFunctionCall(options),
                 });
             }
-        });
+        }
     }
 
     static prepareObject(obj, testConfig, options = {}) {
