@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const Test = require('./Test');
 const UtilMethods = require('./UtilMethods');
-
+const { Log } = require('../log');
 
 class TestHarness {
 
@@ -64,9 +64,14 @@ class TestHarness {
                     objRef = trackedEntity.constructor;
                 }
 
-                objRef[testConfig[i]] = new Proxy(objRef[testConfig[i]], {
-                    apply: this.execFunctionCall(options),
-                });
+                if (_.isFunction(objRef[testConfig[i]])) {
+                    objRef[testConfig[i]] = new Proxy(objRef[testConfig[i]], {
+                        apply: this.execFunctionCall(options),
+                    });
+                }
+                else {
+                    Log.warn(`${testConfig[i]} might be a private function\n`);
+                }
             }
         }
     }
