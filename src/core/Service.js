@@ -3,7 +3,7 @@ const _ = require('lodash');
 const APIError = require("./APIError");
 const Filter = require("../util/Filter");
 const Sort = require('../util/Sort');
-const Log = require('../log/Log');
+const { Logger } = require('../log');
 const SelectInclude = require('../util/SelectInclude');
 const TelemetryChain = require('../telemetry/TelemetryChain');
 
@@ -14,6 +14,9 @@ module.exports = class Service extends TelemetryChain {
 
     constructor(domainPath) {
         super();
+
+        this.logger = Logger.createLogger({ name: this.constructor.name });
+
         if (domainPath && typeof domainPath === 'string') {
             Maindomain = require(domainPath);
             this.#domain = new Maindomain();
@@ -132,7 +135,7 @@ module.exports = class Service extends TelemetryChain {
         const { filters, sorters, select, limit, offset } = queryParams;
 
         if (!filters) {
-            Log.error('Must supply filters to delete many.');
+            this.logger.error('Must supply filters to delete many.');
             return undefined;
         }
 

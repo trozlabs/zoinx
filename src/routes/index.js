@@ -3,21 +3,23 @@ global.asyncHandler = require('express-async-handler');
 const path = require('path');
 const fs = require('fs');
 // external
-const { Log } = require('../log');
-const { StaticUtil } = require('../util');
-
 const express = require('express');
-const error = require('./RouteError');
 const _ = require('lodash');
+// zoinx
+const { Log, Logger } = require('../log');
+const { StaticUtil } = require('../util');
+const error = require('./RouteError');
 const rrService = require('./routeRoles/service');
 const laService = require('./localAccts/service');
 
-// require('express-async-errors');
+const logger = Logger.getLogger('ZOINX/ROUTES');
 
+// require('express-async-errors');
 const router = express.Router();
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
+    logger.debug(`${req.method} ${req.path}`);
     res.render('index', { title: 'Zoinx' });
 });
 
@@ -32,12 +34,14 @@ const routes = {
 const defs = [];
 
 async function addZoinxRoutes(app, routeGroups=[]) {
+    logger.banner(`adding zoinx routes`);
     const directories = ['./validatedAuths', './routeRoles', './telemetrySendFails', './testingSendFails'];
 
     try {
         for (let i = 0; i < directories.length; i++) {
             //console.log(directories[i]);
             const router = require(`${directories[i]}/index.js`);
+            // console.log(router);
             routeGroups.push(new router(app));
         }
     }
@@ -47,11 +51,12 @@ async function addZoinxRoutes(app, routeGroups=[]) {
 }
 
 async function addRoutes(app, routes = {}, srcPath) {
-
+    logger.banner(`adding routes`);
     if (_.isEmpty(srcPath) || !_.isString(srcPath)) throw new Error('Must supply a source path for the project for routes to work.');
 
     const directories = ['/entities', '/features'],
         routeGroups = [];
+
     let directoryPath = '',
         files,
         routeFile;
@@ -72,7 +77,7 @@ async function addRoutes(app, routes = {}, srcPath) {
                                 const router = require(routeFile);
                                 routeGroups.push(new router(app));
                             } else {
-                                Log.info('%s (%s)', files[j], 'index.js does not exist for routes.');
+                                logger.info('%s (%s)', files[j], 'index.js does not exist for routes.');
                             }
                         }
                     }
@@ -97,7 +102,7 @@ async function addRoutes(app, routes = {}, srcPath) {
                         Object.assign(routes, route.getRoutes());
                     }
                 }
-                console.log(`[${idx}] ${route.constructor.name} -- ${routeHandle}\n`);
+                logger.info(`[${idx}] ${route.constructor.name} -- ${routeHandle}\n`);
             });
 
             Object.keys(routes).forEach(function (name) {
@@ -105,20 +110,20 @@ async function addRoutes(app, routes = {}, srcPath) {
                 try {
                     defs.push({ name, uri: route.base });
                     app.use(route.base, route.router);
-                    Log.debug('Initialized: ' + route.base);
+                    logger.debug('Initialized: ' + route.base);
                     // console.log('Initialized: ' + route.base);
                 } catch (err) {
                     // console.log('Failed to mount router', route.base);
-                    Log.error(err.stack);
+                    logger.error(err.stack);
                 }
             }, routes);
 
             await addMissingRouteRoles(routes);
             await processProjectInit();
 
-            // Add Middleware functions here.
-            app.use(error);
+            logger.debug(`add after app routers middleware...`);
 
+            app.use(error);
             app.use('/help', (req, res) => res.status(200).send({ routes: defs }));
         }
     } catch (ex) {
@@ -160,7 +165,7 @@ async function addMissingRouteRoles(routes) {
 
             if (missingRouteRoles.length > 0) {
                 await routeRolesService.batchInsert(missingRouteRoles);
-                Log.info(`Added ${missingRouteRoles.length} routes to routeRoles`);
+                logger.info(`Added ${missingRouteRoles.length} routes to routeRoles`);
             }
 
             if (checkArray.length !== checkArrayExisting.length) {
@@ -171,14 +176,14 @@ async function addMissingRouteRoles(routes) {
                 }
                 let missingRoutes = findMissingRoutes(checkArrayExisting, checkArray);
                 for (i=0; i<missingRoutes.length; i++) {
-                    Log.info(`${missingRoutes[i]} has permissions assigned but no matching routes in application. Might need to delete existing permissions from DB.`);
+                    logger.warn(`${missingRoutes[i]} has permissions assigned but no matching routes in application. Might need to delete existing permissions from DB.`);
                 }
 
             }
         }
     }
     catch (e) {
-        Log.warn(e.message);
+        logger.warn(e.message);
     }
 
 }
@@ -192,13 +197,13 @@ async function processProjectInit() {
         projectInit = JSON.parse(projectInitStr);
 
         if (projectInit.localAcct) {
-            Log.info('Creating local account from project config.');
+            logger.info('Creating local account from project config.');
             localAcctsService = new laService();
             await localAcctsService.createAcct(projectInit.localAcct.username, projectInit.localAcct.password);
         }
 
         if (projectInit.routeRole) {
-            Log.info('Assigning role to routes defined in project config.');
+            logger.info('Assigning role to routes defined in project config.');
             routeRolesService = new rrService();
             await routeRolesService.setRouteRoles(projectInit.routeRole.route, projectInit.routeRole.role);
         }
