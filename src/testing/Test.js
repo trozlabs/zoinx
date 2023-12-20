@@ -342,7 +342,7 @@ module.exports = class RunTest {
                     }
                     else {
                         execTest.passed = false;
-                        if (execTest.typePassed && TypeDefinitions.typeTests[outputConfig[0].type].typeFn(testObject[0])) {
+                        if (execTest.typePassed && TypeDefinitions.typeTests[outputConfig[0].type].typeFn(testObject)) {
                             execTest.passed = true;
                             execTest.resultMessage = funcDetails.get('executionResult');
                         }
@@ -385,7 +385,8 @@ module.exports = class RunTest {
                         paramTest.set('passed', true);
                     }
                     else if (_.isFunction(paramConfig.acceptedValues[0])) {
-                        paramTest.set('passed', TypeDefinitions.toBoolean(paramConfig.acceptedValues[0](testObject)));
+                        let passed = TypeDefinitions.toBoolean(paramConfig.acceptedValues[0](testObject));
+                        paramTest.set('passed', passed);
                     }
                 }
             }
@@ -442,10 +443,7 @@ module.exports = class RunTest {
                         dynaFunc = requiredItems[j].dynaFunc;
 
                     if (dynaFunc && _.isFunction(dynaFunc)) {
-                        global.testingConfig.functionExclusionList.push(dynaFunc.name);
-                        funcTest = TypeDefinitions.toBoolean(dynaFunc(objectRef));
                         let idx = global.testingConfig.functionExclusionList.indexOf(dynaFunc.name);
-                        global.testingConfig.functionExclusionList.slice(idx-1, idx);
                     }
 
                     if (requiredItems[j].values.length > 0 && requiredItems[j].values.includes(objectRef)) {
