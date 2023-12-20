@@ -2,10 +2,12 @@ const _ = require('lodash');
 const Test = require('./Test');
 const UtilMethods = require('./UtilMethods');
 const { Log } = require('../log');
+const TypeDefinitions = require('./TypeDefinitions');
 
 class TestHarness {
 
-    static execFunctionCall(options = {}, testConfig={}) {
+    static execFunctionCall(testConfig={}) {
+
 
         return function(target, thisArg, argumentsList) {
 
@@ -50,9 +52,7 @@ class TestHarness {
         };
     }
 
-    static proxyFunctions(trackedEntity, options) {
-        if (typeof trackedEntity === 'function') return;
-
+    static proxyFunctions(trackedEntity, testConfigs) {
         // let normalFuncs = Object.getOwnPropertyNames(trackedEntity).filter(name => typeof trackedEntity[name] === 'function'),
         let staticFuncs = Object.getOwnPropertyNames(trackedEntity.constructor).filter(name => typeof trackedEntity.constructor[name] === 'function'),
             testConfig = (trackedEntity.constructor.testConfig) ? Object.keys(trackedEntity.constructor.testConfig) : [];
@@ -66,7 +66,7 @@ class TestHarness {
 
                 if (_.isFunction(objRef[testConfig[i]])) {
                     objRef[testConfig[i]] = new Proxy(objRef[testConfig[i]], {
-                        apply: this.execFunctionCall(options),
+                        apply: this.execFunctionCall(testConfigs),
                     });
                 }
                 else {
@@ -79,7 +79,7 @@ class TestHarness {
     static prepareObject(obj, testConfig, options = {}) {
         const { trackFunctions } = options;
         if (trackFunctions) {
-            this.proxyFunctions(obj, testConfig, options);
+            this.proxyFunctions(obj, testConfig);
         }
         return obj;
     }
@@ -88,14 +88,26 @@ class TestHarness {
         TestHarness.prepareObject(clazz.prototype, testConfig, options);
         clazz.prototype.constructor = clazz;
         return new Proxy(clazz, {
-            apply: this.execFunctionCall(options, testConfig)
+            apply: this.execFunctionCall(testConfig)
         });
     }
 
+    static handleFunction(trackedEntity, testConfig) {
+        if (typeof trackedEntity === 'function' && TypeDefinitions.getFunctionType(trackedEntity) !== 'class') {
+            trackedEntity = new Proxy(trackedEntity, {
+                apply: this.execFunctionCall(testConfig),
+            });
+        }
+        else {
+            TestHarness.proxyFunctions(trackedEntity, testConfig);
+        }
+    }
 }
 
-module.exports = function(entity, testConfig={}, options = {trackFunctions: true, trackProps: false}) {
-    if (typeof entity === 'function')
+module.exports = function(entity, testConfig={}, options = {trackFunctions: true}) {
+    if (typeof entity === 'function' && TypeDefinitions.getFunctionType(entity) !== 'class')
+        return TestHarness.handleFunction(entity, testConfig);
+    else if (typeof entity === 'function')
         return TestHarness.prepareClass(entity, testConfig, options);
 
     return TestHarness.prepareObject(entity, testConfig, options);

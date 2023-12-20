@@ -80,6 +80,25 @@ module.exports = class TypeDefinitions {
         return newFunc;
     }
 
+    //TypeDefinitions.getFunctionType(function f() {})
+    //TypeDefinitions.getFunctionType(class C {})
+    //TypeDefinitions.getFunctionType(() => {})
+    //TypeDefinitions.getFunctionType(async function () {})
+    static getFunctionType(func) {
+        let type = '';
+
+        if (typeof func === 'function') {
+            if (func.prototype) {
+                type = (Object.getOwnPropertyDescriptor(func, 'prototype').writable) ? 'function' : 'class';
+            }
+            else {
+                type = (func.constructor.name === 'AsyncFunction') ? 'async' : 'arrow';
+            }
+        }
+
+        return type;
+    }
+
     static toRegExp(value) {
         let regexParts = value.match(/\/(.*)\/([mgiyuvsd]*)/);
         if (_.isEmpty(regexParts[1])) return;
