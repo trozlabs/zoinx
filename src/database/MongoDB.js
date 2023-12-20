@@ -5,6 +5,7 @@ mongoose.set('strictQuery', false);
 const _ = require('lodash');
 
 const { Log } = require('../log');
+console.log(Log);
 
 module.exports = class Database {
 

@@ -7,5 +7,4 @@ module.exports = class TestingSendFailsService extends Service {
         const domainPath = path.join(__dirname, './domain');
         super(domainPath);
     }
-
 }

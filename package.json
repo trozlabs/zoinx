@@ -75,6 +75,10 @@
             "import": "./src/log/index.js",
             "require": "./src/log/index.js"
         },
+        "./logger": {
+            "import": "./src/logger/index.js",
+            "require": "./src/logger/index.js"
+        },
         "./middle": {
             "import": "./src/middleware/index.js",
             "require": "./src/middleware/index.js"

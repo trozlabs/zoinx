@@ -6,6 +6,7 @@ exports.enums = require('./enums/index.js');
 exports.generator = require('./generator/index.js');
 exports.inspect = require('./inspect/index.js');
 exports.log = require('./log/index.js');
+exports.logger = require('./logger/index.js');
 exports.middle = require('./middleware/index.js');
 exports.routes = require('./routes/index.js');
 exports.shellCmds = require('./shellCmds/index.js');

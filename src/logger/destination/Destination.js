@@ -37,10 +37,12 @@ module.exports = class Destination {
      */
     #config = {};
 
-    #transformers = [];
+    getConfig() {
+        return this.#config;
+    }
 
-    addTransformer(fn) {
-        this.#transformers.push(fn);
+    setConfig(config={}) {
+        Object.assign(this.#config, config);
     }
 
     /**
@@ -52,8 +54,22 @@ module.exports = class Destination {
      */
     #filters = [];
 
+    getFilters() {
+        return this.#filters;
+    }
+
     addFilter(fn) {
         this.#filters.push(fn);
+    }
+
+    #transformers = [];
+
+    getTransformers() {
+        return this.#transformers;
+    }
+
+    addTransformer(fn) {
+        this.#transformers.push(fn);
     }
 
     run(data) {
@@ -62,10 +78,10 @@ module.exports = class Destination {
         const isHandleCallable = typeof this.handle !== 'function';
         if (isHandleCallable) throw new Error(`Destination (${this.name}) is missing a 'handle' method.`);
 
-        const isFiltered = this.#filters.map(filterFn => filterFn.bind(this)(transformedLog)).includes(false);
-        if (isFiltered) return console.debug('log is filtered');
+        const isFiltered = this.getFilters().map(filterFn => filterFn(transformedLog)).includes(false);
+        if (isFiltered) return; //console.debug('log is filtered');
 
-        data = this.#transformers.reduce((data, transformerFn, index) => {
+        data = this.getTransformers().reduce((data, transformerFn, index) => {
             return transformerFn(data);
         }, data);
 

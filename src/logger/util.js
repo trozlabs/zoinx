@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const util = require('node:util');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -69,7 +70,7 @@ function isObjectAndHasKey(obj, key) {
  * @returns {void}
  */
 function mergeArray(target=[], source=[]) {
-    console.log('mergeArray', { target, source });
+    // console.log('mergeArray', { target, source });
 
     for (let index = 0; index < source.length; index++) {
         const sourceItem = source[index];
@@ -125,24 +126,31 @@ function deepMerge(target, source) {
     return target;
 }
 
-function watchConfigFile(target, filepath) {
+function watchConfigFile(filepath, target) {
+    console.debug('[zoinx/log] watch config file...');
+
     try {
-        const newConfig = JSON.parse(fs.readFileSync(filepath, 'utf8'));
-        deepMerge(target, newConfig);
-        console.log(`configuration loaded from ${filepath}:`, target);
+        const newConfig = readConfigFile(filepath);
+        if (!_.isEqual(target, newConfig)) {
+            deepMerge(target, newConfig);
+            console.log(`[zoinx/log] Config loaded from ${filepath}:`, target);
+        }
     } catch (err) {
-        console.error(`Error reading or parsing ${filepath}:`, err);
+        console.error(`[zoinx/log] Error reading or parsing ${filepath}:`, err);
     }
 
     // Watch for changes in the JSON file
     fs.watch(filepath, (eventType, filename) => {
+
         if (eventType === 'change') {
-            console.log(filename, 'changed');
+            console.debug(`[zoinx/log] Config file ${filename} changed.`);
             try {
                 // Read and parse the updated JSON file
-                const newConfig = JSON.parse(fs.readFileSync(filepath, 'utf8'));
-                deepMerge(target, newConfig);
-                console.log(`updated config:`, target);
+                const newConfig = readConfigFile(filepath);
+                if (!_.isEqual(target, newConfig)) {
+                    deepMerge(target, newConfig);
+                    updateConfigFile(filepath, target);
+                }
             } catch (err) {
                 console.error(`Error reading or parsing ${filepath}:`, err);
             }
@@ -150,13 +158,71 @@ function watchConfigFile(target, filepath) {
     });
 }
 
+function readConfigFile(filepath) {
+    return JSON.parse(fs.readFileSync(filepath, 'utf8'));
+}
+
+function updateConfigFile(filepath, config={}) {
+    try {
+        const memoryConfig = config;
+        const fileConfig = readConfigFile(filepath);
+
+        if (!_.isEqual(memoryConfig, fileConfig)) {
+            // return console.log(`Config in memory is the same as config in file.`, { memoryConfig, fileConfig });
+            const json = JSON.stringify(memoryConfig, null, 4);
+            fs.writeFileSync(filepath, json, { encoding: 'utf-8' });
+        }
+    }
+    catch(e) {
+        console.log(e);
+    }
+}
+
+function diffObjects(a, b) {
+    const diffs = {};
+
+    function compareObjects(o1, o2, path = []) {
+        for (const key in o1) {
+            const currentPath = [...path, key];
+
+            if (typeof o1[key] === 'object' && typeof o2[key] === 'object') {
+                compareObjects(o1[key], o2[key], currentPath);
+            } else {
+                if (o1[key] !== o2[key]) {
+                    diffs[currentPath.join('.')] = {
+                        a: o1[key],
+                        b: o2[key]
+                    };
+                }
+            }
+        }
+        // Check for keys in b that are missing in a
+        for (const key in o2) {
+            const currentPath = [...path, key];
+
+            if (o1[key] === undefined) {
+                diffs[currentPath.join('.')] = {
+                    a: undefined,
+                    b: o2[key]
+                };
+            }
+        }
+    }
+
+    compareObjects(a, b);
+
+    return diffs;
+}
+
 module.exports = {
     debuglog,
     deepMerge,
+    diffObjects,
     mergeArray,
     mergeArrayObjectsByKey,
     getIPv4Interfaces,
     formatBytes,
     getSystemInfo,
-    watchConfigFile
+    watchConfigFile,
+    updateConfigFile
 };

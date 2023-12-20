@@ -1,4 +1,5 @@
-const { Log, Logger } = require('../log');
+const { Log } = require('../log');
+const { Logger } = require('../logger');
 // local
 const Telemetry = require('../telemetry/Telemetry.js');
 const Network = require('../util/Network.js');
@@ -9,7 +10,6 @@ const Route = require('./Route.js');
 const _ = require('lodash');
 const path = require('path');
 const { randomUUID } = require('crypto');
-
 
 module.exports = class Controller {
     defaultRoutes = [
@@ -37,7 +37,7 @@ module.exports = class Controller {
 
         const { router, service, routes } = config || {};
 
-        this.logger = Logger.createLogger({ name: this.self.name });
+        this.logger = Logger.create({ name: this.self.name });
         this.service = service || this.service;
         this.router = router || this.router;
         this.routes =

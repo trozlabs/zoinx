@@ -6,13 +6,14 @@ const fs = require('fs');
 const express = require('express');
 const _ = require('lodash');
 // zoinx
-const { Log, Logger } = require('../log');
+const { Log } = require('../log');
+const { Logger } = require('../logger');
 const { StaticUtil } = require('../util');
 const error = require('./RouteError');
 const rrService = require('./routeRoles/service');
 const laService = require('./localAccts/service');
 
-const logger = Logger.getLogger('ZOINX/ROUTES');
+const logger = Logger.get('zoinx:routes');
 
 // require('express-async-errors');
 const router = express.Router();
@@ -35,6 +36,7 @@ const defs = [];
 
 async function addZoinxRoutes(app, routeGroups=[]) {
     logger.banner(`adding zoinx routes`);
+
     const directories = ['./validatedAuths', './routeRoles', './telemetrySendFails', './testingSendFails'];
 
     try {

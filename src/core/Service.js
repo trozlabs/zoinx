@@ -3,7 +3,7 @@ const _ = require('lodash');
 const APIError = require("./APIError");
 const Filter = require("../util/Filter");
 const Sort = require('../util/Sort');
-const { Logger } = require('../log');
+const { Logger } = require('../logger');
 const SelectInclude = require('../util/SelectInclude');
 const TelemetryChain = require('../telemetry/TelemetryChain');
 
@@ -15,7 +15,7 @@ module.exports = class Service extends TelemetryChain {
     constructor(domainPath) {
         super();
 
-        this.logger = Logger.createLogger({ name: this.constructor.name });
+        this.logger = Logger.create({ name: this.constructor.name });
 
         if (domainPath && typeof domainPath === 'string') {
             Maindomain = require(domainPath);

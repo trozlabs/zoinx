@@ -1,15 +1,16 @@
+// const debug = util.debuglog('timber');
 const util = require('node:util');
-const debug = util.debuglog('timber');
 const { Worker } = require('node:worker_threads');
 const Destination = require('./Destination');
 
 module.exports = class WorkerDestination extends Destination {
-    constructor({ config={ workerOptions: {}, file: '' } } = options = {}) {
+    constructor({ name='worker-destination', config={ workerOptions: {}, file: '' } } = {}) {
         super(...arguments);
 
-        if (config.file) {
-            console.log('config.file', config.file);
+        this.name = name;
 
+        if (config.file) {
+            // console.log('config.file', config.file);
             this.#worker = new Worker(config.file, config.workerOptions ?? {});
             this.#worker.on('online', this.onConnection.bind(this));
             this.#worker.on('connection', this.onConnection.bind(this));
@@ -24,23 +25,23 @@ module.exports = class WorkerDestination extends Destination {
     #worker;
 
     handle(data) {
-        console.debug(this.name, 'handle', { data });
+        // console.debug(this.name, 'handle', { data });
         this.#worker.postMessage(JSON.stringify(data));
     }
 
     onConnection() {
-        console.debug(this.name, 'onConnection', { arguments });
+        // console.debug(this.name, 'onConnection', { arguments });
     }
 
     onError(reason, code) {
-        console.debug(this.name, 'onError', { reason, code });
+        // console.debug(this.name, 'onError', { reason, code });
     }
 
     onClose() {
-        console.debug(this.name, 'onClose', { arguments });
+        // console.debug(this.name, 'onClose', { arguments });
     }
 
     onMessage(buffer) {
-        console.debug(this.name, 'onMessage', buffer.toString());
+        // console.debug(this.name, 'onMessage', buffer.toString());
     }
 }
