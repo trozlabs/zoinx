@@ -3,9 +3,9 @@ const _ = require('lodash');
 const APIError = require("./APIError");
 const Filter = require("../util/Filter");
 const Sort = require('../util/Sort');
-const { Logger } = require('../logger');
 const SelectInclude = require('../util/SelectInclude');
 const TelemetryChain = require('../telemetry/TelemetryChain');
+const { Logger } = require('../logger');
 
 module.exports = class Service extends TelemetryChain {
 

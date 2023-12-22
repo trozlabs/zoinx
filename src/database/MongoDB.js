@@ -3,9 +3,9 @@
 const mongoose = require('mongoose');
 mongoose.set('strictQuery', false);
 const _ = require('lodash');
-
 const { Log } = require('../log');
-console.log(Log);
+const { Logger } = require('../logger');
+const logger = Logger.get('database');
 
 module.exports = class Database {
 
@@ -20,22 +20,25 @@ module.exports = class Database {
     }
 
     static create(config) {
+        logger.debug('create', config);
         const instance = new this(config)
         const pool = instance.mongoosePool;
         return pool;
     }
 
     static async create4Cli(config) {
+        logger.debug('create4Cli', config);
         const db = new this(config, false);
         return await db.createSingleConnection(db.uri, db.options);
     }
 
     async close() {
+        logger.debug('close');
         await this.mongoosePool.disconnect();
     }
 
     constructor(config, withPool=true) {
-
+        logger.debug('constructor', { config, withPool });
         let host, port, name, user, password, maxPoolSize, dbOptions;
         if (_.isEmpty(config)) {
             host = process.env.MONGO_HOST || '';

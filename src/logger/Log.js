@@ -15,11 +15,30 @@ class Log {
     args;
 
     get line () {
-        return `${Color.DIM}[${this.timestamp.toISOString()}] ${this.system?.hostname ?? 'localhost'} ${this.system.address ?? '0.0.0.0'} ${Color.RESET}${Color[this.level].FG}[${this.logger?.name ?? ''}/${this.logger?.app ?? ''}:${this.level}] ${this.message}${Color.RESET}`;
+        let timestamp = this.timestamp.toISOString();
+        let hostname = this.system?.hostname ?? 'localhost';
+        let address = this.system?.address ?? '0.0.0.0';
+        let loggerName = this.logger?.name ?? '';
+        let appName = this.logger?.app ?? '';
+        let level = this.level;
+        let message = this.message;
+        let colorDim = Color.DIM;
+        let colorReset = Color.RESET;
+        let colorText = Color[this.level].FG;
+
+        return `${colorDim}[${timestamp}] ${hostname} ${address} ${colorReset}${colorText}[${appName} > ${loggerName} > ${level}] ${message}${colorReset}`;
     }
     get plain () {
         // const ansiColorRegex = /\x1B\[[0-9;]*m/g;
-        return `[${this.timestamp.toISOString()}] ${this.system?.hostname ?? 'localhost'} ${this.system?.address ?? '0.0.0.0'} [${this.logger?.name ?? ''}/${this.logger?.app ?? ''}:${this.level}] ${this.message}`
+        let timestamp = this.timestamp.toISOString();
+        let hostname = this.system?.hostname ?? 'localhost';
+        let address = this.system?.address ?? '0.0.0.0';
+        let loggerName = this.logger?.name ?? '';
+        let appName = this.logger?.app ?? '';
+        let level = this.level;
+        let message = this.message;
+
+        return `[${timestamp}] ${hostname} ${address} [${appName} > ${loggerName} > ${level}] ${message}`;
     }
 
     constructor(options={}) {

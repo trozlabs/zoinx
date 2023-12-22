@@ -3,6 +3,7 @@ const { Kafka, logLevel } = require('kafkajs');
 const Log = require('../log/Log');
 const AppConfig = require('../util/AppConfig');
 const StaticUtil = require('../util/StaticUtil');
+const { Logger } = require('../logger');
 
 module.exports = class KafkaClient {
     #logOptions = false;
@@ -17,6 +18,8 @@ module.exports = class KafkaClient {
     #retries = 3;
 
     constructor(clientId = 'ZoinxClient', brokers = ['localhost:9092'], env='dev',  logOptions = false) {
+        this.logger = Logger.create({ name: this.constructor.name });
+
         if (!_.isEmpty(clientId) && _.isString(clientId)) this.#clientId = clientId;
         if (!_.isEmpty(brokers) && _.isArray(brokers)) this.#brokers = brokers;
         if (_.isEmpty(env)) env = 'dev';
@@ -72,22 +75,21 @@ module.exports = class KafkaClient {
                     }
                 }
 
-                if (this.#logOptions) {
-                    Log.info('+++++++++ KafkaClient Config +++++++++');
-                    Log.info(config);
-                    Log.info('');
-                }
+                // if (this.#logOptions) {
+                    this.logger.banner('KafkaClient Config', '+');
+                    this.logger.json(config);
+                // }
 
                 this.#kafkaClient = new Kafka(config);
             }
             catch (e) {
-                Log.error(e);
+                this.logger.error(e);
             }
         }
     }
 
     async getBrokers() {
-        console.log(this.#kafkaClient.getBrokers());
+        this.logger.log(this.#kafkaClient.getBrokers());
     }
 
     #getSaslConfig(clusterName='', env='dev') {
@@ -114,7 +116,7 @@ module.exports = class KafkaClient {
                 this.#producer = await this.#kafkaClient.producer();
             }
         } catch (e) {
-            Log.error(e.message);
+            this.logger.error(e.message);
         }
     }
 
@@ -124,7 +126,7 @@ module.exports = class KafkaClient {
             this.#producerIsConnected = true;
         }
         catch (e) {
-            Log.error(e.message);
+            this.logger.error(e.message);
             throw e;
         }
     }
@@ -145,7 +147,7 @@ module.exports = class KafkaClient {
             });
         }
         catch (e) {
-            Log.error(e.message);
+            this.logger.error(e);
             throw e;
         }
     }
@@ -156,7 +158,7 @@ module.exports = class KafkaClient {
 
     async sendMessageBatch(topicMessages=[], topicName='dev-topic') {
         if (_.isEmpty(topicMessages) || !_.isArray(topicMessages)) {
-            Log.warn('No topic messages provided.')
+            this.logger.warn('No topic messages provided.')
             return;
         }
 
@@ -169,7 +171,7 @@ module.exports = class KafkaClient {
             });
         }
         catch (e) {
-            Log.error(e.message);
+            this.logger.error(e);
         }
     }
 
@@ -179,7 +181,7 @@ module.exports = class KafkaClient {
                 this.#consumer = this.#kafkaClient.consumer({ groupId: this.#clientId });
             }
         } catch (e) {
-            Log.error(e.message);
+            this.logger.error(e.message);
         }
     }
 
@@ -191,7 +193,7 @@ module.exports = class KafkaClient {
 
             await this.#consumer.run({
                 eachMessage: async ({ topic, partition, message }) => {
-                    console.log({
+                    this.logger.log({
                         offset: message.offset,
                         key: message.key?.toString(),
                         value: message.value?.toString()
@@ -200,7 +202,7 @@ module.exports = class KafkaClient {
             });
         }
         catch (e) {
-            Log.error(e.message);
+            this.logger.error(e.message);
         }
     }
 

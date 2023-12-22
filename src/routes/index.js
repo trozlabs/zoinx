@@ -7,13 +7,13 @@ const express = require('express');
 const _ = require('lodash');
 // zoinx
 const { Log } = require('../log');
-const { Logger } = require('../logger');
 const { StaticUtil } = require('../util');
 const error = require('./RouteError');
 const rrService = require('./routeRoles/service');
 const laService = require('./localAccts/service');
 
-const logger = Logger.get('zoinx:routes');
+const { Logger } = require('../logger');
+const logger = Logger.get('routes');
 
 // require('express-async-errors');
 const router = express.Router();

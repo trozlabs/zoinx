@@ -73,7 +73,7 @@ class Logger {
 
             try {
                 const parsedConfig = JSON.parse(this.#file.read());
-                console.log(parsedConfig);
+                // console.log(parsedConfig);
                 Object.assign(this.#options.config, parsedConfig);
             }
             catch (cause) {
@@ -81,10 +81,11 @@ class Logger {
             }
 
             this.#file.on('change', ({ filename, data }) => {
-                // console.log(' - on config file change', { filename, data });
+                console.log(' - on config file change', filename);
                 try {
                     const parsedConfig = JSON.parse(data);
                     const diffs = diffObjects(this.#options.config, parsedConfig);
+
                     if (Object.keys(diffs).length) {
                         console.log('configFile is different from config');
                         console.log(diffs);
@@ -109,7 +110,7 @@ class Logger {
         return this.#options.level = level;
     }
 
-    static get(name) {
+    static get(name=this.#options.name) {
         if (this.#instances.has(name)) {
             return this.#instances.get(name);
         } else {

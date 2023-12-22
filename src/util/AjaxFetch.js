@@ -4,7 +4,7 @@ const _ = require('lodash');
 // local
 const StaticUtil = require('./StaticUtil.js');
 const { Logger } = require('../logger');
-const logger = Logger.get('ZOINX/UTIL');
+const logger = Logger.get('util');
 
 module.exports = class Fetch {
     #sleepTime = 0;

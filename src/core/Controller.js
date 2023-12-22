@@ -33,11 +33,10 @@ module.exports = class Controller {
 
     constructor(config) {
         this.self = this.constructor;
-        // console.log(`${this.constructor.name}.constructor`);
 
         const { router, service, routes } = config || {};
 
-        this.logger = Logger.create({ name: this.self.name });
+        this.logger = Logger.create({ name: this.constructor.name });
         this.service = service || this.service;
         this.router = router || this.router;
         this.routes =
