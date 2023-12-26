@@ -76,8 +76,8 @@ module.exports = class KafkaClient {
                 }
 
                 // if (this.#logOptions) {
-                    this.logger.banner('KafkaClient Config', '+');
-                    this.logger.json(config);
+                //     this.logger.banner('KafkaClient Config', '+');
+                //     this.logger.json(config);
                 // }
 
                 this.#kafkaClient = new Kafka(config);

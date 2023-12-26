@@ -218,7 +218,7 @@ module.exports = class UtilMethods {
         try {
             if (!_.isEmpty(errorStack) && _.isArray(errorStack)) {
                 let match = errorStack[2]?.match(/at ([a-zA-Z\-_$.]+) (.*)/),
-                    classMethodSplit = match[1]?.split('.');
+                    classMethodSplit = (!_.isEmpty(match)) ? match[1]?.split('.') : undefined;
 
                 if (match) {
                     returnObj.className = classMethodSplit[0];
@@ -226,20 +226,28 @@ module.exports = class UtilMethods {
                     returnObj.file = undefined;
                 }
                 else {
-                    let pathParts = [];
-                    for (let i=2; i<errorStack.length; i++) {
-                        pathParts = errorStack[i].split('/');
-                        if (pathParts[pathParts.length-1].includes('TestProxy')) continue;
-                        else {
-                            let pathEnd = pathParts[pathParts.length-1];
-                            returnObj.className = classMethodSplit[0];
-                            returnObj.methodName = undefined;
-                            returnObj.file = `${pathParts[pathParts.length-3]}/${pathParts[pathParts.length-2]}/${pathEnd.substring(0, pathEnd.length-1)}`;
-                            break;
+                    //static functions have a different error stack format
+                    match = errorStack[2]?.match(/\s{1,2}at ([a-zA-Z0-9\-_$.]+)/);
+                    classMethodSplit = (!_.isEmpty(match)) ? match[1]?.split('.') : undefined;
+                    if (match) {
+                        returnObj.className = classMethodSplit[0];
+                        returnObj.methodName = classMethodSplit[1];
+                    }
+                    else {
+                        let pathParts = [];
+                        for (let i = 2; i < errorStack.length; i++) {
+                            pathParts = errorStack[i].split('/');
+                            if (pathParts[pathParts.length - 1].includes('TestProxy')) continue;
+                            else {
+                                let pathEnd = pathParts[pathParts.length - 1];
+                                returnObj.className = classMethodSplit[0];
+                                returnObj.methodName = undefined;
+                                returnObj.file = `${pathParts[pathParts.length - 3]}/${pathParts[pathParts.length - 2]}/${pathEnd.substring(0, pathEnd.length - 1)}`;
+                                break;
+                            }
                         }
                     }
                 }
-                // }
             }
         }
         catch (ex) {

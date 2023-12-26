@@ -70,7 +70,9 @@ class TestHarness {
                     });
                 }
                 else {
-                    Log.warn(`${testConfig[i]} might be a private function\n`);
+                    Log.log('\n===============================');
+                    Log.warn(`${testConfig[i]} might be a private function`);
+                    Log.log('===============================\n');
                 }
             }
         }

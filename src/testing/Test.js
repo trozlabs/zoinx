@@ -8,7 +8,7 @@ const TestMsgProducer = require('./TestMsgProducer');
 const AppCache = require('../core/AppCache');
 const path = require('path');
 
-module.exports = class RunTest {
+module.exports = class ZoinxTest {
 
     static setupTestConfigCache() {
         if (!global.testing) global.testing = {};
