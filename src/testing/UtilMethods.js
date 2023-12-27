@@ -299,7 +299,7 @@ module.exports = class UtilMethods {
                     continue;
                 }
 
-                cacheKey = `${className}.${methodName}.${tmpParamName}_${cacheSuffix}`;
+                cacheKey = `${className}.${methodName}.${tmpParamName}${i}_${cacheSuffix}`;
                 cacheResult = UtilMethods.getGlobalTestConfig(cacheKey);
                 if (cacheResult)
                     expected.push(cacheResult);
@@ -782,7 +782,6 @@ module.exports = class UtilMethods {
                 }
             }
         }
-        //console.log(results);
         return results;
     }
 

@@ -342,7 +342,7 @@ module.exports = class ZoinxTest {
                     }
                     else {
                         execTest.passed = false;
-                        if (execTest.typePassed && TypeDefinitions.typeTests[outputConfig[0].type].typeFn(testObject)) {
+                        if (execTest.typePassed && TypeDefinitions.typeTests[outputConfig[i].type].typeFn(testObject)) {
                             execTest.passed = true;
                             execTest.resultMessage = funcDetails.get('executionResult');
                         }
@@ -362,7 +362,6 @@ module.exports = class ZoinxTest {
             outDetails.push(new TestExecutionDetails(execTest));
         }
 
-        //successCount = [...new Set(outDetails.map(x => x.get('typePassed')))].length;
         successCount = outDetails.reduce((accumulator, currentVal) => {
             if (typeof currentVal.get('passed') === 'boolean' && currentVal.get('passed')) accumulator += 1;
             return accumulator;
@@ -529,7 +528,7 @@ module.exports = class ZoinxTest {
             //options = Object.assign({ value: undefined, property: undefined, fn: undefined, results: [], path: [], depth: 1 }, (options || {}));
             objectQueryResponse = UtilMethods.queryObject(testObject, {property: propName, depth: depthLevel});
             if (objectQueryResponse) {
-                console.log(objectQueryResponse);
+                Log.log(objectQueryResponse);
             }
             else {
                 console.warn(`Object query did not find ${propName}`);
