@@ -17,6 +17,9 @@ module.exports = class TestRunner extends BaseCli {
                 'test-static': {fn: 'testStatic', desc: 'Find and auto test static methods with a test config'}
             }
         )
+
+        if (this.otherArgs.length > 0)
+            this.execOtherArgs();
     }
 
     async verifyTestConfig(inputStr, _interface) {

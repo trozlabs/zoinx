@@ -14,6 +14,9 @@ module.exports = class BlockChainRunner extends BaseCli {
                 'tbc': {fn: 'testBlockChain', desc:'Tests blockchain stuff'}
             }
         )
+
+        if (this.otherArgs.length > 0)
+            this.execOtherArgs();
     }
 
     async testBlockChain(inputStr, _interface) {

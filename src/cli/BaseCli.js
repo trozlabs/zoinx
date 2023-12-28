@@ -1,4 +1,5 @@
 const Log = require("../log/Log");
+const StaticUtil = require('../util/StaticUtil');
 const events = require("events");
 const _ = require("lodash");
 const readline = require("readline");
@@ -18,6 +19,7 @@ module.exports = class BaseCli {
     #events
     #useDB = false
     #envArg = '.env'
+    #otherArgs = []
 
     constructor(cliProcessName='!!!!! NO NAME !!!!!', process) {
         this.#cliProcessName = cliProcessName;
@@ -32,6 +34,9 @@ module.exports = class BaseCli {
                 }
                 else if (userArgs[i] === 'usedb') {
                     this.#useDB = true;
+                }
+                else {
+                    this.#otherArgs.push(userArgs[i]);
                 }
             }
         }
@@ -54,6 +59,33 @@ module.exports = class BaseCli {
         });
 
         _interface.prompt();
+
+        if (this.#otherArgs.length > 0)
+            this.#processOtherArgs(_interface);
+    }
+
+    async #processOtherArgs(_interface) {
+        try {
+            let processedArgs = [],
+                argParts;
+
+            for (let i=0; i<this.#otherArgs.length; i++) {
+                argParts = this.#otherArgs[i].trim().toLowerCase().split('--');
+                processedArgs.push(
+                    {
+                        switch: argParts[0],
+                        data: argParts[1],
+                        _interface: _interface
+                    }
+                )
+            }
+
+            if (processedArgs.length > 0)
+                this.#otherArgs = processedArgs;
+        }
+        catch (e) {
+            Log.warn(e.message);
+        }
     }
 
     get _interface() {
@@ -70,6 +102,27 @@ module.exports = class BaseCli {
 
     get uniqueInputs() {
         return this.#uniqueInputs;
+    }
+
+    get otherArgs() {
+        return this.#otherArgs;
+    }
+
+    async execOtherArgs() {
+        try {
+            await StaticUtil.sleep(100);
+            for (let i=0; i<this.#otherArgs.length; i++) {
+                if (_.isObject(this.#otherArgs[i])) {
+                    let argObj = this.#otherArgs[i];
+                    await this[this.#uniqueInputs[argObj.switch].fn](`${argObj.switch}--${argObj.data}`, argObj._interface);
+                }
+            }
+            await this.exit();
+        }
+        catch (e) {
+            Log.warn(e.message);
+            await this.exit();
+        }
     }
 
     addInputs(inputs) {

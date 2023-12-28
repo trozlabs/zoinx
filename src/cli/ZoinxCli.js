@@ -31,6 +31,9 @@ module.exports = class ZoinxCli extends BaseCli {
                 "playground": {fn: 'playground', desc: 'JS programming examples'}
             }
         )
+
+        if (this.otherArgs.length > 0)
+            this.execOtherArgs();
     }
 
     async sysStats() {
