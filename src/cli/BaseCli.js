@@ -58,7 +58,7 @@ module.exports = class BaseCli {
             process.exit(0);
         });
 
-        _interface.prompt();
+        // _interface.prompt();
 
         if (this.#otherArgs.length > 0)
             this.#processOtherArgs(_interface);
@@ -117,6 +117,7 @@ module.exports = class BaseCli {
                     await this[this.#uniqueInputs[argObj.switch].fn](`${argObj.switch}--${argObj.data}`, argObj._interface);
                 }
             }
+            await StaticUtil.sleep(100);
             await this.exit();
         }
         catch (e) {
