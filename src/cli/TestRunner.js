@@ -9,7 +9,7 @@ module.exports = class TestRunner extends BaseCli {
 
     constructor(process) {
         super('TestRunner', process);
-        Log.info('TestRunner is running.');
+        // Log.info('TestRunner is running.');
         this.addInputs(
             {
                 'verify-test-config': {fn: 'verifyTestConfig', desc: 'Verify Object Config'},
@@ -21,7 +21,7 @@ module.exports = class TestRunner extends BaseCli {
         if (this.otherArgs.length > 0)
             this.execOtherArgs();
     }
-
+    
     async verifyTestConfig(inputStr, _interface) {
         let inputSplit = inputStr.trim().split('--'),
             start = Date.now(), end;
