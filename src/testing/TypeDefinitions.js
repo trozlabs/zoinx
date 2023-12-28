@@ -99,6 +99,14 @@ module.exports = class TypeDefinitions {
         return type;
     }
 
+    static isObjectClass(func) {
+        return this.getFunctionType(func) === 'class';
+    }
+
+    static isFunctionAsync(func) {
+        return this.getFunctionType(func) === 'async';
+    }
+
     static toRegExp(value) {
         let regexParts = value.match(/\/(.*)\/([mgiyuvsd]*)/);
         if (_.isEmpty(regexParts[1])) return;
