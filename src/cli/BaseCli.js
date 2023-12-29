@@ -70,7 +70,7 @@ module.exports = class BaseCli {
                 argParts;
 
             for (let i=0; i<this.#otherArgs.length; i++) {
-                argParts = this.#otherArgs[i].trim().toLowerCase().split('--');
+                argParts = this.#otherArgs[i].trim().split('--');
                 processedArgs.push(
                     {
                         switch: argParts[0],

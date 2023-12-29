@@ -9,7 +9,7 @@ class TestHarness {
     static execFunctionCall(testConfig={}) {
 
 
-        return async function(target, thisArg, argumentsList) {
+        return function(target, thisArg, argumentsList) {
 
             let newTestRec,
                 targetName = '',
@@ -34,7 +34,7 @@ class TestHarness {
                 let start = Date.now();
                 // Executes actual method and catches returned output
                 if (TypeDefinitions.isFunctionAsync(target))
-                    retVal = await target.apply(thisArg, argumentsList);
+                    retVal = target.apply(thisArg, argumentsList).then();
                 else
                     retVal = target.apply(thisArg, argumentsList);
                 let end = Date.now();

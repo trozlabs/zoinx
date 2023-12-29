@@ -384,8 +384,8 @@ module.exports = class ZoinxTest {
                         paramTest.set('passed', true);
                     }
                     else if (_.isFunction(paramConfig.acceptedValues[0])) {
-                        let passed = TypeDefinitions.toBoolean(paramConfig.acceptedValues[0](testObject));
-                        paramTest.set('passed', passed);
+                        let funcResults = paramConfig.acceptedValues[0](testObject);
+                        paramTest.set('passed', TypeDefinitions.toBoolean(funcResults));
                     }
                 }
             }
