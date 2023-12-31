@@ -7,8 +7,6 @@ const TypeDefinitions = require('./TypeDefinitions');
 class TestHarness {
 
     static execFunctionCall(testConfig={}) {
-
-
         return function(target, thisArg, argumentsList) {
 
             let newTestRec,
@@ -22,15 +20,6 @@ class TestHarness {
                 updatedTestConfig = UtilMethods.getUpdatedTestConfig(target, thisArg, testConfig);
                 targetName = updatedTestConfig?.targetName;
 
-                if (!_.isEmpty(updatedTestConfig?.updatedTestConfig[targetName])) {
-                    newTestRec = Test.setupFuncTest(thisArg,
-                        target,
-                        argumentsList,
-                        new Error().stack.split('\n'),
-                        updatedTestConfig?.updatedTestConfig,
-                        targetName);
-                }
-
                 let start = Date.now();
                 // Executes actual method and catches returned output
                 if (TypeDefinitions.isFunctionAsync(target))
@@ -39,16 +28,25 @@ class TestHarness {
                     retVal = target.apply(thisArg, argumentsList);
                 let end = Date.now();
 
-                if (!_.isUndefined(newTestRec)) {
-                    let optionalVals = {
-                        stopWatchStart: start,
-                        stopWatchEnd: end,
-                        executionResult: retVal
+                if (!_.isEmpty(updatedTestConfig?.updatedTestConfig[targetName])) {
+                    newTestRec = Test.setupFuncTest(thisArg,
+                        target,
+                        argumentsList,
+                        new Error().stack.split('\n'),
+                        updatedTestConfig?.updatedTestConfig,
+                        targetName);
+
+                    if (!_.isUndefined(newTestRec)) {
+                        let optionalVals = {
+                            stopWatchStart: start,
+                            stopWatchEnd: end,
+                            executionResult: retVal
+                        }
+                        // Delays test processing so actual functionality can proceed and not be waiting for test results.
+                        setImmediate((newTestRec, optionalVals) => {
+                            Test.execFuncTest(thisArg, target, argumentsList, newTestRec, optionalVals);
+                        }, newTestRec, optionalVals);
                     }
-                    // Delays test processing so actual functionality can proceed and not be waiting for test results.
-                    setImmediate((newTestRec, optionalVals) => {
-                        Test.execFuncTest(thisArg, target, argumentsList, newTestRec, optionalVals);
-                    }, newTestRec, optionalVals);
                 }
             }
             return retVal;

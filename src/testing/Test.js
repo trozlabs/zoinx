@@ -15,8 +15,8 @@ module.exports = class ZoinxTest {
         if (!global.testing.configCache) {
             global.testing.configCache = new AppCache(
                 {
-                    stdTTL: 300,
-                    checkperiod: 100,
+                    stdTTL: 3600,
+                    checkperiod: 1000,
                     maxKeys: 5000
                 }
             );
@@ -442,7 +442,8 @@ module.exports = class ZoinxTest {
                         dynaFunc = requiredItems[j].dynaFunc;
 
                     if (dynaFunc && _.isFunction(dynaFunc)) {
-                        let idx = global.testingConfig.functionExclusionList.indexOf(dynaFunc.name);
+                        // let idx = global.testingConfig.functionExclusionList.indexOf(dynaFunc.name);
+                        funcTest = TypeDefinitions.toBoolean(dynaFunc(objectRef));
                     }
 
                     if (requiredItems[j].values.length > 0 && requiredItems[j].values.includes(objectRef)) {

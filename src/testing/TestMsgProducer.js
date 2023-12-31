@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const {randomUUID} = require("crypto");
+const bcrypt = require("bcryptjs");
 
 const { Log } = require('../log');
 const Network = require('../util/Network');
@@ -14,12 +15,9 @@ module.exports = class TestMsgProducer {
     #testingName
     #testingSendFailsService
 
-    //TestFuncDetails
-
     constructor(testObj) {
         this.#testObj = testObj;
         this.#testingName = `${testObj.className}.${testObj.methodName}`;
-        // this.#testingSendFailsService = new tsfService();
     }
 
     async #createTestMsgProducer() {
@@ -58,14 +56,33 @@ module.exports = class TestMsgProducer {
                     value: testObj
                 }, process.env.TESTING_TOPIC_NAME);
             }
+            else if (!global.testingConfig?.sendResult2Kafka && global.testingConfig?.consoleOut) {
+                Log.info(this.#testObj);
+            }
             else {
-                if (global.testingConfig.consoleOut)
-                    Log.info(this.#testObj);
+                let tmpArray = await this.getPassedArgumentsArray(),
+                    hashedKey = await bcrypt.hash(JSON.stringify(tmpArray), global.testing.testResultCacheSalt);
+                global.testing.testResultCache.setEntry(hashedKey, this.#testObj);
             }
         }
         catch (e) {
-            await this.#saveTestMsgSendFail(this.#testObj.json, e);
+            if (!global.testingConfig?.sendResult2Kafka && !global.testingConfig?.consoleOut)
+                Log.warn(e.message, this.#testObj);
+            else
+                await this.#saveTestMsgSendFail(this.#testObj.json, e);
         }
+    }
+
+    async getPassedArgumentsArray() {
+        let tmpArgs = this.#testObj.passedArguments,
+            argKeys = Object.keys(tmpArgs),
+            resultArray = [];
+
+        for (let i=0; i<argKeys.length; i++) {
+            resultArray.push(tmpArgs[argKeys[i]]);
+        }
+
+        return resultArray;
     }
 
     async #saveTestMsgSendFail(telemetryModel, error) {

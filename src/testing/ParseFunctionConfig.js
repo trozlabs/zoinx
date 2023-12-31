@@ -320,7 +320,7 @@ module.exports = class ParseFunctionConfig {
                             if (regex) {
                                 configObj.required[i][j].regex = regex.toString();
                             } else if (dynaFunc) {
-                                configObj.required[i][j].function = required[i][j].dynaFunc.name; //${required[i][j].dynaFunc.__proto__.constructor.name}
+                                configObj.required[i][j].function = required[i][j].dynaFunc.name;
                             }
                         }
                     }

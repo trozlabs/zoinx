@@ -240,7 +240,7 @@ module.exports = class UtilMethods {
                             if (pathParts[pathParts.length - 1].includes('TestProxy')) continue;
                             else {
                                 let pathEnd = pathParts[pathParts.length - 1];
-                                returnObj.className = classMethodSplit[0];
+                                returnObj.className = (classMethodSplit?.length > 0) ? classMethodSplit[0] : 'N/A';
                                 returnObj.methodName = undefined;
                                 returnObj.file = `${pathParts[pathParts.length - 3]}/${pathParts[pathParts.length - 2]}/${pathEnd.substring(0, pathEnd.length - 1)}`;
                                 break;

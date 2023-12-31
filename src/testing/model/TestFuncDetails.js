@@ -83,7 +83,8 @@ module.exports = class TestFuncDetails extends Model {
         },
         {
             type: 'string',
-            name: 'testDate'
+            name: 'testDate',
+            defaultValue: new Date().getTime()
         },
         {
             type: 'boolean',
