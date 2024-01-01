@@ -6,6 +6,7 @@ const fs = require("fs");
 const { Log } = require('../log');
 const { StaticUtil } = require('../util');
 const AppCache = require("../core/AppCache");
+const TypeDefinitions = require('./TypeDefinitions');
 
 module.exports = class ScenarioTesting {
 
@@ -90,8 +91,6 @@ module.exports = class ScenarioTesting {
     async #handleScenarioTestComplete(cacheKey) {
         try {
             this.#scenarioTestComplete++;
-
-            // Log.log(`${this.#workingFileList.length} >= ${this.#scenarioTestComplete}`);
             if (this.#workingFileList.length >= this.#scenarioTestComplete) {
                 await this.generateReport();
                 if (!_.isUndefined(this.#cli))
@@ -190,7 +189,7 @@ module.exports = class ScenarioTesting {
 
                 tmpReq = require(classFilePath);
                 normalFuncs = Object.getOwnPropertyNames(tmpReq.prototype).filter(name => typeof tmpReq.prototype[name] === 'function');
-                staticFuncs = Object.getOwnPropertyNames(tmpReq.prototype.constructor).filter(name => typeof tmpReq.prototype.constructor[name] === 'function');
+                // staticFuncs = Object.getOwnPropertyNames(tmpReq.prototype.constructor).filter(name => typeof tmpReq.prototype.constructor[name] === 'function');
 
 
                 for (let i=0; i<methodKeys.length; i++) {
@@ -212,12 +211,15 @@ module.exports = class ScenarioTesting {
                             inputValues: scenarioRef.inputValues,
                             shouldFail:  (_.isUndefined(scenarioRef.shouldFail) || _.isNull(scenarioRef.shouldFail) || !_.isBoolean(scenarioRef.shouldFail)) ? false : scenarioRef.shouldFail
                         });
-                        tmpClass[methodKeys[i]](...scenarioJson[methodKeys[i]][scenarioKeys[j]].inputValues);
+
+                        //execute the actual function with args
+                        if (TypeDefinitions.isFunctionAsync(tmpClass[methodKeys[i]]))
+                            await tmpClass[methodKeys[i]](...scenarioJson[methodKeys[i]][scenarioKeys[j]].inputValues);
+                        else
+                            tmpClass[methodKeys[i]](...scenarioJson[methodKeys[i]][scenarioKeys[j]].inputValues);
                     }
                 }
             }
-
-            // Log.log(classFilePath);
         }
         catch (e) {
             Log.warn(`Failed to parse scenario contents for: ${contentsPath}`);
@@ -230,15 +232,10 @@ module.exports = class ScenarioTesting {
             totalTestCount = 0,
             totalTestTime = 0,
             passedCount = 0,
-            failedCount = 0,
-            cacheData;
+            failedCount = 0;
 
         try {
-            let cacheKeys = global.testing.testResultCache.keys(),
-                matchedCachenEntries = [],
-                wkList = this.#workingFileList;
-
-            cacheData = global.testing.testResultCache.data;
+            let wkList = this.#workingFileList;
 
             for (let i=0; i<wkList.length; i++) {
                 let scenarios = wkList[i].scenarios,
@@ -255,6 +252,7 @@ module.exports = class ScenarioTesting {
 
                     Log.log(`\n${testResult.notes} --${testResult.className}.${testResult.methodName}(${scenarios[j].inputValues})\t-> ran in: ${testResult.runningTimeMillis} milli(s)`);
                     Log.log(`\tTest Passed: ${testResult.passed} -> Should Fail: ${scenarios[j].shouldFail}`);
+                    totalTestCount++;
                 }
             }
         }
@@ -263,7 +261,7 @@ module.exports = class ScenarioTesting {
         }
 
         Log.log('');
-        Log.log(`Total tests run: ${this.#scenarioTestComplete} -> ran in: ${totalTestTime} milli(s)`);
+        Log.log(`Total tests run: ${totalTestCount} -> ran in: ${totalTestTime} milli(s)`);
         Log.log(`Tests Passed: ${passedCount}`);
         Log.log(`Tests Failed: ${failedCount}`);
 

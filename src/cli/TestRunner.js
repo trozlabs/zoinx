@@ -21,7 +21,7 @@ module.exports = class TestRunner extends BaseCli {
         if (this.otherArgs.length > 0)
             this.execOtherArgs(false);
     }
-    
+
     async verifyTestConfig(inputStr, _interface) {
         let inputSplit = inputStr.trim().split('--'),
             start = Date.now(), end;
