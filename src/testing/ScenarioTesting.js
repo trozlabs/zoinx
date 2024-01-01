@@ -12,13 +12,19 @@ module.exports = class ScenarioTesting {
     #pathsInput
     #scenarioPaths = []
     #workingFileList = []
+    #scenarioTestComplete = 0
+    #cli
 
-    constructor(pathsInput='') {
+    constructor(pathsInput='', cli=undefined) {
         global.testingConfig.sendResult2Kafka = false;
         global.testingConfig.consoleOut = false;
+
         this.#pathsInput = pathsInput;
+        this.#cli = cli;
         this.#buildScenarioPaths();
         this.#setupTestResultCache();
+
+        global.eventBus.on('ScenarioTestComplete', this.#handleScenarioTestComplete.bind(this));
     }
 
     #buildScenarioPaths() {
@@ -35,7 +41,8 @@ module.exports = class ScenarioTesting {
                 if (exists) {
                     this.#scenarioPaths.push({
                         fullPath: fullPath,
-                        isDir: fs.lstatSync(fullPath).isDirectory()
+                        isDir: fs.lstatSync(fullPath).isDirectory(),
+                        scenarios: []
                     });
                 }
             }
@@ -72,6 +79,30 @@ module.exports = class ScenarioTesting {
         return this.#workingFileList;
     }
 
+    static get scenarioTestComplete() {
+        return this.#scenarioTestComplete;
+    }
+
+    static incrementCompleteCount() {
+
+    }
+
+    async #handleScenarioTestComplete(cacheKey) {
+        try {
+            this.#scenarioTestComplete++;
+
+            // Log.log(`${this.#workingFileList.length} >= ${this.#scenarioTestComplete}`);
+            if (this.#workingFileList.length >= this.#scenarioTestComplete) {
+                await this.generateReport();
+                if (!_.isUndefined(this.#cli))
+                    this.#cli.exit();
+            }
+        }
+        catch (e) {
+            Log.error(e.message);
+        }
+    }
+
     async #buildWorkingFileList() {
         if (this.#scenarioPaths.length < 1) {
             Log.warn('No paths provided to find Scenarios.');
@@ -92,7 +123,8 @@ module.exports = class ScenarioTesting {
                         if (files[j].toLowerCase().endsWith('.json')) {
                             this.#workingFileList.push({
                                 fullPath: `${paths[i].fullPath}${trailingSlash}${files[j]}`,
-                                isDir: false
+                                isDir: false,
+                                scenarios: []
                             });
                         }
                     }
@@ -119,7 +151,7 @@ module.exports = class ScenarioTesting {
                 contents;
             for (let i=0; i<wkList.length; i++) {
                 contents = await this.#readFileAsync(wkList[i].fullPath);
-                await this.#execSencario(contents, wkList[i].fullPath);
+                await this.#execScenario(contents, wkList[i]);
             }
         }
         catch (e) {
@@ -140,9 +172,10 @@ module.exports = class ScenarioTesting {
         return fileContents;
     }
 
-    async #execSencario(scenarioContents, contentsPath) {
+    async #execScenario(scenarioContents, workingFile) {
         try {
             let scenarioJson = JSON.parse(scenarioContents),
+                contentsPath = workingFile.fullPath,
                 methodKeys = Object.keys(scenarioJson),
                 pathDelimiter = (process.platform === 'win32') ? '\\' : '\/',
                 pathParts = contentsPath.split(pathDelimiter),
@@ -173,6 +206,12 @@ module.exports = class ScenarioTesting {
                     for (let j=0; j<scenarioKeys.length; j++) {
                         // Log.log(`Scenario for ${methodKeys[i]}: ${scenarioKeys[j]}`);
                         // Log.log(scenarioJson[methodKeys[i]][scenarioKeys[j]]);
+                        let scenarioRef = scenarioJson[methodKeys[i]][scenarioKeys[j]];
+                        workingFile.scenarios.push({
+                            scenarioKey: scenarioKeys[j],
+                            inputValues: scenarioRef.inputValues,
+                            shouldFail:  (_.isUndefined(scenarioRef.shouldFail) || _.isNull(scenarioRef.shouldFail) || !_.isBoolean(scenarioRef.shouldFail)) ? false : scenarioRef.shouldFail
+                        });
                         tmpClass[methodKeys[i]](...scenarioJson[methodKeys[i]][scenarioKeys[j]].inputValues);
                     }
                 }
@@ -184,6 +223,51 @@ module.exports = class ScenarioTesting {
             Log.warn(`Failed to parse scenario contents for: ${contentsPath}`);
             Log.warn(e.message);
         }
+    }
+
+    async generateReport() {
+        let report = '',
+            totalTestCount = 0,
+            totalTestTime = 0,
+            passedCount = 0,
+            failedCount = 0,
+            cacheData;
+
+        try {
+            let cacheKeys = global.testing.testResultCache.keys(),
+                matchedCachenEntries = [],
+                wkList = this.#workingFileList;
+
+            cacheData = global.testing.testResultCache.data;
+
+            for (let i=0; i<wkList.length; i++) {
+                let scenarios = wkList[i].scenarios,
+                    hashedKey, testResult;
+
+                for (let j=0; j<scenarios.length; j++) {
+                    hashedKey = await bcrypt.hash(JSON.stringify(scenarios[j].inputValues), global.testing.testResultCacheSalt);
+                    testResult = global.testing.testResultCache.get(hashedKey);
+
+                    testResult.notes = scenarios[j].scenarioKey;
+                    totalTestTime += testResult.runningTimeMillis;
+
+                    (testResult.passed && scenarios[j].shouldFail) ? failedCount++ : passedCount++;
+
+                    Log.log(`\n${testResult.notes} --${testResult.className}.${testResult.methodName}(${scenarios[j].inputValues})\t-> ran in: ${testResult.runningTimeMillis} milli(s)`);
+                    Log.log(`\tTest Passed: ${testResult.passed} -> Should Fail: ${scenarios[j].shouldFail}`);
+                }
+            }
+        }
+        catch (e) {
+            Log.error(e.message);
+        }
+
+        Log.log('');
+        Log.log(`Total tests run: ${this.#scenarioTestComplete} -> ran in: ${totalTestTime} milli(s)`);
+        Log.log(`Tests Passed: ${passedCount}`);
+        Log.log(`Tests Failed: ${failedCount}`);
+
+        return report;
     }
 
 }

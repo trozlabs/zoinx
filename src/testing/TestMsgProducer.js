@@ -63,6 +63,7 @@ module.exports = class TestMsgProducer {
                 let tmpArray = await this.getPassedArgumentsArray(),
                     hashedKey = await bcrypt.hash(JSON.stringify(tmpArray), global.testing.testResultCacheSalt);
                 global.testing.testResultCache.setEntry(hashedKey, this.#testObj);
+                global.eventBus.emit('ScenarioTestComplete', hashedKey);
             }
         }
         catch (e) {

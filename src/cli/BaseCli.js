@@ -108,7 +108,7 @@ module.exports = class BaseCli {
         return this.#otherArgs;
     }
 
-    async execOtherArgs() {
+    async execOtherArgs(autoExit=true) {
         try {
             await StaticUtil.sleep(100);
             for (let i=0; i<this.#otherArgs.length; i++) {
@@ -117,8 +117,11 @@ module.exports = class BaseCli {
                     await this[this.#uniqueInputs[argObj.switch].fn](`${argObj.switch}--${argObj.data}`, argObj._interface);
                 }
             }
-            await StaticUtil.sleep(100);
-            await this.exit();
+
+            if (autoExit) {
+                await StaticUtil.sleep(100);
+                await this.exit();
+            }
         }
         catch (e) {
             Log.warn(e.message);
