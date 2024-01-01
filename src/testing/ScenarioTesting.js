@@ -248,7 +248,7 @@ module.exports = class ScenarioTesting {
                     testResult.notes = scenarios[j].scenarioKey;
                     totalTestTime += testResult.runningTimeMillis;
 
-                    (testResult.passed && scenarios[j].shouldFail) ? failedCount++ : passedCount++;
+                    (testResult.passed && testResult.executionPassed && scenarios[j].shouldFail) ? failedCount++ : passedCount++;
 
                     Log.log(`\n${testResult.notes} --${testResult.className}.${testResult.methodName}(${scenarios[j].inputValues})\t-> ran in: ${testResult.runningTimeMillis} milli(s)`);
                     Log.log(`\tTest Passed: ${testResult.passed} -> Should Fail: ${scenarios[j].shouldFail}`);
