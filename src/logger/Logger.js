@@ -8,9 +8,10 @@ const { mergeArrayObjectsByKey, diffObjects } = require('./util.js');
 const Log = require('./Log.js');
 const WatchedFile = require('./WatchedFile.js');
 const { Color } = require('./Color.js');
-const { ConsoleDestination } = require('./destination');
+const { ConsoleDestination, WorkerDestination, FileDestination, Destination } = require('./destination');
 
 class Logger {
+    static destinations = { ConsoleDestination, WorkerDestination, FileDestination, Destination };
 
     static Levels = {
         OFF     : -1,
@@ -55,6 +56,12 @@ class Logger {
         ]
     }
 
+    /**
+     * Set defaults inherited by all logger instances.
+     *
+     * @static
+     * @method defaults
+     */
     static defaults(options = Logger.defaultOptions) {
 
         mergeArrayObjectsByKey(options.filters      ?? [], this.#options.filters,       'id');
@@ -73,7 +80,6 @@ class Logger {
 
             try {
                 const parsedConfig = JSON.parse(this.#file.read());
-                // console.log(parsedConfig);
                 Object.assign(this.#options.config, parsedConfig);
             }
             catch (cause) {
@@ -81,7 +87,7 @@ class Logger {
             }
 
             this.#file.on('change', ({ filename, data }) => {
-                console.log(' - on config file change', filename);
+                console.debug(' - on config file change', filename);
                 try {
                     const parsedConfig = JSON.parse(data);
                     const diffs = diffObjects(this.#options.config, parsedConfig);
@@ -89,9 +95,7 @@ class Logger {
                     if (Object.keys(diffs).length) {
                         console.log('configFile is different from config');
                         console.log(diffs);
-                        // console.log(this.#options.config);
                         Object.assign(this.#options.config, parsedConfig);
-                        // console.log(this.#options.config);
                     }
                 }
                 catch (cause) {
@@ -99,6 +103,9 @@ class Logger {
                 }
             });
         }
+
+        // Create default logger instance.
+        return this.create();
     }
 
     static setLevel(level) {
@@ -114,7 +121,7 @@ class Logger {
         if (this.#instances.has(name)) {
             return this.#instances.get(name);
         } else {
-            console.warn(`[zoinx/logger] Logger ${name} doesn't exist.`);
+            // console.warn(`[zoinx/logger] Logger ${name} doesn't exist.`);
             return this.create({ name });
         }
     }
@@ -144,13 +151,13 @@ class Logger {
                     this.#file.write(JSON.stringify(this.#options.config, null, 4));
                 }
                 catch (error) {
-                    console.error(error);
+                    console.error(new Error(`There was a problem writing config to configFile`, { cause: error }));
                 }
             }
         });
 
         // Create default logger instance
-        this.create();
+        // this.create();
     }
 
     static log() {

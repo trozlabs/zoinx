@@ -86,7 +86,6 @@ module.exports = class Destination {
         }, data);
 
         try {
-            debugger;
             this.handle(data);
         } catch(e) {
             throw new Error(`Destination Handler Error ${e.message}`, e);

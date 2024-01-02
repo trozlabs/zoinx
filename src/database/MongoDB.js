@@ -5,7 +5,7 @@ mongoose.set('strictQuery', false);
 const _ = require('lodash');
 const { Log } = require('../log');
 const { Logger } = require('../logger');
-const logger = Logger.get('database');
+const logger = Logger.get('zoinx/database');
 
 module.exports = class Database {
 
