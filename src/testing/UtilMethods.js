@@ -683,7 +683,8 @@ module.exports = class UtilMethods {
                     let nextResult =  await this.getJsonWithoutCirculars(val, nextDepth);
                     if (!_.isEmpty(nextResult) && (nextResult !== 'CIRCULAR' && nextResult !== 'SYMBOL ERROR')) {
                         try {
-                            nextResult = Object.fromEntries(Object.entries(nextResult).sort());
+                            nextResult = Object.fromEntries(Object.entries(nextResult));
+                            // nextResult = Object.fromEntries(Object.entries(nextResult).sort());
                         }
                         catch (e) {
                             // sort() this a symbol inside larger browser objects, not certain yet how to best handle
