@@ -167,9 +167,11 @@ module.exports = class BaseCli {
         process.exit(0);
     }
 
-    async horizontalLine() {
+    async horizontalLine(startWithNewline=false) {
         let screenWidth = process.stdout.columns,
             line = '';
+
+        if (_.isBoolean(startWithNewline) && startWithNewline) line = '\n';
 
         for (let i = 0; i < screenWidth; i++) {
             line += '-';

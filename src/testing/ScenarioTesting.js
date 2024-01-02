@@ -10,6 +10,8 @@ const TypeDefinitions = require('./TypeDefinitions');
 
 module.exports = class ScenarioTesting {
 
+    #startTime
+    #endTime
     #pathsInput
     #scenarioPaths = []
     #workingFileList = []
@@ -92,9 +94,14 @@ module.exports = class ScenarioTesting {
         try {
             this.#scenarioTestComplete++;
             if (this.#workingFileList.length >= this.#scenarioTestComplete) {
+                this.#endTime = Date.now();
                 await this.generateReport();
-                if (!_.isUndefined(this.#cli))
+                if (!_.isUndefined(this.#cli)) {
+                    Log.log(`\nScenario tests ran in ${this.#endTime - this.#startTime} millis`);
+                    if (this.#cli)
+                        this.#cli.horizontalLine();
                     this.#cli.exit();
+                }
             }
         }
         catch (e) {
@@ -139,6 +146,11 @@ module.exports = class ScenarioTesting {
     }
 
     async exec() {
+        if (this.#cli) {
+            this.#cli.horizontalLine(true);
+        }
+
+        this.#startTime = Date.now();
         await this.#buildWorkingFileList();
         if (this.#workingFileList.length < 1) {
             Log.warn('No working files to operate from.')
