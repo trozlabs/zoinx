@@ -205,4 +205,15 @@ module.exports = class UtilMethods {
         }
     }
 
+    static appendTimestamp(prefix, date=new Date()) {
+        let YYYY = String(date.getFullYear()).padStart(4, '0'),
+            MM = String(date.getMonth() + 1).padStart(2, '0'),
+            DD = String(date.getDate()).padStart(2, '0'),
+            hh = String(date.getHours()).padStart(2, '0'),
+            mm = String(date.getMinutes()).padStart(2, '0'),
+            ss = String(date.getSeconds()).padStart(2, '0'),
+            ts = `${YYYY}-${MM}-${DD}_${hh}.${mm}.${ss}`;
+
+        return prefix ? `${prefix}_${ts}` : ts;
+    }
 };
