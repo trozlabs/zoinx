@@ -195,7 +195,7 @@ module.exports = class ZoinxTest {
                     this.execOutputTest(clazz, func, passedArguments, testRec);
                 }
 
-                //without circulars modifies the passedArguments data this modification
+                //getJsonWithoutCirculars modifies the passedArguments data this modification
                 //makes scenario testing hashes not work as needed. This is here to have
                 //a clean copy of the arguments so they can be put back in.
                 let origPassedArguments = passedArguments.slice();

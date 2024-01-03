@@ -299,7 +299,7 @@ module.exports = class ScenarioTesting {
         try {
             let appDir = process.cwd(),
                 destDir = `${appDir}/testingResults/`,
-                fullPath = `${destDir}ScenarioTesting_${Date.now()}.json`;
+                fullPath = `${destDir}${StaticUtil.appendTimestamp('ScenarioTesting_')}.json`;
             const cacheData = global.testing.testResultCache.mget(global.testing.testResultCache.keys());
             const jsonData = JSON.stringify(cacheData, null, 2);
 
