@@ -2,6 +2,7 @@ const _ = require('lodash');
 const path = require('path');
 const bcrypt = require("bcryptjs");
 const fs = require("fs");
+const mkdirp = require('mkdirp');
 
 const { Log } = require('../log');
 const { StaticUtil } = require('../util');
@@ -16,6 +17,7 @@ module.exports = class ScenarioTesting {
     #scenarioPaths = []
     #workingFileList = []
     #scenarioTestComplete = 0
+    #writeTestData = false
     #cli
 
     constructor(pathsInput='', cli=undefined) {
@@ -145,7 +147,10 @@ module.exports = class ScenarioTesting {
         }
     }
 
-    async exec() {
+    async exec(writeTestData=false) {
+        if (_.isBoolean(writeTestData))
+            this.#writeTestData = writeTestData;
+
         if (this.#cli) {
             this.#cli.horizontalLine(true);
         }
@@ -203,7 +208,6 @@ module.exports = class ScenarioTesting {
                 normalFuncs = Object.getOwnPropertyNames(tmpReq.prototype).filter(name => typeof tmpReq.prototype[name] === 'function');
                 // staticFuncs = Object.getOwnPropertyNames(tmpReq.prototype.constructor).filter(name => typeof tmpReq.prototype.constructor[name] === 'function');
 
-
                 for (let i=0; i<methodKeys.length; i++) {
                     if (i < 1) {
                         if (normalFuncs.includes(methodKeys[i]))
@@ -215,8 +219,6 @@ module.exports = class ScenarioTesting {
                     let scenarioKeys = Object.keys(scenarioJson[methodKeys[i]]);
 
                     for (let j=0; j<scenarioKeys.length; j++) {
-                        // Log.log(`Scenario for ${methodKeys[i]}: ${scenarioKeys[j]}`);
-                        // Log.log(scenarioJson[methodKeys[i]][scenarioKeys[j]]);
                         let scenarioRef = scenarioJson[methodKeys[i]][scenarioKeys[j]];
                         workingFile.scenarios.push({
                             scenarioKey: scenarioKeys[j],
@@ -257,21 +259,28 @@ module.exports = class ScenarioTesting {
                     hashedKey = await bcrypt.hash(JSON.stringify(scenarios[j].inputValues), global.testing.testResultCacheSalt);
                     testResult = global.testing.testResultCache.get(hashedKey);
 
-                    testResult.notes = scenarios[j].scenarioKey;
-                    totalTestTime += testResult.runningTimeMillis;
+                    if (!_.isUndefined(testResult)) {
+                        testResult.notes = scenarios[j].scenarioKey;
+                        totalTestTime += testResult.runningTimeMillis;
 
-                    if (testResult.passed && testResult.executionPassed) {
-                        (scenarios[j].shouldFail) ? failedCount++ : passedCount++;
+                        if (testResult.passed && testResult.executionPassed) {
+                            (scenarios[j].shouldFail) ? failedCount++ : passedCount++;
+                        } else {
+                            (scenarios[j].shouldFail) ? passedCount++ : failedCount++;
+                        }
+
+                        Log.log(`\n${testResult.notes} --${testResult.className}.${testResult.methodName}(${JSON.stringify(scenarios[j].inputValues)})\t-> ran in: ${testResult.runningTimeMillis} milli(s)`);
+                        Log.log(`\tTest Passed: ${testResult.passed} -> Should Fail: ${scenarios[j].shouldFail}`);
+                        totalTestCount++;
                     }
                     else {
-                        (scenarios[j].shouldFail) ? passedCount++ : failedCount++;
+                        Log.warn(`Test cache entry was not found for ${hashedKey}`);
                     }
-
-                    Log.log(`\n${testResult.notes} --${testResult.className}.${testResult.methodName}(${scenarios[j].inputValues})\t-> ran in: ${testResult.runningTimeMillis} milli(s)`);
-                    Log.log(`\tTest Passed: ${testResult.passed} -> Should Fail: ${scenarios[j].shouldFail}`);
-                    totalTestCount++;
                 }
             }
+
+            if (this.#writeTestData && totalTestCount > 0)
+                this.#createTestDataFile();
         }
         catch (e) {
             Log.error(e.message);
@@ -283,6 +292,24 @@ module.exports = class ScenarioTesting {
         Log.log(`Tests Failed: ${failedCount}`);
 
         return report;
+    }
+
+    async #createTestDataFile() {
+        try {
+            let appDir = process.cwd(),
+                destDir = `${appDir}/testingResults/`,
+                fullPath = `${destDir}ScenarioTesting_${Date.now()}.json`;
+            const cacheData = global.testing.testResultCache.mget(global.testing.testResultCache.keys());
+            const jsonData = JSON.stringify(cacheData, null, 2);
+
+            mkdirp.sync(destDir);
+            fs.writeFileSync(fullPath, jsonData);
+
+            Log.log(`\nCache data has been written to ${fullPath}`);
+        }
+        catch (e) {
+            Log.error(e.message);
+        }
     }
 
 }
