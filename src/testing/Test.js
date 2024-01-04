@@ -205,9 +205,6 @@ module.exports = class ZoinxTest {
                 testRec = await UtilMethods.getTestObjectWithoutModels(testRec);
                 testRec = await UtilMethods.getJsonWithoutCirculars(testRec.json, 6);
 
-                if (testRec.className === 'AccountClosureController' && testRec.methodName === 'getSapAcctInfo')
-                    Log.log('asdfasdf');
-
                 // getJsonWithoutCirculars is def causing problems that will need to be evaluated.
                 // Some objects are seriously big and many circular references and those objects
                 // have to have those circular ref removed. Incomingmessage and ServerResponse are
