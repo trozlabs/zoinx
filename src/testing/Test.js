@@ -180,7 +180,7 @@ module.exports = class ZoinxTest {
                             resultMessage = `********** Function parameters for ${testRec.get('methodName')} passed ${testRec.get('paramsPassedTestCount')} of ${testRec.get('paramsCount')} tests. **********`;
                         }
                         else if (!testRec.get('executionPassed')) {
-                            resultMessage = `********** Function output test for ${testRec.get('methodName')} failed. **********`;
+                            resultMessage = `********** Function OUTPUT test for ${testRec.get('methodName')} failed. **********`;
                         }
 
                         testRec.set('resultMessage', resultMessage);
@@ -195,7 +195,7 @@ module.exports = class ZoinxTest {
                     this.execOutputTest(clazz, func, passedArguments, testRec);
                 }
 
-                //getJsonWithoutCirculars modifies the passedArguments data this modification
+                //without circulars modifies the passedArguments data this modification
                 //makes scenario testing hashes not work as needed. This is here to have
                 //a clean copy of the arguments so they can be put back in.
                 let origPassedArguments = passedArguments.slice();
@@ -203,7 +203,25 @@ module.exports = class ZoinxTest {
                 testRec = await UtilMethods.getTestObjectWithoutModels(testRec);
                 testRec = await UtilMethods.getJsonWithoutCirculars(testRec.json, 6);
 
-                testRec.passedArguments = origPassedArguments;
+                if (testRec.className === 'AccountClosure' && testRec.methodName === 'getSapAcctInfo')
+                    Log.log('asdfasdf');
+
+                // getJsonWithoutCirculars is def causing problems that will need to be evaluated.
+                // Some objects are seriously big and many circular references and those objects
+                // have to have those circular ref removed. Incomingmessage and ServerResponse are
+                // the first 2 but this is hopefully a temporary "fix".
+                let reassign = true,
+                    paramKeys = Object.keys(testRec.testedParams),
+                    hugeObjectNames = ['IncomingMessage', 'ServerResponse'];
+                for (let i=0; i<paramKeys.length; i++) {
+                    if (hugeObjectNames.includes(testRec.testedParams[i].subType)) {
+                        reassign = false;
+                        break;
+                    }
+                }
+
+                if (reassign)
+                    testRec.passedArguments = origPassedArguments;
 
                 new TestMsgProducer(testRec).send();
                 return testRec;
@@ -226,10 +244,6 @@ module.exports = class ZoinxTest {
                 currentParamName = paramConfig[i].name;
                 passedArgIdx++;
             }
-
-            //see if param is required
-            //see if param is correct type
-            //see if param has correct value, if configured
 
             testObject = passedArguments[passedArgIdx];
             let paramTest = new TestParamDetails({
