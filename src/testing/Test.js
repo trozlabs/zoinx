@@ -195,7 +195,9 @@ module.exports = class ZoinxTest {
                     this.execOutputTest(clazz, func, passedArguments, testRec);
                 }
 
-                //without circulars modifies the passedArguments data this modification
+                // The REAL problem circular refs in JS objects!!!!
+
+                //getJsonWithoutCirculars modifies the passedArguments data this modification
                 //makes scenario testing hashes not work as needed. This is here to have
                 //a clean copy of the arguments so they can be put back in.
                 let origPassedArguments = passedArguments.slice();
@@ -203,18 +205,21 @@ module.exports = class ZoinxTest {
                 testRec = await UtilMethods.getTestObjectWithoutModels(testRec);
                 testRec = await UtilMethods.getJsonWithoutCirculars(testRec.json, 6);
 
-                if (testRec.className === 'AccountClosure' && testRec.methodName === 'getSapAcctInfo')
+                if (testRec.className === 'AccountClosureController' && testRec.methodName === 'getSapAcctInfo')
                     Log.log('asdfasdf');
 
                 // getJsonWithoutCirculars is def causing problems that will need to be evaluated.
                 // Some objects are seriously big and many circular references and those objects
                 // have to have those circular ref removed. Incomingmessage and ServerResponse are
-                // the first 2 but this is hopefully a temporary "fix".
+                // 2 great examples. This is hopefully a temporary "fix".
                 let reassign = true,
-                    paramKeys = Object.keys(testRec.testedParams),
-                    hugeObjectNames = ['IncomingMessage', 'ServerResponse'];
+                    paramKeys = Object.keys(testRec.testedParams);
                 for (let i=0; i<paramKeys.length; i++) {
-                    if (hugeObjectNames.includes(testRec.testedParams[i].subType)) {
+                    try {
+                        if (JSON.stringify(testRec.testedParams[i]).includes('CIRCULAR'))
+                            reassign = false;
+                    }
+                    catch (e) {
                         reassign = false;
                         break;
                     }
