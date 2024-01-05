@@ -306,7 +306,7 @@ module.exports = class ScenarioTesting {
             mkdirp.sync(destDir);
             fs.writeFileSync(fullPath, jsonData);
 
-            Log.log(`\nCache data has been written to ${fullPath}`);
+            Log.log(`\nTesting data has been written to ${fullPath}`);
         }
         catch (e) {
             Log.error(e.message);

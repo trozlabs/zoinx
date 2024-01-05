@@ -4,11 +4,12 @@ const TypeDefinitions = require('./TypeDefinitions');
 
 module.exports = class ParseFunctionConfig {
 
-    static rxCurlies = /\.?(\{.+\})/gi;
-    static rxBrackets = /\.?(\[.+\])/gi;
-    static rxBananas = /\.?(\(|.+\))/gi;
-    static rxCarrots = /\.?(\<.+\>)/gi;
-    static rxWacks = /\.?(\/.+\/)/gi;
+    static rxCurlies = /\.?(\{.+\})/mi;
+    static rxBrackets = /\.?(\[.+\])/mi;
+    static rxBananas = /\.?(\(|.+\))/mi;
+    static rxCarrots = /\.?(\<.+\>)/mi;
+    static rxWacks = /\.?(\/.+\/)/mi;
+    static rxRegExp = /\/(.*)\/([mgiyuvsd]*)/;
 
     static requiredPrefix = 'required=:';
     static acceptedPrefix = 'acceptedValues=:';
@@ -200,10 +201,10 @@ module.exports = class ParseFunctionConfig {
                         parsedArray.push(tmpConf);
                     }
                     else {
-                        if (this.rxWacks.exec(tmpSplitArray[0]) && tmpSplitArray[0].startsWith("/")) {
+                        if (this.rxRegExp.test(tmpSplitArray[0]) && tmpSplitArray[0].startsWith("/")) {
                             type = 'regexp';
                         }
-                        else if (this.rxBananas.exec(tmpSplitArray[0]) && tmpSplitArray[0].startsWith('(')) {
+                        else if (this.rxBananas.test(tmpSplitArray[0]) && tmpSplitArray[0].startsWith('(')) {
                             type = 'dynaFunc';
                         }
 

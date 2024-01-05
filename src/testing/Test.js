@@ -45,7 +45,7 @@ module.exports = class ZoinxTest {
         try {
             if (!_.isUndefined(clazz) && !_.isNull(clazz) && !_.isEmpty(passedArguments)) {
                 newFuncRec = this.createMethodTest(clazz, func, passedArguments, errorStack, methodInput, methodOutput, testConfig);
-                newFuncRec.set('notes', notes);
+                if (!_.isUndefined(newFuncRec)) newFuncRec.set('notes', notes);
             }
             else Log.info('Class and arguments must be supplied to setup test.');
         }
@@ -75,6 +75,8 @@ module.exports = class ZoinxTest {
             funcTestConfig.testOutputConfig = expectedResult;
 
             methodCaller = UtilMethods.getCallerMethod(clazz, errorStack);
+            if (methodCaller.className === 'Proxy')
+                return undefined;
 
             funcTestConfig.className = className;
             funcTestConfig.methodName = methodName;
@@ -177,7 +179,8 @@ module.exports = class ZoinxTest {
                     if (!testRec.get('passed')) {
                         let resultMessage = '';
                         if (testRec.get('paramsPassedTestCount') !== testRec.get('paramsCount')) {
-                            resultMessage = `********** Function parameters for ${testRec.get('methodName')} passed ${testRec.get('paramsPassedTestCount')} of ${testRec.get('paramsCount')} tests. **********`;
+                            resultMessage = `********** Function parameters for ${testRec.get('methodName')} passed ${testRec.get('paramsPassedTestCount')} of ${testRec.get('paramsCount')} tests.**********`;
+                            // caller: ${testRec.get('callerClassName')}.${testRec.get('callerMethodName')}
                         }
                         else if (!testRec.get('executionPassed')) {
                             resultMessage = `********** Function OUTPUT test for ${testRec.get('methodName')} failed. **********`;
@@ -400,6 +403,9 @@ module.exports = class ZoinxTest {
             if (paramTest.get('typePassed') && !paramTest.get('isOptional')) {
                 paramTest.set('passed', true);
             }
+
+            // if (_.isFunction(paramConfig.acceptedValues[0]))
+            //     Log.log('===========');
 
             if (paramConfig.acceptedValues.length > 0) {
                 if (!paramConfig.acceptedValues.includes(testObject)) {
