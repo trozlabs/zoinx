@@ -263,7 +263,7 @@ module.exports = class UtilMethods {
             if (!_.isEmpty(caller.toString()) || _.isObject(caller)) {
                 let tmpSigParts = caller.toString().split('\n');
                 if (!_.isEmpty(tmpSigParts[0])) {
-                    signature = /\w(.*?)\)/gi.exec(tmpSigParts)[0];
+                    signature = /\w(.*?)\)/mi.exec(tmpSigParts)[0];
 
                     // With a testing and likely production build, async functions get an extra \n placed into the function signature.
                     // This results in a double comma inside the signature when the regex is executed as it auto joins the array
@@ -368,8 +368,8 @@ module.exports = class UtilMethods {
     }
 
     static getConfiguredOutput(expectedOut, distinctParamNames, passedArguments) {
-        const frontRE = /\$\{/g,
-            backRE = /\}/g;
+        const frontRE = /\$\{/,
+            backRE = /\}/;
 
         let result = undefined,
             tmpObj = {},

@@ -216,8 +216,8 @@ module.exports = class ZoinxCli extends BaseCli {
 
     async playground(inputStr, _interface) {
         let inputParts = inputStr.trim().split('--'),
-            rxBananas = /\.?(\(.+\))/gi,
-            rxBrackets = /\.?(\[.+\])/gi;
+            rxBananas = /\.?(\(.+\))/mi,
+            rxBrackets = /\.?(\[.+\])/mi;
 
         if (inputParts.length > 1 && !_.isEmpty(inputParts[1])) {
             try {
