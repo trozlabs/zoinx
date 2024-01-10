@@ -99,7 +99,7 @@ module.exports = class ScenarioTesting {
                 this.#endTime = Date.now();
                 await this.generateReport();
                 if (!_.isUndefined(this.#cli)) {
-                    Log.log(`\nScenario tests ran in ${this.#endTime - this.#startTime} millis`);
+                    Log.log(`\n\x1b[32m Scenario tests ran in ${this.#endTime - this.#startTime} millis`);
                     if (this.#cli)
                         this.#cli.horizontalLine();
                     this.#cli.exit();
@@ -269,9 +269,9 @@ module.exports = class ScenarioTesting {
                             (scenarios[j].shouldFail) ? passedCount++ : failedCount++;
                         }
 
-                        Log.log(`\n${testResult.notes} -> ran in: ${testResult.runningTimeMillis} milli(s)`);
-                        Log.log(`\t-> ${testResult.className}.${testResult.methodName}(${JSON.stringify(scenarios[j].inputValues)})`);
-                        Log.log(`\t-> Test Passed: ${testResult.passed} -> Should Fail: ${scenarios[j].shouldFail}`);
+                        Log.log(`\n\x1b[36m ${testResult.notes} -> ran in: ${testResult.runningTimeMillis} milli(s)`);
+                        Log.log(`\x1b[33m \t-> ${testResult.className}.${testResult.methodName}(${JSON.stringify(scenarios[j].inputValues)})`);
+                        Log.log(`\x1b[33m \t-> Test Passed: ${testResult.passed} -> Should Fail: ${scenarios[j].shouldFail}`);
                         totalTestCount++;
                     }
                     else {
@@ -279,18 +279,20 @@ module.exports = class ScenarioTesting {
                     }
                 }
             }
-
-            if (this.#writeTestData && totalTestCount > 0)
-                this.#createTestDataFile();
         }
         catch (e) {
             Log.error(e.message);
         }
 
-        Log.log('');
-        Log.log(`Total tests run: ${totalTestCount} -> ran in: ${totalTestTime} milli(s)`);
-        Log.log(`Tests Passed: ${passedCount}`);
-        Log.log(`Tests Failed: ${failedCount}`);
+        Log.log('\n\n\x1b[32m====================================================================================');
+        Log.log(`\x1b[36m Total tests run: ${totalTestCount} -> ran in: ${totalTestTime} milli(s)`);
+        Log.log(`\x1b[32m Tests Passed: ${passedCount}`);
+        Log.log(`\x1b[31m Tests Failed: ${failedCount}\x1b[37m `);
+
+
+
+        if (this.#writeTestData && totalTestCount > 0)
+            this.#createTestDataFile();
 
         return report;
     }
@@ -306,7 +308,7 @@ module.exports = class ScenarioTesting {
             mkdirp.sync(destDir);
             fs.writeFileSync(fullPath, jsonData);
 
-            Log.log(`\nTesting data has been written to ${fullPath}`);
+            Log.log(`\n Testing data has been written to \x1b[33m${fullPath}\x1b[37m`);
         }
         catch (e) {
             Log.error(e.message);

@@ -22,7 +22,7 @@ module.exports = class Telemetry {
     constructor(telemetryName='No name provided', configObj, telemetryStatus) {
         this.#telemetryName = telemetryName;
         this.#telemetryStatus = telemetryStatus;
-        this.#fillTelemetryFromRequest(configObj).catch(r => { console.log(r)});
+        this.#fillTelemetryFromRequest(configObj).catch(r => { Log.log(r)});
         this.#telemetrySendFailsService = new tsfService();
     }
 
