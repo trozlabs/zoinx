@@ -4,11 +4,24 @@ const { randomUUID } = require('node:crypto');
 const ObjectUtil = require('../../util/ObjectUtil');
 
 module.exports = class Destination {
-    constructor({ id, name, type, enabled, config={}, transformers=[], filters=[] } = {}) {
+
+    /**
+     * @constructor
+     * @param {object} options
+     * @param {string} options.id
+     * @param {string} options.name
+     * @param {string} options.type
+     * @param {boolean} options.enabled
+     * @param {object} options.config
+     * @param {Array<Function>} options.filters
+     * @param {Array<Function>} options.transformers
+     */
+    constructor({ id, name, type, enabled, debug, config={}, transformers=[], filters=[] } = {}) {
         this.id = id ?? randomUUID();
         this.name = name ?? this.name;
         this.type = type ?? this.type;
         this.enabled = enabled ? enabled : true;
+        this.debug = debug;
 
         this.#config = config ?? {};
         this.#filters = filters;
@@ -40,7 +53,6 @@ module.exports = class Destination {
     getConfig() {
         return this.#config;
     }
-
     setConfig(config={}) {
         Object.assign(this.#config, config);
     }
@@ -57,7 +69,6 @@ module.exports = class Destination {
     getFilters() {
         return this.#filters;
     }
-
     addFilter(fn) {
         this.#filters.push(fn);
     }
@@ -67,26 +78,24 @@ module.exports = class Destination {
     getTransformers() {
         return this.#transformers;
     }
-
     addTransformer(fn) {
         this.#transformers.push(fn);
     }
 
-    run(data) {
+    run(log) {
         // console.debug(this.name, 'run');
-
         const isHandleCallable = typeof this.handle !== 'function';
         if (isHandleCallable) throw new Error(`Destination (${this.name}) is missing a 'handle' method.`);
 
-        const isFiltered = this.getFilters().map(filterFn => filterFn(transformedLog)).includes(false);
+        const isFiltered = this.getFilters().map(filterFn => filterFn(log)).includes(false);
         if (isFiltered) return; //console.debug('log is filtered');
 
-        data = this.getTransformers().reduce((data, transformerFn, index) => {
+        log = this.getTransformers().reduce((data, transformerFn, index) => {
             return transformerFn(data);
-        }, data);
+        }, log);
 
         try {
-            this.handle(data);
+            this.handle(log);
         } catch(e) {
             throw new Error(`Destination Handler Error ${e.message}`, e);
         }
