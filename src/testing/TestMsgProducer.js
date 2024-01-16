@@ -86,14 +86,12 @@ module.exports = class TestMsgProducer {
         return resultArray;
     }
 
-    async #saveTestMsgSendFail(telemetryModel, error) {
+    async #saveTestMsgSendFail(testingObj, error) {
         try {
-            let tmpTestObj = this.#testObj;
-            delete tmpTestObj.id;
             let saveObj = {
                     send_to_server: process.env.TESTING_MESSAGE_SERVERS,
                     ip_address: Network.getHostAddress(),
-                    telemetry_obj: this.#testObj,
+                    testing_obj: testingObj,
                     error_message: error.message
                 },
                 result;

@@ -136,7 +136,7 @@ module.exports = class TypeDefinitions {
     static getTypeAccepted(type, testObj) {
         let returnObj = {},
             typeSplit, subType = 'N/A',
-            rxCarrots = /\.?(\<.+\>)/gi;
+            rxCarrots = /\.?(\<.+\>)/mi;
 
         if (_.isEmpty(type) || !_.isString(type)) return returnObj;
 

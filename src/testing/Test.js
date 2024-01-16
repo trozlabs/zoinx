@@ -45,7 +45,7 @@ module.exports = class ZoinxTest {
         try {
             if (!_.isUndefined(clazz) && !_.isNull(clazz) && !_.isEmpty(passedArguments)) {
                 newFuncRec = this.createMethodTest(clazz, func, passedArguments, errorStack, methodInput, methodOutput, testConfig);
-                newFuncRec.set('notes', notes);
+                if (!_.isUndefined(newFuncRec)) newFuncRec.set('notes', notes);
             }
             else Log.info('Class and arguments must be supplied to setup test.');
         }
@@ -75,6 +75,8 @@ module.exports = class ZoinxTest {
             funcTestConfig.testOutputConfig = expectedResult;
 
             methodCaller = UtilMethods.getCallerMethod(clazz, errorStack);
+            if (methodCaller.className === 'Proxy')
+                return undefined;
 
             funcTestConfig.className = className;
             funcTestConfig.methodName = methodName;
@@ -177,10 +179,11 @@ module.exports = class ZoinxTest {
                     if (!testRec.get('passed')) {
                         let resultMessage = '';
                         if (testRec.get('paramsPassedTestCount') !== testRec.get('paramsCount')) {
-                            resultMessage = `********** Function parameters for ${testRec.get('methodName')} passed ${testRec.get('paramsPassedTestCount')} of ${testRec.get('paramsCount')} tests. **********`;
+                            resultMessage = `********** Function parameters for ${testRec.get('methodName')} passed ${testRec.get('paramsPassedTestCount')} of ${testRec.get('paramsCount')} tests.**********`;
+                            // caller: ${testRec.get('callerClassName')}.${testRec.get('callerMethodName')}
                         }
                         else if (!testRec.get('executionPassed')) {
-                            resultMessage = `********** Function output test for ${testRec.get('methodName')} failed. **********`;
+                            resultMessage = `********** Function OUTPUT test for ${testRec.get('methodName')} failed. **********`;
                         }
 
                         testRec.set('resultMessage', resultMessage);
@@ -195,6 +198,8 @@ module.exports = class ZoinxTest {
                     this.execOutputTest(clazz, func, passedArguments, testRec);
                 }
 
+                // The REAL problem circular refs in JS objects!!!!
+
                 //getJsonWithoutCirculars modifies the passedArguments data this modification
                 //makes scenario testing hashes not work as needed. This is here to have
                 //a clean copy of the arguments so they can be put back in.
@@ -203,7 +208,25 @@ module.exports = class ZoinxTest {
                 testRec = await UtilMethods.getTestObjectWithoutModels(testRec);
                 testRec = await UtilMethods.getJsonWithoutCirculars(testRec.json, 6);
 
-                testRec.passedArguments = origPassedArguments;
+                // getJsonWithoutCirculars is def causing problems that will need to be evaluated.
+                // Some objects are seriously big and many circular references and those objects
+                // have to have those circular ref removed. Incomingmessage and ServerResponse are
+                // 2 great examples. This is hopefully a temporary "fix".
+                let reassign = true,
+                    paramKeys = Object.keys(testRec.testedParams);
+                for (let i=0; i<paramKeys.length; i++) {
+                    try {
+                        if (JSON.stringify(testRec.testedParams[i]).includes('CIRCULAR'))
+                            reassign = false;
+                    }
+                    catch (e) {
+                        reassign = false;
+                        break;
+                    }
+                }
+
+                if (reassign)
+                    testRec.passedArguments = origPassedArguments;
 
                 new TestMsgProducer(testRec).send();
                 return testRec;
@@ -226,10 +249,6 @@ module.exports = class ZoinxTest {
                 currentParamName = paramConfig[i].name;
                 passedArgIdx++;
             }
-
-            //see if param is required
-            //see if param is correct type
-            //see if param has correct value, if configured
 
             testObject = passedArguments[passedArgIdx];
             let paramTest = new TestParamDetails({
@@ -384,6 +403,9 @@ module.exports = class ZoinxTest {
             if (paramTest.get('typePassed') && !paramTest.get('isOptional')) {
                 paramTest.set('passed', true);
             }
+
+            // if (_.isFunction(paramConfig.acceptedValues[0]))
+            //     Log.log('===========');
 
             if (paramConfig.acceptedValues.length > 0) {
                 if (!paramConfig.acceptedValues.includes(testObject)) {

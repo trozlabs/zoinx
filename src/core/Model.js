@@ -47,9 +47,9 @@ module.exports = class Model {
         if (_.isUndefined(this.#fieldNames) || this.#fieldNames.length < 1) this.#setFieldNames();
 
         let value = this.#getValue(fieldName);
-        if (_.isUndefined(value)) {
+        if (_.isUndefined(value) && this.#fieldNames.includes(fieldName)) {
             let defaultValue = this.getFieldDefaultValue(this.fields[this.#fieldNames.indexOf(fieldName)], value);
-            if (_.isEmpty(value) && !_.isEmpty(defaultValue)) {
+            if (_.isEmpty(value) && !_.isUndefined(defaultValue)) {
                 value = defaultValue;
                 this.#setValue(fieldName, value);
             }
