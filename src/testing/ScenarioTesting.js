@@ -246,7 +246,8 @@ module.exports = class ScenarioTesting {
             totalTestCount = 0,
             totalTestTime = 0,
             passedCount = 0,
-            failedCount = 0;
+            failedCount = 0,
+            passFailColor = '\x1b[33m';
 
         try {
             let wkList = this.#workingFileList;
@@ -265,13 +266,15 @@ module.exports = class ScenarioTesting {
 
                         if (testResult.passed && testResult.executionPassed) {
                             (scenarios[j].shouldFail) ? failedCount++ : passedCount++;
+                            passFailColor = (scenarios[j].shouldFail) ? '\x1b[31m' : '\x1b[32m';
                         } else {
                             (scenarios[j].shouldFail) ? passedCount++ : failedCount++;
+                            passFailColor = (scenarios[j].shouldFail) ? '\x1b[32m' : '\x1b[31m';
                         }
 
                         Log.log(`\n\x1b[36m ${testResult.notes} -> ran in: ${testResult.runningTimeMillis} milli(s)`);
                         Log.log(`\x1b[33m \t-> ${testResult.className}.${testResult.methodName}(${JSON.stringify(scenarios[j].inputValues)})`);
-                        Log.log(`\x1b[33m \t-> Method Passed: ${testResult.passed} -> Should Fail: ${scenarios[j].shouldFail}`);
+                        Log.log(`${passFailColor} \t-> Method Passed: ${testResult.passed} -> Should Fail: ${scenarios[j].shouldFail}`);
                         totalTestCount++;
                     }
                     else {
