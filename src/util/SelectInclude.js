@@ -14,10 +14,12 @@ module.exports = class SelectInclude {
             this.#selectInclude = req;
         }
         else {
-            this.#selectInclude = JSON.parse(req.query.select);
-            if (typeof this.#selectInclude[0].exclude === 'string') {
-                if (this.#selectInclude[0].exclude.toLowerCase() === 'true') this.#selectInclude[0].exclude = true;
-                else this.#selectInclude[0].exclude = false;
+            if (req.query?.select) {
+                this.#selectInclude = JSON.parse(req.query.select);
+                if (typeof this.#selectInclude[0].exclude === 'string') {
+                    if (this.#selectInclude[0].exclude.toLowerCase() === 'true') this.#selectInclude[0].exclude = true;
+                    else this.#selectInclude[0].exclude = false;
+                }
             }
         }
 

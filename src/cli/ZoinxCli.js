@@ -11,6 +11,7 @@ const Playground = require('../playground/Playground');
 const laService = require('../routes/localAccts/service');
 const bcrypt = require("bcryptjs");
 const rrService = require("../routes/routeRoles/service");
+const {KafkaClient} = require("zoinx/datastream");
 
 module.exports = class ZoinxCli extends BaseCli {
 
@@ -28,7 +29,9 @@ module.exports = class ZoinxCli extends BaseCli {
                 'shell': {fn: 'execShellCmd', desc: 'Execute shell commands i.e. shell --ls -ltr'},
                 'create': {fn: 'createZoinxElements', desc: 'create --entity|feature\': Creates a new Entity or Feature file structure for a simple CRUD route. \n' +
                         '            \'Example usage: create --entity={"name": "newEntity", "className": "NewEntity", "schemaName": "dork.newEntity"} Supported templates: index, route, service, domain, statics, controller'},
-                "playground": {fn: 'playground', desc: 'JS programming examples'}
+                "playground": {fn: 'playground', desc: 'JS programming examples'},
+                'run kafka consumer': {fn: 'runKafkaConsumer', desc: 'Run a simple Kafka consumer for a specified topic'},
+                'rkc': {fn: 'runKafkaConsumer', desc: 'Run a simple Kafka consumer for a specified topic'}
             }
         )
 
@@ -266,6 +269,27 @@ module.exports = class ZoinxCli extends BaseCli {
             return;
         }
         Log.info('No matching playground function');
+    }
+
+    async runKafkaConsumer(inputStr, _interface){
+        let inputParts = inputStr.trim().split('--'),
+            topic;
+
+        try {
+            if (!_.isEmpty(inputParts[1])) topic = inputParts[1];
+
+            if (!_.isEmpty(topic)) {
+                let kafkaClient = new KafkaClient('Telemetry', [AppConfig.get('TELEMETRY_MESSAGE_SERVERS')]);
+                kafkaClient.setClientConfig('TELEMETRY_KAFKA',  AppConfig.get('TELEMETRY_ENV'), AppConfig.get('TELEMETRY_USE_SSL'));
+                await kafkaClient.readMessage(topic);
+            }
+            else {
+                Log.warn('No topic supplied to create a consumer for.');
+            }
+        }
+        catch (e) {
+            Log.error(e);
+        }
     }
 
 }
