@@ -8,11 +8,22 @@ const ObjectUtil = require('../../util/ObjectUtil');
 module.exports = class FileDestination extends Destination {
     name = 'file-destination';
     type = 'file';
-    debug = false;
+    // debug = false;
 
     #writeStream;
     #console;
+    #rotationIntervalId;
 
+    /**
+     * @param {object} options
+     * @param {string} options.name - the name of the destination
+     * @param {boolean} options.debug - debug settings are enabled
+     * @param {object} options.config - configuration based on destination type
+     * @param {string} options.config.file - path and name of log file
+     * @param {number} options.config.maxAge - if the log file is older than X milliseconds create a new file
+     * @param {number} options.config.maxSize - if the log file is larger than X bytes create a new file
+     * @param {number} options.config.rotationInterval - how often to check if log file needs rotated
+     */
     constructor(options={}) {
         super(...arguments);
 
@@ -20,7 +31,7 @@ module.exports = class FileDestination extends Destination {
         config.file = config?.file ?? 'logs/app.log';
         config.maxAge = config?.maxAge ?? (3600 * 24);
         config.maxSize = config?.maxSize ?? (1_048);
-        config.rotationInterval = config?.rotationInterval ?? (10000); // 10 sec
+        config.rotationInterval = config?.rotationInterval ?? (10_000);
 
         this.#writeStream = fs.createWriteStream(path.resolve(this.getConfig().file), { flags: 'a' });
         this.#console = new console.Console({
@@ -31,14 +42,19 @@ module.exports = class FileDestination extends Destination {
 
         this.#rotateLogIfNeeded();
 
-        // console.log('config', this.getConfig());
-
-        setInterval(() => {
+        this.#rotationIntervalId = setInterval(() => {
             this.#rotateLogIfNeeded();
         }, config.rotationInterval);
     }
 
+    /**
+     * @todo add a way to pause log rotation
+     */
+
     #rotateLogIfNeeded() {
+        if (this.debug) {
+            console.debug(this.name, 'Checking if log needs rotated');
+        }
         const timestamp = new Date().toISOString().replace(/[-:]/g, '.');
 
         const maxAge = this.getConfig().maxAge;
@@ -55,19 +71,26 @@ module.exports = class FileDestination extends Destination {
         // Create directory if it does not exist.
         //
         if (!isDirExist) {
-            console.log('Directory does not exist. Creating', dir);
+            if (this.debug) {
+                console.debug(this.name, 'Directory does not exist. Creating', dir);
+            }
             fs.mkdirSync(dir, { recursive: true });
         }
 
         if (isFileTooOld || isFileTooBig) {
             const newFileName = path.resolve(dir, `${name}-${timestamp}${ext}`);
-            console.log('File exceeds max age or size. Renaming to', newFileName);
+
+            if (this.debug) {
+                console.debug(this.name, 'File exceeds max age or size. Renaming to', newFileName);
+            }
+
             fs.renameSync(absolutePath, newFileName);
+
+            this.#writeStream = fs.createWriteStream(absolutePath, { flags: 'a' });
+            this.#console._stdout = this.#writeStream;
+            this.#console._stderr = this.#writeStream;
         }
 
-        this.#writeStream = fs.createWriteStream(absolutePath, { flags: 'a' });
-        this.#console._stdout = this.#writeStream;
-        this.#console._stderr = this.#writeStream;
     }
 
     #isFileOlderThan(filePath, maxAgeInSeconds) {

@@ -50,7 +50,7 @@ class Logger {
         destinations: [
             new ConsoleDestination({
                 id: 'default',
-                name: 'default-stdout',
+                name: 'default-console',
                 type: 'stdout'
             })
         ]
@@ -129,9 +129,7 @@ class Logger {
         if (this.#instances.has(instance.name)) {
             return console.warn(`[zoinx/logger] Logger ${instance.name} already exists.`);
         }
-
         this.#instances.set(instance.name, instance);
-
         this.#options.config.loggers[instance.name] = this.#options.config.loggers[instance.name] ?? 'all';
     }
     static create(options={}) {
@@ -155,9 +153,6 @@ class Logger {
                 }
             }
         });
-
-        // Create default logger instance
-        // this.create();
     }
 
     static log() {
