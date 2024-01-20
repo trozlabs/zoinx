@@ -12,6 +12,23 @@ module.exports = class TelemetryChain {
         return this.#telemetryEvents;
     }
 
+    async getTelemetryEventsJson() {
+        let telemetryEvents = [];
+
+        try {
+            if (!_.isEmpty(this.#telemetryEvents)) {
+                for (let i = 0; i < this.#telemetryEvents.length; i++) {
+                    telemetryEvents.push(this.#telemetryEvents[i].json);
+                }
+            }
+        }
+        catch (e) {
+            Log.error(e.message);
+        }
+
+        return telemetryEvents;
+    }
+
     set telemetryEvents(events) {
         this.#telemetryEvents = events;
     }

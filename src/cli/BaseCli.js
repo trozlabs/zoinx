@@ -4,8 +4,13 @@ const events = require("events");
 const _ = require("lodash");
 const readline = require("readline");
 const MongoDB = require("./../database/MongoDB");
+const TelemetryChain = require('../telemetry/TelemetryChain');
+const Telemetry = require("../telemetry/Telemetry");
+const TelemetryTraceModel = require("../telemetry/TelemetryTraceModel");
+const os = require("os");
+const {randomUUID} = require("crypto");
 
-module.exports = class BaseCli {
+module.exports = class BaseCli extends TelemetryChain {
 
     #_interface
     #cliProcessName
@@ -20,8 +25,10 @@ module.exports = class BaseCli {
     #useDB = false
     #envArg = '.env'
     #otherArgs = []
+    #telemetry
 
     constructor(cliProcessName='!!!!! NO NAME !!!!!', process) {
+        super();
         this.#cliProcessName = cliProcessName;
         this.#process = process;
         this.#events = new events();
@@ -52,16 +59,55 @@ module.exports = class BaseCli {
             if (str === '\n') _interface.write('\n\n');
             await clazz.#processInput(str, _interface);
             _interface.prompt();
+            await this.#gatherAndSendTelemetry();
         });
 
         _interface.on('close', function () {
             process.exit(0);
         });
 
-        // _interface.prompt();
+        // _interface.on('history', (history) => {
+        //     console.log(`Received: ${history}`);
+        // });
 
         if (this.#otherArgs.length > 0)
             this.#processOtherArgs(_interface);
+
+        this.#setupTelemetry().catch(r => {
+            Log.log(r)
+        });
+    }
+
+    async #setupTelemetry() {
+        try {
+            let configObj = new TelemetryTraceModel({
+                application_name: process.env.TELEMETRY_APPLICATION_NAME,
+                name: this.#cliProcessName,
+                serverInstance: os.hostname(),
+                trace_id: randomUUID(),
+                span_id: randomUUID(),
+                start_time: new Date(),
+                end_time: undefined,
+                events: [],
+                attributes: {},
+                status: {
+                    code: 200,
+                    message: 'OK'
+                }
+            });
+            this.#telemetry = new Telemetry(`${this.#cliProcessName}.cliResults`, configObj);
+        }
+        catch (e) {
+            Log.warn(e.message);
+        }
+    }
+
+    async #gatherAndSendTelemetry() {
+        let events = await this.getTelemetryEventsJson();
+        await this.#telemetry.setTelemetryEvents(events);
+        await this.#telemetry.setEndTime();
+        await this.#telemetry.setStatus();
+        this.telemetry.send();
     }
 
     async #processOtherArgs(_interface) {
@@ -86,6 +132,10 @@ module.exports = class BaseCli {
         catch (e) {
             Log.warn(e.message);
         }
+    }
+
+    get telemetry() {
+        return this.#telemetry;
     }
 
     get _interface() {

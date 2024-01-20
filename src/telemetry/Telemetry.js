@@ -17,7 +17,6 @@ module.exports = class Telemetry {
     #telemetryModel
     #telemetryName
     #telemetryStatus
-    #telemetrySendFailsService
 
     constructor(telemetryName='No name provided', configObj, telemetryStatus) {
         this.#telemetryName = telemetryName;
@@ -31,7 +30,6 @@ module.exports = class Telemetry {
             else if (configObj.constructor.name === 'TelemetryTraceModel') {
                 this.#telemetryModel = configObj;
             }
-            this.#telemetrySendFailsService = new tsfService();
         }
     }
 
@@ -92,6 +90,22 @@ module.exports = class Telemetry {
         }
         catch (e) {
             throw e;
+        }
+    }
+
+    async setTelemetryEvents(events=[]) {
+        if (_.isArray(events) && events.length > 0) {
+            this.#telemetryModel.set('events', events);
+        }
+    }
+
+    async setEndTime() {
+        this.#telemetryModel.set('end_time', new Date());
+    }
+
+    async setStatus(status={}) {
+        if (_.isObject(status) && Object.keys(status).length > 0) {
+            this.#telemetryModel.set('status', status);
         }
     }
 
