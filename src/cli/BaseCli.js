@@ -1,4 +1,4 @@
-const Log = require("../log/Log");
+const Logger = require('../logger/Logger');
 const StaticUtil = require('../util/StaticUtil');
 const events = require("events");
 const _ = require("lodash");
@@ -29,6 +29,7 @@ module.exports = class BaseCli extends TelemetryChain {
 
     constructor(cliProcessName='!!!!! NO NAME !!!!!', process) {
         super();
+        this.logger = Logger.create({ name: this.constructor.name });
         this.#cliProcessName = cliProcessName;
         this.#process = process;
         this.#events = new events();
