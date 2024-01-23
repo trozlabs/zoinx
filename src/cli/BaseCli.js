@@ -75,7 +75,7 @@ module.exports = class BaseCli extends TelemetryChain {
             this.#processOtherArgs(_interface);
 
         this.#setupTelemetry().catch(r => {
-            Log.log(r)
+            this.logger.log(r)
         });
     }
 
@@ -99,7 +99,7 @@ module.exports = class BaseCli extends TelemetryChain {
             this.#telemetry = new Telemetry(`${this.#cliProcessName}.cliResults`, configObj);
         }
         catch (e) {
-            Log.warn(e.message);
+            this.logger.warn(e.message);
         }
     }
 
@@ -131,7 +131,7 @@ module.exports = class BaseCli extends TelemetryChain {
                 this.#otherArgs = processedArgs;
         }
         catch (e) {
-            Log.warn(e.message);
+            this.logger.warn(e.message);
         }
     }
 
@@ -175,7 +175,7 @@ module.exports = class BaseCli extends TelemetryChain {
             }
         }
         catch (e) {
-            Log.warn(e.message);
+            this.logger.warn(e.message);
             await this.exit();
         }
     }
@@ -194,7 +194,7 @@ module.exports = class BaseCli extends TelemetryChain {
                 matchFound = !_.isEmpty(this.#uniqueInputs[eventParts.eventName]);
 
             if (!matchFound) {
-                Log.warn(`No matching action for input: ${inputStr}`);
+                this.logger.warn(`No matching action for input: ${inputStr}`);
             }
             else {
                 const funcResult = await this[this.#uniqueInputs[eventParts.eventName].fn](inputStr, _interface);
@@ -293,7 +293,7 @@ module.exports = class BaseCli extends TelemetryChain {
             await this.horizontalLine();
         }
         catch (ex) {
-            Log.error(ex);
+            this.logger.error(ex);
         }
     }
 }
