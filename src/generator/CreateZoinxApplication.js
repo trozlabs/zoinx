@@ -106,7 +106,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
                 '-> One uppercase letter\n' +
                 '-> One lowercase letter\n' +
                 '-> One number\n' +
-                '-> One special character (@$!%*?&)',
+                '-> One special character (@$!%*&)',
             answerProp: 'mongoRootPw',
             answerType: 'string',
             answerDefault: undefined,
@@ -130,7 +130,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
                 '-> One uppercase letter\n' +
                 '-> One lowercase letter\n' +
                 '-> One number\n' +
-                '-> One special character (@$!%*?&)',
+                '-> One special character (@$!%*&)',
             answerProp: 'mongoPw',
             answerType: 'string',
             answerDefault: undefined,
