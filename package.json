@@ -117,6 +117,7 @@
         "jwks-rsa": "^3.0.1",
         "kafkajs": "^2.2.4",
         "lodash": "^4.17.21",
+        "mkdirp": "^3.0.1",
         "mongoose": "latest",
         "node-cache": "^5.1.2",
         "node-fetch": "^2.6.6"

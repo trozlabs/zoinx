@@ -13,7 +13,6 @@ hostname -I | awk '{print $1}'
 
 if [ "$RUN_APP" != 0 ]; then
     # Start the app
-    #npm install --no-audit --no-fund --loglevel=warn
     npm run start &
 fi
 
