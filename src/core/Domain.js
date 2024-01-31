@@ -184,8 +184,8 @@ module.exports = class Domain {
         }
     }
 
-    remove(id) {
-        return this.#Domain.findByIdAndRemove(id);
+    async remove(id) {
+        return this.#Domain.findByIdAndDelete(id);
     }
 
     async insertMany(rawObjects=[]) {
