@@ -1,6 +1,3 @@
-// const path = require('node:path');
-// const fs = require('node:fs')
-// const { EventEmitter } = require('node:events');
 const ObservableObject = require('../util/ObservableObject.js');
 const StringUtil = require('../util/StringUtil.js');
 
@@ -11,7 +8,12 @@ const { Color } = require('./Color.js');
 const { ConsoleDestination, WorkerDestination, FileDestination, Destination } = require('./destination');
 
 class Logger {
-    static destinations = { ConsoleDestination, WorkerDestination, FileDestination, Destination };
+    static destinations = {
+        ConsoleDestination,
+        WorkerDestination,
+        FileDestination,
+        Destination
+    };
 
     static Levels = {
         OFF     : -1,
@@ -27,7 +29,9 @@ class Logger {
 
     static #file;
 
-    static #options;
+    static #options = {
+        loggers: {}
+    };
 
     static #instances;
 
@@ -75,7 +79,8 @@ class Logger {
 
             this.#file = new WatchedFile({
                 name: this.#options.name,
-                filepath: this.#options.configFile
+                filepath: this.#options.configFile,
+                initFileContent: JSON.stringify(this.#options.config, null, 4)
             });
 
             try {
@@ -87,7 +92,7 @@ class Logger {
             }
 
             this.#file.on('change', ({ filename, data }) => {
-                console.debug(' - on config file change', filename);
+                console.debug('[zoinx/logger] config file change', filename);
                 try {
                     const parsedConfig = JSON.parse(data);
                     const diffs = diffObjects(this.#options.config, parsedConfig);
@@ -143,6 +148,7 @@ class Logger {
 
         // When `options.config` changes...
         this.#options.config.events.on('config.loggers', (event) => {
+
             // console.log('Logger.options.config.loggers changed', event.newValue);
             if (this.#file) {
                 try {
@@ -155,22 +161,6 @@ class Logger {
         });
     }
 
-    static log() {
-        this.get('default').log(...arguments);
-    }
-    static info() {
-        this.get('default').info(...arguments);
-    }
-    static debug() {
-        this.get('default').debug(...arguments);
-    }
-    static warn() {
-        this.get('default').warn(...arguments);
-    }
-    static error() {
-        this.get('default').error(...arguments);
-    }
-
     constructor({ id, app, name, config={}, filters=[], transformers=[], destinations=[] } = {}) {
         const self = this.#self = this.constructor;
 
@@ -178,7 +168,6 @@ class Logger {
         this.id              = id           ?? crypto.randomUUID();
         this.app             = app          ?? self.#options.app;
         this.name            = name         ?? self.#options.name;
-
         // private
         this.#config         = Object.assign({}, self.#options.config, config);
         this.#filters        = filters      ?? [];

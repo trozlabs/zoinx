@@ -9,11 +9,15 @@ module.exports = class WatchedFile extends EventEmitter {
     name;
     filepath;
 
-    constructor({ name, filepath }) {
+    constructor({ name, filepath, initFileContent='' }) {
         super();
 
         this.name = name;
         this.filepath = filepath;
+
+        if (!fs.existsSync(filepath)) {
+            this.write(initFileContent);
+        }
 
         fs.watch(filepath, (eventType, filename) => {
             if (eventType === 'change') {
