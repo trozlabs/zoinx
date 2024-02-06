@@ -22,6 +22,7 @@ class Log {
         let appName = this.logger?.app ?? '';
         let level = this.level;
         let message = this.message;
+
         let colorDim = Color.DIM;
         let colorReset = Color.RESET;
         let colorText = Color[this.level].FG;
