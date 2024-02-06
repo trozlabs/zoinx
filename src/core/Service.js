@@ -82,8 +82,12 @@ module.exports = class Service extends TelemetryChain {
                 const filters = new Filter(req).getFilters();
                 const sorters = new Sort(req).getSort();
                 const select = new SelectInclude(req).getSelect();
-                const limit = (!_.isEmpty(req.query.limit) && _.isNumber(req.query.limit)) ? req.query.limit : 1000;
-                const offset = (!_.isEmpty(req.query.offset) && _.isNumber(req.query.offset)) ? req.query.offset : 0;
+
+                const parsedLimit = parseInt(req.query.limit);
+                const limit = (!_.isNaN(parsedLimit)) ? parsedLimit : 1000;
+
+                const parsedOffset = parseInt(req.query.offset);
+                const offset = (!_.isNaN(parsedOffset)) ? parsedOffset : 0;
                 return {
                     filters: filters,
                     sorters: sorters,
