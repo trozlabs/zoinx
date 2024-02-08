@@ -125,7 +125,7 @@ services:
 #          connections:
 #            local-kafka:
 #              properties:
-#                bootstrap.servers: "${FOGLIGHT_KAFKA_LOCAL_SERVERS}"
+#                bootstrap.servers: "localhost:9093"
 
 #  nifi:
 #    profiles: [ optional ]
