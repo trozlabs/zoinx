@@ -34,8 +34,8 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         'projectInit':      { templateFile: 'projectInit.json.txt',         destinationFile: 'projectInit.json',        subDir: 'docker/node'},
         'mongoscript':      { templateFile: 'init.js.txt',                  destinationFile: 'init.js',                 subDir: 'docker/mongo'},
         'kafkaAddons':      { templateFile: 'InstallExtras.sh.txt',         destinationFile: 'InstallExtras.sh',        subDir: 'docker/kafka'},
-        'AppStatics':       { templateFile: 'AppStatics.js.txt',            destinationFile: 'AppStatics.js',           subDir: ''},
-        'AppStaticsTest':   { templateFile: 'AppStatics.json.txt',          destinationFile: 'AppStatics.json',         subDir: 'scenarios'}
+        'AppStatics':       { templateFile: 'AppStatics.js.txt',            destinationFile: 'AppStatics.js',           subDir: 'src'},
+        'AppStaticsTest':   { templateFile: 'AppStatics.json.txt',          destinationFile: 'AppStatics.json',         subDir: 'src/scenarios'}
     }
     #projectDirectories = {
         'picklists':        { templateDir: 'src/entities/picklists',        destinationDir: 'src/entities/picklists' },
@@ -268,7 +268,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         await this.#createProjectDirectories();
         await this.#doesDockerExist();
         // await this.#doesMongoshExist();
-        await this.#execNpmInstall();
+        // await this.#execNpmInstall();
 
         await this.#cliParent.exit();
     }
