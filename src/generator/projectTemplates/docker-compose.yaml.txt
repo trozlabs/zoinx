@@ -104,11 +104,8 @@ services:
 #    ports:
 #      - 9090:9091
 #    networks:
-#      - api-network
-#    # volumes:
-#    #   - ./docker/kafka/akhq/application.yml:/app/application.yml
+#      - <%= projectName %>-network
 #    environment:
-#      # MICRONAUT_CONFIG_FILES: /app/application.yml
 #      AKHQ_CONFIGURATION: |
 #        micronaut:
 #          server:
@@ -125,7 +122,7 @@ services:
 #          connections:
 #            local-kafka:
 #              properties:
-#                bootstrap.servers: "localhost:9093"
+#                bootstrap.servers: "kafka:9092"
 
 #  nifi:
 #    profiles: [ optional ]
