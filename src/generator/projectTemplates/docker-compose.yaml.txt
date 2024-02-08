@@ -98,9 +98,9 @@ services:
 #    depends_on:
 #      - kafka
 #    image: tchiotludo/akhq:latest
-#    container_name: ${AKHQ_CONFIGURATION_CONTAINER_NAME}
+#    container_name: \$\{AKHQ_CONFIGURATION_CONTAINER_NAME\}
 #    working_dir: /app
-#    hostname: ${AKHQ_CONFIGURATION_HOSTNAME}
+#    hostname: \$\{AKHQ_CONFIGURATION_HOSTNAME\}
 #    ports:
 #      - 9090:9091
 #    networks:
@@ -112,8 +112,8 @@ services:
 #      AKHQ_CONFIGURATION: |
 #        micronaut:
 #          server:
-#            container_name: ${AKHQ_CONFIGURATION_CONTAINER_NAME}
-#            hostname: ${AKHQ_CONFIGURATION_HOSTNAME}
+#            container_name: \$\{AKHQ_CONFIGURATION_CONTAINER_NAME\}
+#            hostname: \$\{AKHQ_CONFIGURATION_HOSTNAME\}
 #            port: 9091
 #            cors:
 #              enabled: true
