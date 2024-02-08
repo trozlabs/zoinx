@@ -1,0 +1,34 @@
+{
+    "StringToBoolean": {
+        "true should work": {
+            "inputValues": [true],
+            "shouldFail": false
+        },
+        "false should work": {
+            "inputValues": [false],
+            "shouldFail": false
+        },
+        "'true' should work": {
+            "inputValues": ["true"],
+            "shouldFail": false
+        },
+        "'false' should work": {
+            "inputValues": ["false"],
+            "shouldFail": false
+        },
+        "array input should return false": {
+            "inputValues": [[34,45]],
+            "shouldFail": false
+        }
+    },
+    "ObjectsDiff": {
+        "simple objects should show a diff": {
+            "inputValues": [{"name": "John Doe", "age": 34, "gender": "male"}, {"name": "John Doe", "age": 34, "gender": "not specified"}],
+            "shouldFail": false
+        },
+        "missing second param": {
+            "inputValues": [{"name": "John Doe", "age": 34, "gender": "male"}],
+            "shouldFail": false
+        }
+    }
+}

@@ -33,7 +33,9 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         'dockerscript':     { templateFile: 'docker-entrypoint.txt',        destinationFile: 'docker-entrypoint.sh',    subDir: 'docker/node'},
         'projectInit':      { templateFile: 'projectInit.json.txt',         destinationFile: 'projectInit.json',        subDir: 'docker/node'},
         'mongoscript':      { templateFile: 'init.js.txt',                  destinationFile: 'init.js',                 subDir: 'docker/mongo'},
-        'kafkaAddons':      { templateFile: 'InstallExtras.sh.txt',         destinationFile: 'InstallExtras.sh',        subDir: 'docker/kafka'}
+        'kafkaAddons':      { templateFile: 'InstallExtras.sh.txt',         destinationFile: 'InstallExtras.sh',        subDir: 'docker/kafka'},
+        'AppStatics':       { templateFile: 'AppStatics.js.txt',            destinationFile: 'AppStatics.js',           subDir: ''},
+        'AppStaticsTest':   { templateFile: 'AppStatics.json.txt',          destinationFile: 'AppStatics.json',         subDir: 'scenarios'}
     }
     #projectDirectories = {
         'picklists':        { templateDir: 'src/entities/picklists',        destinationDir: 'src/entities/picklists' },
