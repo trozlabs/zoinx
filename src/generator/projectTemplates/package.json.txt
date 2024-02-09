@@ -11,7 +11,7 @@
     "start-dev": "nodemon bin/www.js",
     "develop": "npm ci && nodemon --trace-warnings --inspect=0.0.0.0 bin/www.js",
     "develop-break-on-startup": "npm install && nodemon --trace-warnings --inspect-brk=0.0.0.0 bin/www.js",
-    "run-scenario-test": "node ./bin/TestRunner.js 'rssf--/src/scenarios/AppStatics.json'",
+    "run-scenario-test": "node ./bin/TestRunner.js .env.local usedb 'rssf--/src/scenarios/AppStatics.json'",
     "format": "prettier --write \"**/*.{js,ts,tsx,json,md}\"",
     "zoinxcli": "node ./bin/ZoinxCli.js",
     "zoinxcli-usedb": "node ./bin/ZoinxCli.js usedb",
