@@ -1,0 +1,19 @@
+#!/usr/bin/env node
+
+const AppConfig = require('../src/AppConfig');
+const { Log } = require('zoinx/log');
+const { TestRunner } = require('zoinx/cli)';
+
+class LocalTestRunner extends TestRunner {
+    constructor(process) {
+        super(process);
+        AppConfig.initConfig(this.envArg).catch((err) => {
+           Log.error(err);
+        });
+        if (this.useDB) {
+            exports.db = require('../src/db');
+        }
+    }
+}
+
+new LocalTestRunner(process);
