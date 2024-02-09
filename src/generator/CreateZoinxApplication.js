@@ -268,7 +268,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         await this.#createProjectDirectories();
         await this.#doesDockerExist();
         // await this.#doesMongoshExist();
-        // await this.#execNpmInstall();
+        await this.#execNpmInstall();
 
         await this.#cliParent.exit();
     }
