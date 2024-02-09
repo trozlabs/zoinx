@@ -2,7 +2,7 @@
 
 const AppConfig = require('../src/AppConfig');
 const { Log } = require('zoinx/log');
-const { TestRunner } = require('zoinx/cli)';
+const { TestRunner } = require('zoinx/cli');
 
 class LocalTestRunner extends TestRunner {
     constructor(process) {
