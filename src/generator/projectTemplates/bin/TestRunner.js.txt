@@ -7,7 +7,7 @@ const { TestRunner } = require('zoinx/cli');
 class LocalTestRunner extends TestRunner {
     constructor(process) {
         super(process);
-        AppConfig.initConfig(this.envArg).catch((err) => {
+        AppConfig.initConfigCLI(this.envArg).catch((err) => {
            Log.error(err);
         });
         if (this.useDB) {

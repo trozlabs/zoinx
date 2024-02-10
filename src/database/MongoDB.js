@@ -69,8 +69,8 @@ module.exports = class Database {
         Log.debug(this.uri);
 
         this.options = {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
+            // useNewUrlParser: true,
+            // useUnifiedTopology: true,
             maxPoolSize: maxPoolSize
         }
 
