@@ -141,7 +141,7 @@ module.exports = class ZoinxTest {
                             if (TypeDefinitions.isObjectLike(tmpResult)) {
                                 if (tmpResult.constructor.name === 'Promise')
                                     tmpResult = await tmpResult;
-                                tmpResult = await UtilMethods.getJsonWithoutCirculars(tmpResult, 4);
+                                tmpResult = await this.reduceObjectOrArray(tmpResult);
                             }
                         }
                         testRec.set(key, tmpResult);
@@ -166,6 +166,18 @@ module.exports = class ZoinxTest {
         }
 
         return true;
+    }
+
+    static async reduceObjectOrArray(toReduce) {
+        if (!_.isEmpty(toReduce) && _.isArray(toReduce) && toReduce.length >= 10) {
+            return toReduce.splice(10);
+        }
+        else if (!_.isEmpty(toReduce) && _.isObject(toReduce)) {
+            if (['IncomingMessage', 'ServerResponse'].includes(toReduce.constructor.name)) {
+                return await UtilMethods.getJsonWithoutCirculars(toReduce, 8);
+            }
+            return await UtilMethods.getJsonWithoutCirculars(toReduce, 4);
+        }
     }
 
     static async functionTest(clazz, func, passedArguments, testRec) {
@@ -202,15 +214,24 @@ module.exports = class ZoinxTest {
 
                 //getJsonWithoutCirculars modifies the passedArguments data this modification
                 //makes scenario testing hashes not work as needed. This is here to have
-                //a clean copy of the arguments so they can be put back in.
-                let origPassedArguments = passedArguments.slice();
+                //a clean copy of the arguments, so they can be put back in.
+                let origPassedArguments = passedArguments.slice(),
+                    tmpReduced = [];
+
+                // There isn't a need to
+                for (let i=0; i<origPassedArguments.length; i++) {
+                    tmpReduced.push(await this.reduceObjectOrArray(origPassedArguments[i]));
+                }
+                if (tmpReduced.length > 0) {
+                    testRec.set('passedArguments', tmpReduced);
+                }
 
                 testRec = await UtilMethods.getTestObjectWithoutModels(testRec);
                 testRec = await UtilMethods.getJsonWithoutCirculars(testRec.json, 6);
 
                 // getJsonWithoutCirculars is def causing problems that will need to be evaluated.
                 // Some objects are seriously big and many circular references and those objects
-                // have to have those circular ref removed. Incomingmessage and ServerResponse are
+                // have to have those circular ref removed. IncomingMessage and ServerResponse are
                 // 2 great examples. This is hopefully a temporary "fix".
                 let reassign = true,
                     paramKeys = Object.keys(testRec.testedParams);
@@ -228,7 +249,8 @@ module.exports = class ZoinxTest {
                 if (reassign)
                     testRec.passedArguments = origPassedArguments;
 
-                new TestMsgProducer(testRec).send();
+
+                new TestMsgProducer(testRec).send().catch();
                 return testRec;
             }
             catch (e) {

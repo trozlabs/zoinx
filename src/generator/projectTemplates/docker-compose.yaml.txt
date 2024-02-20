@@ -93,6 +93,37 @@ services:
     networks:
       - <%= projectName %>-network
 
+#  akhq:
+#    profiles: [ optional ]
+#    depends_on:
+#      - kafka
+#    image: tchiotludo/akhq:latest
+#    container_name: \$\{AKHQ_CONFIGURATION_CONTAINER_NAME\}
+#    working_dir: /app
+#    hostname: \$\{AKHQ_CONFIGURATION_HOSTNAME\}
+#    ports:
+#      - 9090:9091
+#    networks:
+#      - <%= projectName %>-network
+#    environment:
+#      AKHQ_CONFIGURATION: |
+#        micronaut:
+#          server:
+#            container_name: \$\{AKHQ_CONFIGURATION_CONTAINER_NAME\}
+#            hostname: \$\{AKHQ_CONFIGURATION_HOSTNAME\}
+#            port: 9091
+#            cors:
+#              enabled: true
+#              configurations:
+#                all:
+#                  allowedOrigins:
+#                    - http://host:3000
+#        akhq:
+#          connections:
+#            local-kafka:
+#              properties:
+#                bootstrap.servers: "kafka:9092"
+
 #  nifi:
 #    profiles: [ optional ]
 #    container_name: \$\{SERVICE_NAME\}-nifi-\$\{ENV\}

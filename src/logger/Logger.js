@@ -133,7 +133,7 @@ class Logger {
     }
     static add(instance) {
         if (this.#instances.has(instance.name)) {
-            return //console.warn(`[zoinx/logger] Logger ${instance.name} already exists.`);
+            return; //console.warn(`[zoinx/logger] Logger ${instance.name} already exists.`);
         }
         this.#instances.set(instance.name, instance);
         this.#options.config.loggers[instance.name] = this.#options.config.loggers[instance.name] ?? 'all';

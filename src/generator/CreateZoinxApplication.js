@@ -29,11 +29,14 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         'AppConfig':        { templateFile: 'AppConfig.js.txt',             destinationFile: 'AppConfig.js',            subDir: 'src'},
         'www':              { templateFile: 'www.js.txt',                   destinationFile: 'www.js',                  subDir: 'bin'},
         'ZoinxCli':         { templateFile: 'ZoinxCli.js.txt',              destinationFile: 'ZoinxCli.js',             subDir: 'bin'},
+        'TestRunner':       { templateFile: 'TestRunner.js.txt',            destinationFile: 'TestRunner.js',           subDir: 'bin'},
         'dockerfile':       { templateFile: 'Dockerfile.txt',               destinationFile: 'Dockerfile',              subDir: 'docker/node'},
         'dockerscript':     { templateFile: 'docker-entrypoint.txt',        destinationFile: 'docker-entrypoint.sh',    subDir: 'docker/node'},
         'projectInit':      { templateFile: 'projectInit.json.txt',         destinationFile: 'projectInit.json',        subDir: 'docker/node'},
         'mongoscript':      { templateFile: 'init.js.txt',                  destinationFile: 'init.js',                 subDir: 'docker/mongo'},
-        'kafkaAddons':      { templateFile: 'InstallExtras.sh.txt',         destinationFile: 'InstallExtras.sh',        subDir: 'docker/kafka'}
+        'kafkaAddons':      { templateFile: 'InstallExtras.sh.txt',         destinationFile: 'InstallExtras.sh',        subDir: 'docker/kafka'},
+        'AppStatics':       { templateFile: 'AppStatics.js.txt',            destinationFile: 'AppStatics.js',           subDir: 'src'},
+        'AppStaticsTest':   { templateFile: 'AppStatics.json.txt',          destinationFile: 'AppStatics.json',         subDir: 'src/scenarios'}
     }
     #projectDirectories = {
         'picklists':        { templateDir: 'src/entities/picklists',        destinationDir: 'src/entities/picklists' },
