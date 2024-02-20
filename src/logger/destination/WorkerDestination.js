@@ -3,15 +3,37 @@ const util = require('node:util');
 const { Worker } = require('node:worker_threads');
 const Destination = require('./Destination');
 
+/**
+ * @example
+ * new WorkerDestination({
+ *  name: 'my-worker-destination',
+ *  config: {
+ *      file: 'my-worker.js',
+ *      workerOptions: {
+ *          workerData: {...}
+ *      }
+ *  }
+ * })
+ */
 module.exports = class WorkerDestination extends Destination {
+
+    /**
+     * @constructor
+     * @param {Object} [options={}]
+     * @param {string} options.name='worker-destination'
+     * @param {object} options.config
+     * @param {string} options.config.file=''
+     * @param {object} options.config.workerOptions={}
+     */
     constructor({ name='worker-destination', config={ workerOptions: {}, file: '' } } = {}) {
         super(...arguments);
 
         this.name = name;
 
         if (config.file) {
-            // console.log('config.file', config.file);
+
             this.#worker = new Worker(config.file, config.workerOptions ?? {});
+
             this.#worker.on('online', this.onConnection.bind(this));
             this.#worker.on('connection', this.onConnection.bind(this));
             this.#worker.on('message', this.onMessage.bind(this));

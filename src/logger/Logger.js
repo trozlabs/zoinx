@@ -5,13 +5,14 @@ const { mergeArrayObjectsByKey, diffObjects } = require('./util.js');
 const Log = require('./Log.js');
 const WatchedFile = require('./WatchedFile.js');
 const { Color } = require('./Color.js');
-const { ConsoleDestination, WorkerDestination, FileDestination, Destination } = require('./destination');
+const { ConsoleDestination, WorkerDestination, FileDestination, KafkaDestination, Destination } = require('./destination');
 
 class Logger {
     static destinations = {
         ConsoleDestination,
         WorkerDestination,
         FileDestination,
+        KafkaDestination,
         Destination
     };
 
@@ -132,7 +133,7 @@ class Logger {
     }
     static add(instance) {
         if (this.#instances.has(instance.name)) {
-            return console.warn(`[zoinx/logger] Logger ${instance.name} already exists.`);
+            return //console.warn(`[zoinx/logger] Logger ${instance.name} already exists.`);
         }
         this.#instances.set(instance.name, instance);
         this.#options.config.loggers[instance.name] = this.#options.config.loggers[instance.name] ?? 'all';
