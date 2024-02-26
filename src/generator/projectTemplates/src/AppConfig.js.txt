@@ -28,7 +28,7 @@ module.exports = class ZoinxAppConfig extends AppConfig {
             await this.init(...files);
             await this.initTesting();
         } catch (e) {
-            logger.error(`Must have file path info init application configuration. Try using (__dirname, '.env') ... ${e.message}`);
+            logger.error(`Must have file path info init application configuration. Try using (__dirname, '.env') ... \$\{e.message\}`);
         }
     }
 

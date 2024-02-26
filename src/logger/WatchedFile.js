@@ -3,7 +3,7 @@ const { EventEmitter } = require('node:events');
 
 /**
  * @classdesc Wraps a file with EventEmitter to watch a file for
- * changes. Also adds read and write methods added for convienience.
+ * changes. Also adds read and write methods added for convenience.
  */
 module.exports = class WatchedFile extends EventEmitter {
     name;
