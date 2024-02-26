@@ -117,7 +117,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             endWithHR: true,
             exitOnFail: true,
             exitOnFailLabel: 'Mongo DB admin password',
-            regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+            regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!*&])[A-Za-z\d@$!*&]{8,}$/
         },
         7: {
             question: 'What DB username would you like to use for your Mongo DB? (mainUser)',
@@ -141,7 +141,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             endWithHR: true,
             exitOnFail: true,
             exitOnFailLabel: 'Mongo DB account password',
-            regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+            regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!*&])[A-Za-z\d@$!*&]{8,}$/
         },
         // 9: {
         //     question: 'Zoinx offers telemetry where messages are sent to a Kafka data streaming service. Similar to MongoDB, you can install it locally on your own or user a Docker instance.\n' +
@@ -192,7 +192,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
                 '-> One uppercase letter\n' +
                 '-> One lowercase letter\n' +
                 '-> One number\n' +
-                '-> One special character (@$!%*?&)',
+                '-> One special character (@$!*&)',
             answerProp: 'password',
             answerType: 'string',
             answerDefault: '----',
@@ -201,7 +201,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             exitOnFail: true,
             exitOnFailLabel: 'Local admin account password',
             escDblQuotes: true,
-            regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$/
+            regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!*&])[A-Za-z\d@$!*&]{10,}$/
         }
     }
 
