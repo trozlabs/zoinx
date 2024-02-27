@@ -4,7 +4,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const { GateKeeperMS } = require('zoinx/middle');
-
+const { Logger } = require('zoinx/logger');
 
 /**
  * Commented out are the env files searched for in the project
@@ -30,6 +30,9 @@ AppConfig.initConfig(
     // '.env.production',
     // '.env.production.local',
 );
+
+const logger = Logger.get();
+logger.info(`Starting application`);
 
 const app = express();
 

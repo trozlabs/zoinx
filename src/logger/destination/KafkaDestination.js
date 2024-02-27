@@ -1,6 +1,13 @@
 // const debug = util.debuglog('timber');
 const Destination = require('./Destination');
-const { Kafka, logLevel, CompressionTypes } = require('kafkajs');
+const KafkaClient = require('../../datastream/KafkaClient');
+const StaticUtil = require('../../util/StaticUtil');
+const _ = require('lodash');
+const { randomUUID } = require('crypto');
+const Network = require("../../util/Network");
+const lsfService = require("../../routes/loggingSendFails/service");
+const {Log} = require("../../log");
+const Encryption = require('../../util/Encryption');
 
 /**
  * @example
@@ -25,34 +32,70 @@ module.exports = class KafkaDestination extends Destination {
      */
     constructor(options = {}) {
         super(...arguments);
-
-        this.kafka = new Kafka({
-            logLevel: logLevel.ERROR,
-            clientId: this.getConfig()?.clientId,
-            brokers: this.getConfig()?.brokers,
-        });
-
-        this.producer = this.kafka.producer();
-
-        this.producer.connect().then(res => {
-            // console.log('Destination producer connected to kafka');
-        }).catch(err => {
-            console.error('Destination producer failed connecting to kafka', err);
-            // console.error(__filename, e.message, e);
+        this.#createLoggerProducer().catch((err) => {
+            console.error(err);
         });
     }
 
-    handle(data) {
-        const topic = this.getConfig().topic;
-        const json = JSON.stringify(data);
-
-        this.producer.send({
-            topic: topic,
-            compression: CompressionTypes.GZIP,
-            messages: [{ value: json }]
-        }).catch((err) => {
-            console.error('Sending to kafka failed', err);
-            // console.error(__filename, err.message, err);
-        });
+    async #createLoggerProducer() {
+        try {
+            if (_.isUndefined(global.kafka)) global.kafka = {};
+            if (_.isUndefined(global.kafka.LoggerProducer)) {
+                let kafkaClient = new KafkaClient('LoggerProducer', [process.env.LOGGER_MESSAGE_SERVERS]);
+                await kafkaClient.setClientConfig('LOGGER_KAFKA', process.env.LOGGER_ENV, process.env.LOGGER_USE_SSL);
+                global.kafka.LoggerProducer = kafkaClient;
+            }
+        }
+        catch (e) {
+            console.error(e);
+        }
     }
+
+    async handle(data) {
+        let logMsg = data?.plain,
+            keyString = (process.env.SERVICE_NAME) ? process.env.SERVICE_NAME : 'DevApplication';
+
+        try {
+            if (!_.isEmpty(logMsg)) {
+                if (StaticUtil.StringToBoolean(process.env.LOGGER_ENCRYPT)) {
+                    logMsg = await Encryption.encrypt(logMsg, process.env.LOGGER_SECRET_KEY, process.env.LOGGER_SECRET_IV);
+                }
+
+                keyString += `.${data.level}.${data.logger.name}:${new Date().getTime()}`;
+                if (_.isEmpty(keyString))
+                    keyString = randomUUID();
+
+                await global.kafka.LoggerProducer.sendMessage({
+                    key: keyString,
+                    value: JSON.stringify(logMsg)
+                }, process.env.LOGGER_TOPIC_NAME);
+            }
+        }
+        catch (e) {
+            let loggingObj = {
+                key: keyString,
+                message: logMsg
+            }
+            await this.saveLoggingSendFail(loggingObj, e);
+        }
+    }
+
+    async saveLoggingSendFail(loggingObj={}, error) {
+        try {
+            let saveObj = {
+                    send_to_server: process.env.LOGGER_MESSAGE_SERVERS,
+                    ip_address: Network.getHostAddress(),
+                    logging_obj: JSON.stringify(loggingObj),
+                    error_message: error.message
+                },
+                result;
+
+            let service = new lsfService();
+            result = await service.save(undefined, saveObj, {user: 'SYSTEM'});
+        }
+        catch (e) {
+            Log.error(e);
+        }
+    }
+
 }

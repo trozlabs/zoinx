@@ -2,11 +2,11 @@ const { ResponseObj, APIError, Route, Controller } = require('../../core');
 const { TestHarness } = require('../../testing');
 const { VerifyAuth } = require('../../middleware');
 
-const routeLabel = 'TestingSendFails';
+const routeLabel = 'LoggingSendFails';
 
-module.exports = TestHarness(class TestingSendFails extends Controller {
+module.exports = TestHarness(class LoggingSendFails extends Controller {
 
-    route = '/testingSendFails';
+    route = '/loggingSendFails';
     routes = [
         new Route({ method: 'get',      path: '/find',      before: [VerifyAuth],      handler: 'find' }),
         new Route({ method: 'get',      path: '/:id?',      before: [VerifyAuth],      handler: 'get' }),

@@ -383,6 +383,10 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
                 if (entryKeys[i] === 'docker') {
                     if (!this.configObj.docker) continue;
                 }
+
+                // if (mapRef.destinationFile === 'AppConfig.js')
+                //     console.log(mapRef.destinationFile);
+
                 fileContents = await this.getTemplateContent(this.#installPath, `${tmpSubDir}${mapRef.templateFile}`);
                 await this.writeSourceFile(`${this.#installPath}${tmpSubDir}`, mapRef.destinationFile, fileContents);
 

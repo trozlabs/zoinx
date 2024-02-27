@@ -37,7 +37,7 @@ const defs = [];
 async function addZoinxRoutes(app, routeGroups=[]) {
     logger.banner(`Adding Zoinx routes`);
 
-    const directories = ['./validatedAuths', './routeRoles', './telemetrySendFails', './testingSendFails'];
+    const directories = ['./validatedAuths', './routeRoles', './telemetrySendFails', './testingSendFails', './loggingSendFails'];
 
     try {
         for (let i = 0; i < directories.length; i++) {

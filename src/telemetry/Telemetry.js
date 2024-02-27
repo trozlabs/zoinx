@@ -170,7 +170,6 @@ module.exports = class Telemetry {
             let service = new tsfService();
 
             result = await service.save(undefined, saveObj, {user: 'SYSTEM'});
-            // Log.info(result);
         }
         catch (e) {
             Log.error(e);
