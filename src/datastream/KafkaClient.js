@@ -3,7 +3,6 @@ const { Kafka, logLevel } = require('kafkajs');
 const Log = require('../log/Log');
 const AppConfig = require('../util/AppConfig');
 const StaticUtil = require('../util/StaticUtil');
-const { Logger } = require('../logger');
 
 module.exports = class KafkaClient {
     #logOptions = false;
@@ -18,7 +17,7 @@ module.exports = class KafkaClient {
     #retries = 3;
 
     constructor(clientId = 'ZoinxClient', brokers = ['localhost:9092'], env='dev',  logOptions = false) {
-        this.logger = Logger.create({ name: this.constructor.name });
+        this.logger = require('../logger/Logger').create({ name: this.constructor.name });
 
         if (!_.isEmpty(clientId) && _.isString(clientId)) this.#clientId = clientId;
         if (!_.isEmpty(brokers) && _.isArray(brokers)) this.#brokers = brokers;
