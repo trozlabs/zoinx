@@ -5,7 +5,6 @@ const Filter = require("../util/Filter");
 const Sort = require('../util/Sort');
 const SelectInclude = require('../util/SelectInclude');
 const TelemetryChain = require('../telemetry/TelemetryChain');
-const { Logger } = require('../logger');
 
 module.exports = class Service extends TelemetryChain {
 
@@ -14,8 +13,7 @@ module.exports = class Service extends TelemetryChain {
 
     constructor(domainPath) {
         super();
-
-        this.logger = Logger.create({ name: this.constructor.name });
+        this.logger = require('../logger/Logger').create({ name: this.constructor.name });
 
         if (domainPath && typeof domainPath === 'string') {
             Maindomain = require(domainPath);
