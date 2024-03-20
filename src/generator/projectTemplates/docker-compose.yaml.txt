@@ -88,10 +88,11 @@ services:
       - 9092:9092
       - 9093:9093
     volumes:
-      - ./docker/kafka/InstallExtras.sh:/etc/kafka/configs
+      - ./docker/kafka/InstallExtras.sh:/etc/kafka/configs.sh
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - <%= projectName %>-network
+    command: /bin/bash -c "/etc/kafka/configs.sh"
 
 #  akhq:
 #    profiles: [ optional ]

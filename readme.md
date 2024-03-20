@@ -9,7 +9,7 @@
 <div align="center">
     <img src="images/zoinxLogo.png" alt="Zoinx" width="360" height="150">
   <p>
-    An Opinionated Framework based on NodeJS, Mongo and Kafka <br/>to simplify creating event driven, full-featured applications.
+    An Opinionated Framework based on NodeJS, Mongo and Kafka <br/>to simplify creating event driven, full-featured microservice applications.
     <br />
     <a href="https://github.com/trozlabs/zoinx/wiki"><strong>Explore the WIKI »</strong></a>
     <br />
@@ -52,7 +52,7 @@ The framework is primarily geared to creating event driven microservices. It is 
 
 Why use Zoinx:
 * Focus on what matters, business logic and not mundane details most applications need
-* Easily add Entities and Features covered in more detail below
+* Easily add Entities and Features
 * Built in application telemetry
 * Built in configuration based testing
 * Built in configuration for role based security
@@ -80,13 +80,13 @@ The development setup is based in Docker which can be resource intensive. The No
 ### Prerequisites
 Zoinx requires certain applications and environments to be ready to use. If you are already developing NodeJS and Docker based applications, you might already have what is needed.
 * GIT
-* npm/node version 18+
+* npm/node version 20+
 * nvm (suggested not required)
 * Docker Desktop or a Docker environment
-* Shell environment (specifically on Windows, use GitBash, PowerShell or CMD will not work)
+* Shell environment (specifically on Windows use GitBash, PowerShell or CMD will not work)
 * Mongo Compass (suggested not required)
 * API Platform i.e. Postman, Insomnia, etc.
-* Kafka client (suggested not required)
+* Kafka client (akhq is included but not installed to Docker by default)
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
@@ -107,8 +107,11 @@ Once the Docker environment is running, a picklists endpoint will already be in 
 ```js
 http://localhost:3000/picklists/typelist
 ```
-Because security is built in, the local account created after running the npx installer will need to be added to the request. This means:<br/>
-add a Basic Auth Header with the local account username and password. Default account is ROOT.
+
+Because security is built in, the local account created after running the npx installer will need to be added to the request.
+> This means:<br/>
+> add a Basic Auth Header with the local account username and password. Default account is ROOT.
+
 <br/>
 <br/>
 
