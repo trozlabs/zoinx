@@ -20,7 +20,7 @@ module.exports = class TestRunner extends BaseCli {
         )
 
         if (this.otherArgs.length > 0)
-            this.execOtherArgs(false);
+            this.execOtherArgs();
     }
 
     async verifyTestConfig(inputStr, _interface) {
