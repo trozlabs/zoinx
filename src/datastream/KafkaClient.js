@@ -141,7 +141,7 @@ module.exports = class KafkaClient {
             if (!this.#producerIsConnected) await this.connectProducer();
 
             await this.#producer.send({
-                topic: topicName,
+                topic: topicName,x
                 messages: [message]
             });
         }
@@ -184,11 +184,20 @@ module.exports = class KafkaClient {
         }
     }
 
+    get consumer() {
+        return this.#consumer;
+    }
+
+    async prepareConsumer(topicName = 'dev-topic', fromBeginning = false) {
+        if (_.isEmpty(this.#consumer)) await this.#createConsumer();
+        await this.#consumer.connect();
+        await this.#consumer.subscribe({ topic: topicName, fromBeginning: fromBeginning });
+        return this.#consumer;
+    }
+
     async readMessage(topicName = 'dev-topic', fromBeginning = false) {
         try {
-            if (_.isEmpty(this.#consumer)) await this.#createConsumer();
-            await this.#consumer.connect();
-            await this.#consumer.subscribe({ topic: topicName, fromBeginning: fromBeginning });
+            await this.prepareConsumer(topicName, fromBeginning);
 
             await this.#consumer.run({
                 eachMessage: async ({ topic, partition, message }) => {
