@@ -141,7 +141,7 @@ module.exports = class KafkaClient {
             if (!this.#producerIsConnected) await this.connectProducer();
 
             await this.#producer.send({
-                topic: topicName,x
+                topic: topicName,
                 messages: [message]
             });
         }
