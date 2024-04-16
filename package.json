@@ -119,6 +119,7 @@
         "lodash": "^4.17.21",
         "mkdirp": "^3.0.1",
         "mongoose": "latest",
+        "ws": "^8.16.0",
         "node-cache": "^5.1.2",
         "node-fetch": "^2.6.6"
     }

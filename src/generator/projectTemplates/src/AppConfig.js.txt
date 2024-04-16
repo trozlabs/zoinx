@@ -1,6 +1,7 @@
 const { Log } = require('zoinx/log');
 const { AppConfig, env } = require('zoinx/util');
 const { Logger } = require('zoinx/logger');
+const { WebSocketServer } = require('zoinx/datastream');
 
 module.exports = class ZoinxAppConfig extends AppConfig {
 
@@ -10,6 +11,7 @@ module.exports = class ZoinxAppConfig extends AppConfig {
             await this.initLogging();
             await this.logEnvVars();
             await this.initTesting();
+            // await this.initWebSockets();
         } catch (e) {
             Log.error(`Must have file path info init application configuration. Try using (__dirname, '.env') ... \$\{e.message\}`);
         }
@@ -108,6 +110,10 @@ module.exports = class ZoinxAppConfig extends AppConfig {
                 functionExclusionList: []
             };
         }
+    }
+
+    static async initWebSockets() {
+        global.WebSocketServer = new WebSocketServer();
     }
 
     static async enableTesting() {
