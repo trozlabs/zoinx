@@ -73,16 +73,16 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             answerValue: undefined,
             endWithHR: true
         },
+        // 3: {
+        //     question: 'Do you want to use this project with a Docker Container? (yes)',
+        //     answerProp: 'docker',
+        //     answerType: 'boolean',
+        //     answerDefault: true,
+        //     answerValue: undefined,
+        //     endWithHR: true,
+        //     skipForwardIfFalse: 6
+        // },
         3: {
-            question: 'Do you want to use this project with a Docker Container? (yes)',
-            answerProp: 'docker',
-            answerType: 'boolean',
-            answerDefault: true,
-            answerValue: undefined,
-            endWithHR: true,
-            skipForwardIfFalse: 6
-        },
-        4: {
             question: 'To make CRUD operations a reality, Zoinx uses Mongo as the primary Data Store.\n' +
                 'There are 2 options to install and use MongoDB:\n' +
                 '1. Install MongoDB locally anywhere you like\n' +
@@ -95,7 +95,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             answerValue: undefined,
             endWithHR: false
         },
-        5: {
+        4: {
             question: 'What admin username would you like to use for your Mongo DB? (doadmin)',
             answerProp: 'mongoRootUsr',
             answerType: 'string',
@@ -103,7 +103,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             answerValue: undefined,
             endWithHR: false
         },
-        6: {
+        5: {
             question: 'What is the password for the admin account?\n' +
                 '-> Must have a minimum of 8 characters\n' +
                 '-> One uppercase letter\n' +
@@ -119,7 +119,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             exitOnFailLabel: 'Mongo DB admin password',
             regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!*&])[A-Za-z\d@$!*&]{8,}$/
         },
-        7: {
+        6: {
             question: 'What DB username would you like to use for your Mongo DB? (mainUser)',
             answerProp: 'mongoUsr',
             answerType: 'string',
@@ -127,7 +127,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             answerValue: undefined,
             endWithHR: false
         },
-        8: {
+        7: {
             question: 'What is the password for the DB account?\n' +
                 '-> Must have a minimum of 8 characters\n' +
                 '-> One uppercase letter\n' +
@@ -165,7 +165,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
         //     answerValue: undefined,
         //     endWithHR: true
         // },
-        9: {
+        8: {
             question: 'Security is also a major feature for any application. Currently, Zoinx supports authentication against Azure, and it will handle all token validation and role extraction.\n' +
                 'Zoinx will automatically enforce role based security with each endpoint having a role assigned to it.\n' +
                 'Part of the built-in security for Zoinx is the ability to set up a local account that can be used for development or application config changes. The username created will be used as a new role for endpoint security.\n' +
@@ -177,7 +177,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             endWithHR: false,
             skipForwardIfFalse: 2
         },
-        10: {
+        9: {
             question: 'What username would you like to use for your admin account? (ROOT)',
             answerProp: 'username',
             answerType: 'string',
@@ -186,7 +186,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             endWithHR: false,
             escDblQuotes: true
         },
-        11: {
+        10: {
             question: 'What is the password for the admin account?\n' +
                 '-> Must have a minimum of 10 characters\n' +
                 '-> One uppercase letter\n' +
@@ -380,9 +380,9 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
                 tmpSubDir = mapRef.subDir;
                 if (!_.isEmpty(tmpSubDir)) tmpSubDir = `/${mapRef.subDir}/`;
 
-                if (entryKeys[i] === 'docker') {
-                    if (!this.configObj.docker) continue;
-                }
+                // if (entryKeys[i] === 'docker') {
+                //     if (!this.configObj.docker) continue;
+                // }
 
                 // if (mapRef.destinationFile === 'AppConfig.js')
                 //     console.log(mapRef.destinationFile);
