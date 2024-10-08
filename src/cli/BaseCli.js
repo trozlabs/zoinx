@@ -60,7 +60,7 @@ module.exports = class BaseCli extends TelemetryChain {
             if (str === '\n') _interface.write('\n\n');
             await clazz.#processInput(str, _interface);
             _interface.prompt();
-            await this.#gatherAndSendTelemetry();
+            await this.gatherAndSendTelemetry();
         });
 
         _interface.on('close', function () {
@@ -103,12 +103,13 @@ module.exports = class BaseCli extends TelemetryChain {
         }
     }
 
-    async #gatherAndSendTelemetry() {
+    async gatherAndSendTelemetry() {
         let events = await this.getTelemetryEventsJson();
         await this.#telemetry.setTelemetryEvents(events);
         await this.#telemetry.setEndTime();
         await this.#telemetry.setStatus();
         this.telemetry.send();
+        await this.#telemetry.setTelemetryEvents();
     }
 
     async #processOtherArgs(_interface) {
