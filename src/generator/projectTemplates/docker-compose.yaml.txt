@@ -95,15 +95,15 @@ services:
         CLUSTER_ID: 'q1Sh-9_ISia_zwGINzRvyQ'
         command: "
             # block until kafka is reachable
-            kafka-topics.sh --bootstrap-server broker:9092 --list
+            /bin/kafka-topics --bootstrap-server broker:9092 --list
             echo -e 'Creating Kafka topics'
 
-            kafka-topics.sh --bootstrap-server broker:9092 --create --if-not-exists --topic z-logging-stream --replication-factor 1 --partitions 3
-            kafka-topics.sh --bootstrap-server broker:9092 --create --if-not-exists --topic z-telemetry-stream --replication-factor 1 --partitions 3
-            kafka-topics.sh --bootstrap-server broker:9092 --create --if-not-exists --topic z-testing-stream --replication-factor 1 --partitions 3
+            /bin/kafka-topics --bootstrap-server broker:9092 --create --if-not-exists --topic z-logging-stream --replication-factor 1 --partitions 3
+            /bin/kafka-topics --bootstrap-server broker:9092 --create --if-not-exists --topic z-telemetry-stream --replication-factor 1 --partitions 3
+            /bin/kafka-topics --bootstrap-server broker:9092 --create --if-not-exists --topic z-testing-stream --replication-factor 1 --partitions 3
 
             echo -e 'Successfully create the following topics:'
-            kafka-topics.sh --bootstrap-server broker:9092 --list"
+            /bin/kafka-topics --bootstrap-server broker:9092 --list"
     networks:
         - <%= projectName %>-network
 
