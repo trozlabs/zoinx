@@ -293,9 +293,13 @@ module.exports = class UtilMethods {
 
                 let tmpParamName = config[i].split('=>')[0];
                 if (config[i].startsWith('<=>')) {
-                    let tmpParams = {type: 'undefined', name: 'default'};
-                    expected.push(tmpParams);
-                    UtilMethods.setGlobalTestConfig(`${className}.${methodName}.${tmpParamName}_${cacheSuffix}`, tmpParams);
+                    // let tmpParams = {
+                    //     type: 'undefined',
+                    //     name: 'default',
+                    //     testParamConfigStr: config[i]
+                    // };
+                    // expected.push(tmpParams);
+                    UtilMethods.setGlobalTestConfig(`${className}.${methodName}.${tmpParamName}_${cacheSuffix}`, []);
                     continue;
                 }
 

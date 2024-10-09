@@ -178,6 +178,8 @@ module.exports = class ZoinxTest {
             }
             return await UtilMethods.getJsonWithoutCirculars(toReduce, 4);
         }
+
+        return toReduce;
     }
 
     static async functionTest(clazz, func, passedArguments, testRec) {
