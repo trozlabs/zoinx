@@ -42,7 +42,8 @@ module.exports = class Service extends TelemetryChain {
     }
 
     async save(id, body, session) {
-        if (!session || !session.user) throw new APIError("Session data must be supplied to save.");
+        if (!session || !session.user)
+            throw new APIError("Session data must be supplied to save.");
 
         let rtn;
         if (id) {
@@ -52,9 +53,9 @@ module.exports = class Service extends TelemetryChain {
             rtn = await this.domain.get(id);
         } else {
             this.addTelemetryEvent('create', {body: body, session: session});
-            body.updated_user = session.user;
-            body.created_user = session.user;
             try {
+                body.updated_user = session.user;
+                body.created_user = session.user;
                 rtn = await this.domain.save(body);
             }
             catch (e) {

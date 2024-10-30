@@ -121,10 +121,16 @@ module.exports = class Filter {
                     tmpObj.isNum = true;
                     tmpObj.term = this.#queryFilters[i].term;
 
-                    if (_.isEmpty(this.#queryFilters[i].oper)) this.#queryFilters[i].oper = '=';
-                    if (this.#queryFilters[i].oper.toLowerCase() === 'eq') {
+                    if (_.isEmpty(this.#queryFilters[i].oper)) {
+                        this.#queryFilters[i].oper = '=';
+                    }
+                    // sometimes strings can parse as numbers even though the need to be treated as strings
+                    // this allows the developer to make the operator a string equals for edge cases.
+                    else if (this.#queryFilters[i].oper?.toLowerCase() === 'equals') {
                         tmpObj.oper = '=';
-                    } else {
+                        tmpObj.isNum = false;
+                    }
+                    else {
                         tmpObj.oper = this.#queryFilters[i].oper;
                     }
                     this.#filters.push(tmpObj);

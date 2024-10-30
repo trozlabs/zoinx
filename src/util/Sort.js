@@ -1,4 +1,5 @@
 const _ = require("lodash");
+
 module.exports = class Sort {
     #querySort = [];
     #dbType = 'mongo';
@@ -11,6 +12,7 @@ module.exports = class Sort {
         }
         else {
             if (req && req.query?.sort) this.#querySort = JSON.parse(req.query.sort);
+            else if (req && req.property) this.#querySort = [req];
             else this.#querySort = []
         }
 
@@ -27,10 +29,10 @@ module.exports = class Sort {
         for (let i = 0; i < this.#querySort.length; i++) {
             if (this.#dbType === 'mongo') {
                 tmpSort = '';
-                if (this.#querySort[i].direction.toLowerCase() === 'desc') tmpSort = '-';
+                if (this.#querySort[i].direction?.toLowerCase() === 'desc') tmpSort = '-';
                 tmpSort += this.#querySort[i].property + ' ';
             }
         }
         this.#sort = tmpSort;
     }
-};
+}
