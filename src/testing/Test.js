@@ -170,7 +170,7 @@ module.exports = class ZoinxTest {
 
     static async reduceObjectOrArray(toReduce) {
         if (!_.isEmpty(toReduce) && _.isArray(toReduce) && toReduce.length >= 10) {
-            return toReduce.splice(10);
+            return _.clone(toReduce).splice(10);
         }
         else if (!_.isEmpty(toReduce) && _.isObject(toReduce)) {
             if (['IncomingMessage', 'ServerResponse'].includes(toReduce.constructor.name)) {
