@@ -93,19 +93,10 @@ services:
         # Replace CLUSTER_ID with a unique base64 UUID using "bin/kafka-storage.sh random-uuid"
         # See https://docs.confluent.io/kafka/operations-tools/kafka-tools.html#kafka-storage-sh
         CLUSTER_ID: 'q1Sh-9_ISia_zwGINzRvyQ'
-        command: "
-            # block until kafka is reachable
-            /bin/kafka-topics --bootstrap-server broker:9092 --list
-            echo -e 'Creating Kafka topics'
-
-            /bin/kafka-topics --bootstrap-server broker:9092 --create --if-not-exists --topic z-logging-stream --replication-factor 1 --partitions 3
-            /bin/kafka-topics --bootstrap-server broker:9092 --create --if-not-exists --topic z-telemetry-stream --replication-factor 1 --partitions 3
-            /bin/kafka-topics --bootstrap-server broker:9092 --create --if-not-exists --topic z-testing-stream --replication-factor 1 --partitions 3
-
-            echo -e 'Successfully create the following topics:'
-            /bin/kafka-topics --bootstrap-server broker:9092 --list"
     networks:
         - <%= projectName %>-network
+    volumes:
+        - ./docker/kafka/InstallExtras.js:ro
 
   <%= projectName %>-schema-registry:
     profiles: [ confluent ]

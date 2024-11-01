@@ -7,3 +7,16 @@ apt-get install -y vim
 apt-get install -y net-tools
 apt-get install -y kafkacat
 apt-get install -y procps
+
+echo ""
+echo "################################################"
+echo " Creating Kafka topics"
+echo "################################################"
+kafka-topics --bootstrap-server broker:9092 --list
+
+kafka-topics --bootstrap-server broker:9092 --create --if-not-exists --topic z-logging-stream --replication-factor 1 --partitions 1
+kafka-topics --bootstrap-server broker:9092 --create --if-not-exists --topic z-telemetry-stream --replication-factor 1 --partitions 1
+kafka-topics --bootstrap-server broker:9092 --create --if-not-exists --topic z-testing-stream --replication-factor 1 --partitions 1
+
+echo -e 'Successfully create the following topics:'
+kafka-topics --bootstrap-server broker:9092 --list"
