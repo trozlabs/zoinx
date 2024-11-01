@@ -96,7 +96,7 @@ services:
     networks:
         - <%= projectName %>-network
     volumes:
-        - ./docker/kafka/InstallExtras.js:ro
+        - /docker/kafka/InstallExtras.sh
 
   <%= projectName %>-schema-registry:
     profiles: [ confluent ]
