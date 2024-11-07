@@ -57,6 +57,33 @@ module.exports = class ScenarioTesting {
         }
     }
 
+    async #getDataFromRef(configObject, fullPath) {
+        try {
+            const pathTest = /^\/$|(^(?=\/)|^\.|^\.\.|^\~|^\~(?=\/))(\/(?=[^/\0])[^/\0]+)*\/?$/g.exec(configObject.$ref);
+            if (pathTest) {
+                if (_.isEmpty(fullPath) || !_.isString(fullPath)) return [];
+                let pathParts = pathTest[0].split('/');
+
+                if (pathParts.length > 1) {
+                    let dataPath = _.dropRight(fullPath.split('/')).join('/'),
+                        data;
+                    dataPath = `${dataPath}/${pathParts[1]}`;
+                    data = await this.#readFileAsync(dataPath);
+
+                    if (!_.isEmpty(data) && !_.isEmpty(pathParts[2]))
+                        return JSON.parse(data)[pathParts[2]];
+                    else if (!_.isEmpty(data))
+                        return JSON.parse(data);
+                    else
+                        Log.warn('No data returned from referenced data file.');
+                }
+            }
+        }
+        catch (e) {
+            Log.error(e.message);
+        }
+    }
+
     async #setupTestResultCache() {
         let salt;
         try {
@@ -220,6 +247,13 @@ module.exports = class ScenarioTesting {
 
                     for (let j=0; j<scenarioKeys.length; j++) {
                         let scenarioRef = scenarioJson[methodKeys[i]][scenarioKeys[j]];
+
+                        for (let j=0; j<scenarioRef.inputValues.length; j++) {
+                            if (!_.isString(scenarioRef.inputValues[j]) && _.isObject(scenarioRef.inputValues[j])) {
+                                scenarioRef.inputValues[j] = await this.#getDataFromRef(scenarioRef.inputValues[j], workingFile.fullPath);
+                            }
+                        }
+
                         workingFile.scenarios.push({
                             scenarioKey: scenarioKeys[j],
                             inputValues: scenarioRef.inputValues,
