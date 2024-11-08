@@ -249,7 +249,7 @@ module.exports = class ScenarioTesting {
                         let scenarioRef = scenarioJson[methodKeys[i]][scenarioKeys[j]];
 
                         for (let j=0; j<scenarioRef.inputValues.length; j++) {
-                            if (!_.isString(scenarioRef.inputValues[j]) && _.isObject(scenarioRef.inputValues[j])) {
+                            if (!_.isString(scenarioRef.inputValues[j]) && _.isObject(scenarioRef.inputValues[j]) && !_.isEmpty(scenarioRef.inputValues[j].$ref)) {
                                 scenarioRef.inputValues[j] = await this.#getDataFromRef(scenarioRef.inputValues[j], workingFile.fullPath);
                             }
                         }
@@ -308,6 +308,7 @@ module.exports = class ScenarioTesting {
 
                         Log.log(`\n\x1b[36m ${testResult.notes} -> ran in: ${testResult.runningTimeMillis} milli(s)`);
                         Log.log(`\x1b[33m \t-> ${testResult.className}.${testResult.methodName}(${JSON.stringify(scenarios[j].inputValues)})`);
+                        Log.log(`${passFailColor} \t-> Method output: ${testResult.executionResult}`);
                         Log.log(`${passFailColor} \t-> Method Passed: ${testResult.passed} -> Should Fail: ${scenarios[j].shouldFail}`);
                         totalTestCount++;
                     }
