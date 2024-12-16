@@ -152,11 +152,9 @@ module.exports = class ZoinxAppConfig extends AppConfig {
 | KRAFT_CONTAINER_HOST_NAME               | \$\{env.get('KRAFT_CONTAINER_HOST_NAME')\}
 | KAFKA_ADVERTISED_LISTENERS              | \$\{env.get('KAFKA_ADVERTISED_LISTENERS')\}
 | KAFKA_LISTENER_SECURITY_PROTOCOL_MAP    | \$\{env.get('KAFKA_LISTENER_SECURITY_PROTOCOL_MAP')\}
-| KAFKA_CREATE_TOPICS                     | \$\{env.get('KAFKA_CREATE_TOPICS')\}
+| KAFKA_CREATED_TOPICS                     | \$\{env.get('KAFKA_CREATE_TOPICS')\}
 | KAFKA_PARTITIONS_PER_TOPIC              | \$\{env.get('KAFKA_PARTITIONS_PER_TOPIC')\}
 | KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR  | \$\{env.get('KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR')\}
-| KAFKA_AUTO_CREATE_TOPICS_ENABLE         | \$\{env.get('KAFKA_AUTO_CREATE_TOPICS_ENABLE')\}
-| KAFKA_DELETE_TOPIC_ENABLE               | \$\{env.get('KAFKA_DELETE_TOPIC_ENABLE')\}
 |-----------------------------------------------------------------------------
 `
         );
