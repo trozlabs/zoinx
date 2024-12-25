@@ -291,24 +291,18 @@ module.exports = class UtilMethods {
         try {
             for (let i=0; i<config.length; i++) {
 
-                let tmpParamName = config[i].split('=>')[0];
-                if (config[i].startsWith('<=>')) {
-                    // let tmpParams = {
-                    //     type: 'undefined',
-                    //     name: 'default',
-                    //     testParamConfigStr: config[i]
-                    // };
-                    // expected.push(tmpParams);
-                    UtilMethods.setGlobalTestConfig(`${className}.${methodName}.${tmpParamName}_${cacheSuffix}`, []);
-                    continue;
-                }
+                let tmpParamName = config[i].split('=>')[0],
+                    tmpParams;
+                if (config[i].startsWith('<=>'))
+                    tmpParamName = 'undefined';
 
-                cacheKey = `${className}.${methodName}.${tmpParamName}${i}_${cacheSuffix}`;
+                cacheKey = `${className}.${methodName}.${tmpParamName}[${i}]_${cacheSuffix}`;
                 cacheResult = UtilMethods.getGlobalTestConfig(cacheKey);
                 if (cacheResult)
                     expected.push(cacheResult);
                 else {
-                    let tmpParams = ParseFunctionConfig.parse(config[i]);
+                    tmpParams = ParseFunctionConfig.parse(config[i]);
+                    if (config[i].startsWith('<=>')) tmpParams.name = '<=>';
                     expected.push(tmpParams);
                     UtilMethods.setGlobalTestConfig(cacheKey, tmpParams);
                 }

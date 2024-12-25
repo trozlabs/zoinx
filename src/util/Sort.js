@@ -28,11 +28,11 @@ module.exports = class Sort {
         let tmpSort = '';
         for (let i = 0; i < this.#querySort.length; i++) {
             if (this.#dbType === 'mongo') {
-                tmpSort = '';
                 if (this.#querySort[i].direction?.toLowerCase() === 'desc') tmpSort = '-';
-                tmpSort += this.#querySort[i].property + ' ';
+                tmpSort += this.#querySort[i].property + ',';
             }
         }
+        tmpSort = _.trimEnd(tmpSort, ',');
         this.#sort = tmpSort;
     }
 }

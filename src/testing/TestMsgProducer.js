@@ -42,10 +42,11 @@ module.exports = class TestMsgProducer {
                     keyString = randomUUID();
                 }
                 else {
-                    keyString += `.${this.#testObj.className}.${this.#testObj.methodName}:${this.#testObj.stopWatchStart}`;
+                    keyString += `.${this.#testObj.className}.${this.#testObj.methodName}`; //:${this.#testObj.stopWatchStart}`;
                 }
 
                 await this.#createTestMsgProducer();
+                delete this.#testObj.passedArguments;
                 let testObj = JSON.stringify(this.#testObj);
                 if (StaticUtil.StringToBoolean(process.env.TESTING_ENCRYPT)) {
                     testObj = await Encryption.encrypt(testObj, process.env.TESTING_SECRET_KEY, process.env.TESTING_SECRET_IV);

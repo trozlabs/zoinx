@@ -43,11 +43,11 @@ module.exports = class ZoinxTest {
         }
 
         try {
-            if (!_.isUndefined(clazz) && !_.isNull(clazz) && !_.isEmpty(passedArguments)) {
+            if (!_.isUndefined(clazz) && !_.isNull(clazz) && !_.isUndefined(func) && !_.isNull(func)) {
                 newFuncRec = this.createMethodTest(clazz, func, passedArguments, errorStack, methodInput, methodOutput, testConfig);
                 if (!_.isUndefined(newFuncRec)) newFuncRec.set('notes', notes);
             }
-            else Log.info('Class and arguments must be supplied to setup test.');
+            else Log.info(`Class and arguments must be supplied to setup test. ${clazz?.constructor.name}.${func?.name}`);
         }
         catch (e) {
             Log.error('setupFuncTest failed:\n', e);
@@ -139,8 +139,11 @@ module.exports = class ZoinxTest {
                         let tmpResult = optionalVals[key];
                         if (key === 'executionResult') {
                             if (TypeDefinitions.isObjectLike(tmpResult)) {
+
                                 if (tmpResult.constructor.name === 'Promise')
                                     tmpResult = await tmpResult;
+
+                                testRec.set('stopWatchEnd', Date.now());
                                 tmpResult = await this.reduceObjectOrArray(tmpResult);
                             }
                         }
