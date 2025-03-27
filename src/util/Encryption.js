@@ -9,15 +9,18 @@ module.exports = class Encryption {
 
         try {
             if (!_.isEmpty(toEncrypt) && _.isString(toEncrypt)) {
-                if (_.isEmpty(key)) key = process.env.TELEMETRY_SECRET_KEY;
-                if (_.isEmpty(iv)) iv = process.env.TELEMETRY_SECRET_IV;
 
-                key = Buffer.from(key, 'base64');
-                iv = Buffer.from(iv, 'hex');
-                const cipher = crypto.createCipheriv(process.env.TELEMETRY_ENCRYPT_ALGORITHM, key, iv);
+                key = (_.isEmpty(key) || key === 'undefined') ? undefined : process.env.TELEMETRY_SECRET_KEY;
+                iv = (_.isEmpty(iv) || iv === 'undefined') ? undefined : process.env.TELEMETRY_SECRET_IV;
 
-                encryptedData = cipher.update(toEncrypt, 'utf8', 'hex');
-                encryptedData += cipher.final('hex');
+                if (!_.isEmpty(key) && !_.isEmpty(iv)) {
+                    key = Buffer.from(key, 'base64');
+                    iv = Buffer.from(iv, 'hex');
+                    const cipher = crypto.createCipheriv(process.env.TELEMETRY_ENCRYPT_ALGORITHM, key, iv);
+
+                    encryptedData = cipher.update(toEncrypt, 'utf8', 'hex');
+                    encryptedData += cipher.final('hex');
+                }
             }
         }
         catch (e) {

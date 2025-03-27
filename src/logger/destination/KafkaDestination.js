@@ -22,6 +22,7 @@ const Encryption = require('../../util/Encryption');
  */
 module.exports = class KafkaDestination extends Destination {
     type = 'kafka';
+    env
 
     /**
      * @param {Object} options
@@ -41,8 +42,9 @@ module.exports = class KafkaDestination extends Destination {
         try {
             if (_.isUndefined(global.kafka)) global.kafka = {};
             if (_.isUndefined(global.kafka.LoggerProducer)) {
-                let kafkaClient = new KafkaClient('LoggerProducer', [process.env.LOGGER_MESSAGE_SERVERS]);
-                await kafkaClient.setClientConfig('LOGGER_KAFKA', process.env.LOGGER_ENV, process.env.LOGGER_USE_SSL);
+                this.env = process.env.LOGGER_ENV.toUpperCase();
+                let kafkaClient = new KafkaClient('LoggerProducer', [process.env['LOGGER_MESSAGE_SERVERS_' + this.env]]);
+                await kafkaClient.setClientConfig('LOGGER_KAFKA', this.env, process.env['LOGGER_USE_SSL_' + this.env]);
                 global.kafka.LoggerProducer = kafkaClient;
             }
         }
@@ -57,8 +59,8 @@ module.exports = class KafkaDestination extends Destination {
 
         try {
             if (!_.isEmpty(logMsg)) {
-                if (StaticUtil.StringToBoolean(process.env.LOGGER_ENCRYPT)) {
-                    logMsg = await Encryption.encrypt(logMsg, process.env.LOGGER_SECRET_KEY, process.env.LOGGER_SECRET_IV);
+                if (StaticUtil.StringToBoolean(process.env['LOGGER_ENCRYPT_' + this.env])) {
+                    logMsg = await Encryption.encrypt(logMsg, process.env['LOGGER_SECRET_KEY_' + this.env] , process.env['LOGGER_SECRET_IV_' + this.env]);
                 }
 
                 keyString += `.${data.level}.${data.logger.name}:${new Date().getTime()}`;
@@ -68,7 +70,7 @@ module.exports = class KafkaDestination extends Destination {
                 await global.kafka.LoggerProducer.sendMessage({
                     key: keyString,
                     value: JSON.stringify(logMsg)
-                }, process.env.LOGGER_TOPIC_NAME);
+                }, process.env['LOGGER_TOPIC_NAME_' + this.env]);
             }
         }
         catch (e) {
@@ -83,7 +85,7 @@ module.exports = class KafkaDestination extends Destination {
     async saveLoggingSendFail(loggingObj={}, error) {
         try {
             let saveObj = {
-                    send_to_server: process.env.LOGGER_MESSAGE_SERVERS,
+                    send_to_server: process.env['LOGGER_MESSAGE_SERVERS_' + this.env],
                     ip_address: Network.getHostAddress(),
                     logging_obj: JSON.stringify(loggingObj),
                     error_message: error.message

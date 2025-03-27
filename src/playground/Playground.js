@@ -10,6 +10,29 @@ module.exports = class Playground {
     };
 
     //############################################
+    static FizzBuzz(numb=100) {
+        let rules = {
+                '3': 'Fizz',
+                '5': 'Buzz',
+                '15': 'FizzBuzz',
+                '-1': numb,
+                '0': 'ERROR'
+            },
+            ruleKey = '0';
+
+        if (!isNaN(numb)) {
+            ruleKey = (numb % 15) ? -1 : 15;
+            if (ruleKey < 0) {
+                ruleKey = (numb % 5) ? -1 : 5;
+                if (ruleKey < 0)
+                    ruleKey = (numb % 3) ? -1 : 3;
+            }
+        }
+
+        return rules[`${ruleKey}`];
+    }
+
+    //############################################
     static FirstReverse(str) {
         let charArray = str.split('');
         charArray = charArray.reverse();

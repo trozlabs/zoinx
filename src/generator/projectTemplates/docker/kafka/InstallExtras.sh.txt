@@ -18,5 +18,5 @@ kafka-topics --bootstrap-server broker:9092 --create --if-not-exists --topic z-l
 kafka-topics --bootstrap-server broker:9092 --create --if-not-exists --topic z-telemetry-stream --replication-factor 1 --partitions 1
 kafka-topics --bootstrap-server broker:9092 --create --if-not-exists --topic z-testing-stream --replication-factor 1 --partitions 1
 
-echo -e 'Successfully create the following topics:'
+echo -e 'Successfully created the following topics:'
 kafka-topics --bootstrap-server broker:9092 --list"

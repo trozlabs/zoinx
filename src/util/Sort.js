@@ -21,18 +21,17 @@ module.exports = class Sort {
     }
 
     getSort() {
-        return this.#sort?.trim();
+        return this.#sort;
     }
 
     parseSort() {
-        let tmpSort = '';
+        let sortObj = {};
+
         for (let i = 0; i < this.#querySort.length; i++) {
             if (this.#dbType === 'mongo') {
-                if (this.#querySort[i].direction?.toLowerCase() === 'desc') tmpSort = '-';
-                tmpSort += this.#querySort[i].property + ',';
+                sortObj[this.#querySort[i].property] = (this.#querySort[i].direction?.toLowerCase() === 'desc') ? -1 : 1;
             }
         }
-        tmpSort = _.trimEnd(tmpSort, ',');
-        this.#sort = tmpSort;
+        this.#sort = sortObj;
     }
 }

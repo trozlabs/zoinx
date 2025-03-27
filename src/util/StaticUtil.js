@@ -216,4 +216,8 @@ module.exports = class UtilMethods {
 
         return prefix ? `${prefix}_${ts}` : ts;
     }
+
+    static generateRandomRangedInteger(min, max) {
+        return Math.floor(min + Math.random()*(max - min + 1))
+    }
 };

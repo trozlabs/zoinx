@@ -67,6 +67,7 @@ services:
     image: confluentinc/cp-server:7.5.0
     hostname: broker
     container_name: \$\{SERVICE_NAME\}-broker-\$\{ENV\}
+    restart: unless-stopped
     ports:
         - "9092:9092"
         - "9101:9101"
