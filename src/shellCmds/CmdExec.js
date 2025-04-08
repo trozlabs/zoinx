@@ -36,7 +36,7 @@ module.exports = class CmdExec {
         }
         catch (ex) {
             if (!suppressException)
-                Log.error(ex);
+                Log.error(ex.message);
         }
     }
 

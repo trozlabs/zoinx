@@ -146,4 +146,36 @@ module.exports = class Service extends TelemetryChain {
         return await this.domain.find(queryParams, false, true);
     }
 
+    async getObjectModel() {
+        let modelDef = {},
+            properties = Object.keys(this.domain.getDomain().schema.obj),
+            strings     = ['String', 'UUID'],
+            numbers     = ['Number', 'Decimal128', 'BigInt', 'Double', 'Int32'],
+            objects     = ['Object', 'ObjectId', 'Schema', 'Map', 'Date', 'Mixed'],
+            arrays      = ['Array', 'Buffer'],
+            booleans    = ['Boolean'],
+            skipped     = ['created_user', 'updated_user'],
+            tmpDataType, tmpValue;
+
+        if (properties.length > 0) {
+            for await (const prop of properties) {
+                if (skipped.includes(prop))
+                    continue;
+
+                tmpDataType = this.domain.getDomain().schema.obj[prop].type.name;
+                tmpValue = (strings.includes(tmpDataType)) ? '' : undefined;
+                if (tmpValue === undefined)
+                    tmpValue = (numbers.includes(tmpDataType)) ? 0 : undefined;
+                if (tmpValue === undefined)
+                    tmpValue = (objects.includes(tmpDataType)) ? {} : undefined;
+                if (tmpValue === undefined)
+                    tmpValue = (arrays.includes(tmpDataType)) ? [] : undefined;
+                if (tmpValue === undefined)
+                    tmpValue = (booleans.includes(tmpDataType)) ? false : undefined;
+
+                modelDef[prop] = tmpValue;
+            }
+        }
+        return modelDef;
+    }
 }
