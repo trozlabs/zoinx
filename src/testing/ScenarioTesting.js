@@ -216,16 +216,16 @@ module.exports = class ScenarioTesting {
     }
 
     async #execScenario(scenarioContents, workingFile) {
-        try {
-            let scenarioJson = JSON.parse(scenarioContents),
-                contentsPath = workingFile.fullPath,
-                methodKeys = Object.keys(scenarioJson),
-                pathDelimiter = (process.platform === 'win32') ? '\\' : '\/',
-                pathParts = contentsPath.split(pathDelimiter),
-                classFileExtention = 'js',
-                classFilePath = '',
-                tmpReq, tmpClass, normalFuncs, staticFuncs;
+        let scenarioJson = JSON.parse(scenarioContents),
+            contentsPath = workingFile.fullPath,
+            methodKeys = Object.keys(scenarioJson),
+            pathDelimiter = (process.platform === 'win32') ? '\\' : '\/',
+            pathParts = contentsPath.split(pathDelimiter),
+            classFileExtention = 'js',
+            classFilePath = '',
+            tmpReq, tmpClass, normalFuncs, staticFuncs;
 
+        try {
             if (methodKeys.length > 0) {
                 pathParts.splice((pathParts.length-2), 1);
                 classFilePath = pathParts.join(pathDelimiter);
@@ -271,7 +271,8 @@ module.exports = class ScenarioTesting {
         }
         catch (e) {
             Log.warn(`Failed to parse scenario contents for: ${contentsPath}`);
-            Log.warn(e.message);
+            Log.warn('Check the method name within the scenario file that it matches the method name in the file/class.');
+            this.#cli.exit();
         }
     }
 
