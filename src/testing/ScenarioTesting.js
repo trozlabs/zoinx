@@ -19,6 +19,7 @@ module.exports = class ScenarioTesting {
     #scenarioTestComplete = 0
     #writeTestData = false
     #cli
+    #totalScenarioCount = 0
 
     constructor(pathsInput='', cli=undefined) {
         global.testingConfig.sendResult2Kafka = false;
@@ -122,7 +123,7 @@ module.exports = class ScenarioTesting {
     async #handleScenarioTestComplete(cacheKey) {
         try {
             this.#scenarioTestComplete++;
-            if (this.#workingFileList.length >= this.#scenarioTestComplete) {
+            if (this.#scenarioTestComplete >= this.#totalScenarioCount) {
                 this.#endTime = Date.now();
                 await this.generateReport();
                 if (!_.isUndefined(this.#cli)) {
@@ -244,6 +245,7 @@ module.exports = class ScenarioTesting {
                     }
 
                     let scenarioKeys = Object.keys(scenarioJson[methodKeys[i]]);
+                    this.#totalScenarioCount += scenarioKeys.length;
 
                     for (let j=0; j<scenarioKeys.length; j++) {
                         let scenarioRef = scenarioJson[methodKeys[i]][scenarioKeys[j]];
@@ -307,8 +309,9 @@ module.exports = class ScenarioTesting {
                             passFailColor = (scenarios[j].shouldFail) ? '\x1b[32m' : '\x1b[31m';
                         }
 
+                        // Log.warn(`${testResult.stopWatchEnd} - ${testResult.stopWatchStart} = ${(testResult.stopWatchEnd - testResult.stopWatchStart)}`);
                         Log.log(`\n\x1b[36m ${testResult.notes} -> ran in: ${testResult.runningTimeMillis} milli(s)`);
-                        Log.log(`\x1b[33m \t-> ${testResult.className}.${testResult.methodName}(${JSON.stringify(scenarios[j].inputValues)})`);
+                        Log.log(`\x1b[33m \t-> ${testResult.className}.${testResult.methodName}(${_.truncate(JSON.stringify(scenarios[j].inputValues), {length: 1000})})`);
                         Log.log(`${passFailColor} \t-> Method output: ${testResult.executionResult}`);
                         Log.log(`${passFailColor} \t-> Method Passed: ${testResult.passed} -> Should Fail: ${scenarios[j].shouldFail}`);
                         totalTestCount++;
