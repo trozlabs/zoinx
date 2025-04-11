@@ -8,7 +8,7 @@ const jwksClient = require("jwks-rsa");
 const laService = require('../routes/localAccts/service');
 const vaService = require('../routes/validatedAuths/service');
 const rrService = require('../routes/routeRoles/service');
-const {Filter} = require("zoinx/util");
+const { Filter, StaticUtil } = require("zoinx/util");
 const bcrypt = require('bcryptjs');
 
 const GateKeeperMS = async (req, res, next) => {
@@ -16,55 +16,53 @@ const GateKeeperMS = async (req, res, next) => {
     if (_.isEmpty(global.AuthCache)) await setupSecurityCaches();
 
     const authHeader = req.headers.authorization;
-    if (_.isEmpty(authHeader)) next(new APIError(401, `No authorization bearer was provided for: ${req.url}`, `No credentials provided for: ${req.url}`));
+    if (_.isEmpty(authHeader) && !StaticUtil.StringToBoolean(process.env.RBA_ALLOW_NOAUTH))
+        next(new APIError(401, `No authorization bearer was provided for: ${req.url}`, `No credentials provided for: ${req.url}`));
+    else if (_.isEmpty(authHeader) && StaticUtil.StringToBoolean(process.env.RBA_ALLOW_NOAUTH))
+        next();
+    else {
+        try {
+            const parsedToken = await parseAuthHeader(authHeader);
+            let principal = '',
+                jwtToken;
 
-    try {
-        const parsedToken = await parseAuthHeader(authHeader);
-        let principal = '',
-            jwtToken;
+            if (!_.isEmpty(parsedToken) && _.isEmpty(global.AuthCache.get(parsedToken.payload.oid))) {
 
-        if (!_.isEmpty(parsedToken) && _.isEmpty(global.AuthCache.get(parsedToken.payload.oid))) {
-
-            if (!_.isEmpty(parsedToken)) {
-                if (await validateJwtAudienceId(parsedToken)) {
-                    jwtToken = await validateJwtToken(parsedToken, authHeader);
-                    if (!_.isEmpty(jwtToken)) {
-                        principal = jwtToken?.preferred_username ?? 'user';
-                        Log.info(`Token successfully decoded for user: ${principal}`);
-                        await saveVerifiedAuth(req, parsedToken, authHeader);
-                        await assignVerifiedRoles(req,parsedToken);
+                if (!_.isEmpty(parsedToken)) {
+                    if (await validateJwtAudienceId(parsedToken)) {
+                        jwtToken = await validateJwtToken(parsedToken, authHeader);
+                        if (!_.isEmpty(jwtToken)) {
+                            principal = jwtToken?.preferred_username ?? 'user';
+                            Log.info(`Token successfully decoded for user: ${principal}`);
+                            await saveVerifiedAuth(req, parsedToken, authHeader);
+                            await assignVerifiedRoles(req, parsedToken);
+                        }
+                    } else {
+                        next(new APIError(401, `Incorrect audience id`, `Incorrect audience id`));
                     }
+                } else {
+                    next(new APIError(401, `Invalid authorization header: ${authHeader}`, `Invalid authorization: ${req.url}`));
                 }
-                else {
-                    next(new APIError(401, `Incorrect audience id`, `Incorrect audience id`));
+            } else if (_.isEmpty(parsedToken) && authHeader?.includes('Basic')) {
+                let basicAuthResult = await isBasicAuthHeaderValid(authHeader);
+                if (basicAuthResult.valid) {
+                    Log.info('Successful basic auth login');
+                    await saveVerifiedAuth(req, basicAuthResult, authHeader);
+                    await assignVerifiedRoles(req, undefined, basicAuthResult);
+                } else {
+                    next(new APIError(401, `Invalid Basic auth credentials: ${req.url}`, `Invalid Basic auth credentials: ${req.url}`));
                 }
+            } else {
+                await assignVerifiedRoles(req, parsedToken);
             }
-            else {
-                next(new APIError(401, `Invalid authorization header: ${authHeader}`, `Invalid authorization: ${req.url}`));
-            }
+        } catch (e) {
+            if (!_.isEmpty(e.statusCode))
+                next(e);
+            else
+                next(new APIError(401, e.message));
         }
-        else if (_.isEmpty(parsedToken) && authHeader?.includes('Basic')) {
-            let basicAuthResult = await isBasicAuthHeaderValid(authHeader);
-            if (basicAuthResult.valid) {
-                Log.info('Successful basic auth login');
-                await saveVerifiedAuth(req, basicAuthResult, authHeader);
-                await assignVerifiedRoles(req, undefined, basicAuthResult);
-            }
-            else {
-                next(new APIError(401, `Invalid Basic auth credentials: ${req.url}`, `Invalid Basic auth credentials: ${req.url}`));
-            }
-        }
-        else {
-            await assignVerifiedRoles(req,parsedToken);
-        }
+        next();
     }
-    catch (e) {
-        if (!_.isEmpty(e.statusCode))
-            next(e);
-        else
-            next(new APIError(401, e.message));
-    }
-    next();
 }
 
 async function assignVerifiedRoles(req, parsedToken, basicAuthResult) {
