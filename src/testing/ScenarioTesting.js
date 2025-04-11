@@ -311,7 +311,7 @@ module.exports = class ScenarioTesting {
 
                         // Log.warn(`${testResult.stopWatchEnd} - ${testResult.stopWatchStart} = ${(testResult.stopWatchEnd - testResult.stopWatchStart)}`);
                         Log.log(`\n\x1b[36m ${testResult.notes} -> ran in: ${testResult.runningTimeMillis} milli(s)`);
-                        Log.log(`\x1b[33m \t-> ${testResult.className}.${testResult.methodName}(${_.truncate(JSON.stringify(scenarios[j].inputValues), {length: 1000})})`);
+                        Log.log(`\x1b[33m \t-> ${testResult.className}.${testResult.methodName}(${_.truncate(JSON.stringify(scenarios[j].inputValues), {length: 300})})`);
                         Log.log(`${passFailColor} \t-> Method output: ${_.truncate(JSON.stringify(testResult.executionResult), {'length': 300, 'separator': ','}) }`);
                         Log.log(`${passFailColor} \t-> Method Passed: ${testResult.passed} -> Should Fail: ${scenarios[j].shouldFail}`);
                         totalTestCount++;
