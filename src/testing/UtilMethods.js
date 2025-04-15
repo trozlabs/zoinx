@@ -43,10 +43,20 @@ module.exports = class UtilMethods {
 
     static getTestExceptionCount() {
         let gtc = global.testingConfig,
-            celCount = (_.isArray(gtc.classExclusionList)) ? gtc.classExclusionList.length : 0,
-            felCount = (_.isArray(gtc.functionExclusionList)) ? gtc.functionExclusionList.length : 0,
-            colCount = (_.isArray(gtc.classOnlyList)) ? gtc.classOnlyList.length : 0,
-            folCount = (_.isArray(gtc.functionOnlyList)) ? gtc.functionOnlyList.length : 0;
+            celCount, felCount, colCount, folCount;
+
+        if (_.isArray(gtc.classExclusionList)) {
+            celCount = (gtc.classExclusionList.length === 1 && _.isEmpty(gtc.classExclusionList[0])) ? 0 : gtc.classExclusionList.length;
+        }
+        if (_.isArray(gtc.functionExclusionList)) {
+            felCount = (gtc.functionExclusionList.length === 1 && _.isEmpty(gtc.functionExclusionList[0])) ? 0 : gtc.functionExclusionList.length;
+        }
+        if (_.isArray(gtc.classOnlyList)) {
+            colCount = (gtc.classOnlyList.length === 1 && _.isEmpty(gtc.classOnlyList[0])) ? 0 : gtc.classOnlyList.length;
+        }
+        if (_.isArray(gtc.functionOnlyList)) {
+            folCount = (gtc.functionOnlyList.length === 1 && _.isEmpty(gtc.functionOnlyList[0])) ? 0 : gtc.functionOnlyList.length;
+        }
 
         return (celCount + felCount + colCount + folCount);
     }

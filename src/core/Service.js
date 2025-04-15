@@ -146,7 +146,22 @@ module.exports = class Service extends TelemetryChain {
         return await this.domain.find(queryParams, false, true);
     }
 
-    async getObjectModel() {
+    async createDomainObject(dataObj) {
+        let newStmtObj = {};
+        try {
+            newStmtObj = await this.getDomainTemplate();
+            for await (const prop of Object.keys(newStmtObj)) {
+                if (dataObj[prop])
+                    newStmtObj[prop] = dataObj[prop];
+            }
+        }
+        catch (e) {
+            console.error(e.message());
+        }
+        return newStmtObj;
+    }
+
+    async getDomainTemplate() {
         let modelDef = {},
             properties = Object.keys(this.domain.getDomain().schema.obj),
             strings     = ['String', 'UUID'],

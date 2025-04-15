@@ -59,14 +59,8 @@ module.exports = class TestRunner extends BaseCli {
         let inputSplit = inputStr.trim().split('--');
 
         if (inputSplit.length > 1) {
-            if (!global.testingConfig.isTestingEnabled) {
-                Log.warn('Testing config is set to false in AppConfig.');
-                process.exit(0);
-            }
-            else {
-                let scenarioTesting = new ScenarioTesting(inputSplit[1], this);
-                await scenarioTesting.exec(true);
-            }
+            let scenarioTesting = new ScenarioTesting(inputSplit[1], this);
+            await scenarioTesting.exec(true);
         }
         else {
             this.logger.error(`No file found at ${inputSplit[1]}`);

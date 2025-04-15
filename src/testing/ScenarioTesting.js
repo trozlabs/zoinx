@@ -8,6 +8,7 @@ const { Log } = require('../log');
 const { StaticUtil } = require('../util');
 const AppCache = require("../core/AppCache");
 const TypeDefinitions = require('./TypeDefinitions');
+const UtilMethods = require('./UtilMethods');
 
 module.exports = class ScenarioTesting {
 
@@ -24,6 +25,7 @@ module.exports = class ScenarioTesting {
     constructor(pathsInput='', cli=undefined) {
         global.testingConfig.sendResult2Kafka = false;
         global.testingConfig.consoleOut = false;
+        global.testingConfig.isTestingEnabled = true;
 
         this.#pathsInput = pathsInput;
         this.#cli = cli;
@@ -141,7 +143,6 @@ module.exports = class ScenarioTesting {
 
     async #buildWorkingFileList() {
         if (this.#scenarioPaths.length < 1) {
-            Log.warn('No paths provided to find Scenarios.');
             return;
         }
 
@@ -186,8 +187,8 @@ module.exports = class ScenarioTesting {
         this.#startTime = Date.now();
         await this.#buildWorkingFileList();
         if (this.#workingFileList.length < 1) {
-            Log.warn('No working files to operate from.')
-            return;
+            Log.warn('No working files or incorrect file path to operate from.')
+            this.#cli.exit();
         }
 
         try {
@@ -242,6 +243,11 @@ module.exports = class ScenarioTesting {
                             tmpClass = new tmpReq();
                         else
                             tmpClass = tmpReq;
+                    }
+
+                    if ((UtilMethods.getTestExceptionCount() && global.testingConfig.classExclusionList.includes(tmpClass.name))) {
+                        Log.warn(`Class ${tmpClass.name} has been excluded from testing in AppConfig.`);
+                        this.#cli.exit();
                     }
 
                     let scenarioKeys = Object.keys(scenarioJson[methodKeys[i]]);
