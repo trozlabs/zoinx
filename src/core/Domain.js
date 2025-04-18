@@ -179,13 +179,23 @@ module.exports = class Domain {
                 return Promise.reject('No record found to update.');
             }
         } else {
-            let saveData = new this.#Domain(doc);
-            return saveData.save();
+            try {
+                let saveData = new this.#Domain(doc);
+                return await saveData.save();;
+            }
+            catch (e) {
+                return Promise.reject(e.message);
+            }
         }
     }
 
     async remove(id) {
-        return this.#Domain.findByIdAndDelete(id);
+        try {
+            return this.#Domain.findByIdAndDelete(id);
+        }
+        catch (e) {
+            return Promise.reject(e.message);
+        }
     }
 
     async insertMany(rawObjects=[]) {

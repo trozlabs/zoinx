@@ -59,7 +59,7 @@ module.exports = class Service extends TelemetryChain {
                 rtn = await this.domain.save(body);
             }
             catch (e) {
-                rtn = await this.domain.save(body)
+                this.logger.error(e);
             }
         }
         return rtn;
