@@ -245,6 +245,11 @@ module.exports = class ScenarioTesting {
                             tmpClass = tmpReq;
                     }
 
+                    if (!UtilMethods.shouldBeTested(tmpClass, methodKeys[i])) {
+                        Log.warn(`Class ${tmpClass.name} or method ${methodKeys[i]} as been excluded from testing.`);
+                        continue;
+                    }
+
                     if ((UtilMethods.getTestExceptionCount() && global.testingConfig.classExclusionList.includes(tmpClass.name))) {
                         Log.warn(`Class ${tmpClass.name} has been excluded from testing in AppConfig.`);
                         this.#cli.exit();
