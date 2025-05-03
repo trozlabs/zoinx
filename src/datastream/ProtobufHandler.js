@@ -66,9 +66,10 @@ module.exports = class ProtobufHandler {
 
     // topic is here to match the signatures of the other schema formats
     serialize(topic, json) {
-        this.validate(json);
-        const message = this.#messageObjects[0].message.create(json);
-        return this.#messageObjects[0].message.encode(message).finish();
+        if (this.validate(json)) {
+            const message = this.#messageObjects[0].message.create(json);
+            return this.#messageObjects[0].message.encode(message).finish();
+        }
     }
 
     // topic is here to match the signatures of the other schema formats
