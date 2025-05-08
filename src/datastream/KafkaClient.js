@@ -8,7 +8,6 @@ const { Kafka,
     CompressionTypes
 } = require("@confluentinc/kafka-javascript").KafkaJS;
 
-
 module.exports = class KafkaClient {
 
     logger = Logger.create({ name: 'KafkaClient' });
@@ -17,8 +16,8 @@ module.exports = class KafkaClient {
     #clientId = '';
     #brokers = [];
     #config = {};
-    #schemaRegistry;
-    #schemaRegistryId;
+    #schemaServer;
+    #schemaServerAuth;
     #kafkaClient;
     #producer;
     #producerIsConnected = false;
@@ -32,6 +31,15 @@ module.exports = class KafkaClient {
         if (!_.isEmpty(brokers) && _.isArray(brokers)) this.#brokers = brokers;
         if (_.isEmpty(env)) env = 'DEV';
         this.#logOptions = logOptions;
+    }
+
+    async setSchemaConfig(schemaServer='http://localhost:8081', auth={}, logOptions = false){
+        if(StaticUtil.isHttpURI(schemaServer)) {
+            if (!_.isEmpty(auth) && _.isObject(auth)) this.#schemaServerAuth = auth;
+            this.#schemaServer = new KafkaSchema(schemaServer);
+        }
+        else
+            this.logger.warn(`URL to Schema Server is invalid: ${schemaServer}`);
     }
 
     async setClientConfig(varNamePrefix='DEFAULT_KAFKA', env='DEV', ssl=true) {
@@ -131,18 +139,17 @@ module.exports = class KafkaClient {
         }
     }
 
-    async sendValidatedMessage(message = { value: 'Hello Kafka user!' }, topicName = 'dev-topic', schemaServer='http://localhost:8081') {
+    async sendValidatedMessage(message = { value: 'Hello Kafka user!' }, topicName = 'dev-topic') {
         try {
             if (_.isEmpty(this.#producer)) await this.#createProducer();
             if (!this.#producerIsConnected) await this.connectProducer();
 
-            const kafkaSchema = new KafkaSchema(schemaServer);
-            const schemaId = await kafkaSchema.initByTopic(topicName);
-            if (_.isNumber(schemaId) && await kafkaSchema.isValidMessage(schemaId, message)) {
-                let serializedMsg = kafkaSchema.serializeMessage(schemaId, message);
-                await this.#producer.send({
+            const schemaId = await this.#schemaServer.initByTopic(topicName);
+            if (_.isNumber(schemaId) && await this.#schemaServer.isMessageValid(schemaId, message)) {
+                let serializedMsg = await this.#schemaServer.serializeMessage(schemaId, message);
+                return await this.#producer.send({
                     topic: topicName,
-                    messages: [serializedMsg]
+                    messages: [{ value: serializedMsg } ]
                 });
             }
             else
@@ -190,6 +197,47 @@ module.exports = class KafkaClient {
         }
     }
 
+    async sendValidatedMessageBatch(messages=[], topicName='dev-topic', idProp='id') {
+        if (_.isEmpty(messages) || !_.isArray(messages)) {
+            this.logger.warn('No topic messages provided.')
+            return;
+        }
+
+        let batchResults = '';
+
+        try {
+            if (_.isEmpty(this.#producer)) await this.#createProducer();
+            if (!this.#producerIsConnected) await this.connectProducer();
+
+            let sendResults = {
+                success: [],
+                failure: []
+            };
+
+            for await (const msg of messages) {
+                try {
+                    await this.sendValidatedMessage(msg, topicName);
+                    sendResults.success.push(msg[idProp]);
+                }
+                catch (e) {
+                    sendResults.failure.push({
+                        message: msg,
+                        error_code: e.errno,
+                        error_msg: e.message
+                    })
+                }
+            }
+
+            await this.#producer.flush({timeout: 5000});
+            batchResults = sendResults;
+        }
+        catch (e) {
+            this.logger.error(e.message);
+        }
+
+        return batchResults;
+    }
+
     async #createConsumer() {
         try {
             if (_.isObject(this.#kafkaClient)) {
@@ -224,9 +272,6 @@ module.exports = class KafkaClient {
 
             this.#consumer.run({
                 eachMessage: async ({ topic, partition, message }) => {
-                    if (!_.isEmpty(this.#schemaRegistry))
-                        payload = await this.#schemaRegistry.decode(message.value);
-
                     this.msgObj = {
                         offset: message.offset,
                         key: message.key?.toString(),
@@ -253,19 +298,4 @@ module.exports = class KafkaClient {
         await this.#consumer.disconnect(topicName);
     }
 
-    async encodeContent(content) {
-        if (!_.isEmpty(this.#schemaRegistry) && _.isNumber(this.#schemaRegistryId) && !_.isEmpty(content)) {
-            if (_.isArray(content)) {
-                // let doh = await this.#schemaRegistry.getSchema(this.#schemaRegistryId);
-                let tmpArray = [];
-                for (let i=0; i<content.length; i++) {
-                    tmpArray.push(await this.#schemaRegistry.encode(this.#schemaRegistryId, content[i]));
-                }
-                return tmpArray;
-            }
-            else {
-                return await this.#schemaRegistry.encode(this.#schemaRegistryId, content);
-            }
-        }
-    }
 }

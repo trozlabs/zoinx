@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const { Logger } = require('../logger');
+const { TestHarness } = require('../testing');
 const KafkaStatics = require('./KafkaStatics');
 const { SchemaRegistryClient,
     SerdeType,
@@ -8,20 +9,21 @@ const { SchemaRegistryClient,
     JsonSerializer,
     JsonDeserializer,
     ProtobufSerializer,
-    ProtobufDeserializer
-} = require("@confluentinc/schemaregistry");
+    ProtobufDeserializer,
+    RuleMode } = require("@confluentinc/schemaregistry");
 const ProtobufHandler = require('./ProtobufHandler');
 
 
-module.exports = class KafkaSchema {
+module.exports = TestHarness(class KafkaSchema {
 
     logger = Logger.create({ name: 'KafkaSchema' });
     static testConfig = {};
 
     #registry
+    #schema
     #schemaCache
 
-    constructor(schemaRegistryUrl) {
+    constructor(schemaRegistryUrl, auth={}) {
         if (_.isEmpty(schemaRegistryUrl)) {
             this.logger.warn('Schema Registry URL must be provided');
             return;
@@ -42,15 +44,16 @@ module.exports = class KafkaSchema {
                 version = (_.isNaN(version)) ? -1 : version;
             }
 
-            const schema = (version === 'latest') ? await this.#registry.getLatestSchemaMetadata(subject) : await this.#registry.getSchemaMetadata(subject, version);
+            if (_.isEmpty(this.#schema))
+                this.#schema = (version === 'latest') ? await this.#registry.getLatestSchemaMetadata(subject) : await this.#registry.getSchemaMetadata(subject, version);
             let validatorFn, serializer, deserializer;
 
-            switch (schema.schemaType) {
+            switch (this.#schema.schemaType) {
                 case undefined:
                 {
                     serializer = new AvroSerializer(this.#registry, SerdeType.VALUE, { useLatestVersion: true });
                     deserializer = new AvroDeserializer(this.#registry, SerdeType.VALUE, { useLatestVersion: true });
-                    let [avroType, deps] = await serializer.toType(schema);
+                    let [avroType, deps] = await serializer.toType(this.#schema);
                     validatorFn = (message) => {
                         let valid = avroType.isValid(message);
                         if (!valid) {
@@ -64,10 +67,10 @@ module.exports = class KafkaSchema {
                 case 'JSON':
                 {
                     // This validation seems to allow properties that are not defined
-                    // but if defined properties absent, it will fail validation
+                    // but if defined properties are absent, it will fail validation
                     serializer = new JsonSerializer(this.#registry, SerdeType.VALUE, { useLatestVersion: true });
                     deserializer = new JsonDeserializer(this.#registry, SerdeType.VALUE, { useLatestVersion: true });
-                    const validate = await serializer.toValidateFunction(schema);
+                    const validate = await serializer.toValidateFunction(this.#schema);
                     validatorFn = async (message) => {
                         let valid = validate(message);
                         try {
@@ -86,7 +89,7 @@ module.exports = class KafkaSchema {
 
                 case 'PROTOBUF':
                 {
-                    const pbh = await ProtobufHandler.create(schema.schema);
+                    const pbh = await ProtobufHandler.create(this.#schema.schema);
                     serializer = pbh;
                     deserializer = pbh;
                     validatorFn = (message) => {
@@ -106,18 +109,18 @@ module.exports = class KafkaSchema {
                     break;
 
                 default:
-                    this.logger.warn(`Unsupported schema type: ${schema.schemaType}`);
+                    this.logger.warn(`Unsupported schema type: ${this.#schema.schemaType}`);
             }
 
-            this.#schemaCache.set(schema.id, {
-                schema: schema,
+            this.#schemaCache.set(this.#schema.id, {
+                schema: this.#schema,
                 validator: validatorFn,
                 serializer: serializer,
                 deserializer: deserializer,
                 topic: topic,
                 subject: subject
             });
-            return schema.id;
+            return this.#schema.id;
         }
         catch (e) {
             this.logger.error(e);
@@ -151,20 +154,22 @@ module.exports = class KafkaSchema {
         const { isKey = false, version = 'latest' } = options;
         const subject = KafkaStatics.inferSubjectName(topic, isKey);
         const schemaId = await this.#getSchemaIdByTopicFromCache(topic);
-        if (schemaId)
+        if (schemaId) {
             return schemaId;
-        else
+        }
+        else {
             return await this.#loadSchema(topic, subject, version);
+        }
     }
 
     async isMessageValid(schemaId, message={}){
         try {
             if (!_.isNumber(schemaId)) {
-                this.logger.warn('schemaId must be a number to check validity.')
+                this.logger.warn(`schemaId must be a number to check validity: ${schemaId}`);
             }
             else {
                 const cachedSchema = this.#schemaCache.get(schemaId);
-                return cachedSchema.validator(message);
+                return await cachedSchema.validator(message);
             }
         }
         catch (e) {
@@ -183,7 +188,7 @@ module.exports = class KafkaSchema {
             }
             else {
                 const cachedSchema = this.#schemaCache.get(schemaId);
-                serialized = cachedSchema.serializer.serialize(cachedSchema.topic, message);
+                serialized = await cachedSchema.serializer.serialize(cachedSchema.topic, message);
             }
         }
         catch (e) {
@@ -202,7 +207,7 @@ module.exports = class KafkaSchema {
             }
             else {
                 const cachedSchema = this.#schemaCache.get(schemaId);
-                deserialized = cachedSchema.deserializer.deserialize(cachedSchema.topic, serializedMessage);
+                deserialized = await cachedSchema.deserializer.deserialize(cachedSchema.topic, serializedMessage);
             }
         }
         catch (e) {
@@ -212,4 +217,5 @@ module.exports = class KafkaSchema {
         return deserialized;
     }
 
-}
+
+})
