@@ -134,6 +134,18 @@ module.exports = class Service extends TelemetryChain {
         return await this.domain.insertMany(rawObjects, { ordered: false, populate: null });
     }
 
+    async updateMany(queryParams, updateValue) {
+        const { filters, sorters, select, limit, offset } = queryParams;
+
+        if (!filters || !updateValue) {
+            this.logger.error('Must supply filters and values to update many.');
+            return undefined;
+        }
+
+        this.addTelemetryEvent('updateMany', {filters: filters, sorters: sorters, select: select, limit: limit, offset: offset});
+        return await this.domain.updateMany(filters, { $set: updateValue });
+    }
+
     async deleteMany(queryParams) {
         const { filters, sorters, select, limit, offset } = queryParams;
 
@@ -193,4 +205,5 @@ module.exports = class Service extends TelemetryChain {
         }
         return modelDef;
     }
+
 }

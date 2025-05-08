@@ -152,6 +152,11 @@ module.exports = class UtilMethods {
         if (_.isEmpty(uuid) || !_.isString(uuid)) return false;
         return regex.test(uuid);
     }
+    static isHttpURI(uri) {
+        let regex = new RegExp(/^(https?:\/\/)((localhost|((\d{1,3}\.){3}\d{1,3})|(\[[0-9a-fA-F:]+\])|([\w-]+\.)+[a-zA-Z]{2,}))(:\d{1,5})?(\/[^\s?#]*)?(\?[^\s#]*)?(#[^\s]*)?$/, 'mg');
+        if (_.isEmpty(uri) || !_.isString(uri)) return false;
+        return regex.test(uri);
+    }
 
     static StringToBoolean(value='false') {
         if (!_.isBoolean(value)) {

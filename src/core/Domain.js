@@ -38,7 +38,7 @@ module.exports = class Domain {
         return this.#Domain.find().select(this.#defaultExclude);
     }
 
-    find(queryParams, count=false, deleteMany=false) {
+    find(queryParams, count=false, deleteMany=false, updateMany=false) {
         const { filters, sorters, select, limit, offset } = queryParams;
 
         count = StaticUtil.StringToBoolean(count);
@@ -53,6 +53,10 @@ module.exports = class Domain {
         else if (deleteMany) {
             thisMdl = this.#Domain.deleteMany();
             action = 'deleteMany';
+        }
+        else if (updateMany) {
+            thisMdl = this.#Domain.updateMany();
+            action = 'updateMany';
         }
 
         this.#telEvent = new telemetryEvent({
@@ -161,7 +165,10 @@ module.exports = class Domain {
             }
         }
 
-        return thisMdl.exec();
+        if (updateMany)
+            return thisMdl;
+        else
+            return thisMdl.exec();
     }
 
     async save(doc, id) {
@@ -190,18 +197,25 @@ module.exports = class Domain {
     }
 
     async remove(id) {
-        try {
-            return this.#Domain.findByIdAndDelete(id);
-        }
-        catch (e) {
-            return Promise.reject(e.message);
-        }
+        return this.#Domain.findByIdAndDelete(id);
     }
 
     async insertMany(rawObjects=[]) {
         try {
             if (!_.isEmpty(rawObjects) && _.isArray(rawObjects) && rawObjects.length > 0) {
                 return await this.#Domain.insertMany(rawObjects);
+            }
+        }
+        catch (e) {
+            return Promise.reject(e.message);
+        }
+    }
+
+    async updateMany(filters, updateValue) {
+        try {
+            if (!_.isEmpty(filters) && !_.isEmpty(updateValue) && _.isObject(updateValue)) {
+                let domainMdl = this.find({filters:filters}, false, false, true);
+                return domainMdl.updateMany(updateValue);
             }
         }
         catch (e) {
