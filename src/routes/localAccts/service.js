@@ -21,7 +21,7 @@ module.exports = TestHarness(class LocalAcctsService extends Service {
             const salt = await bcrypt.genSalt(10);
             const encryptedPw = await bcrypt.hash(password, salt);
 
-            createResult = await this.save(undefined, {username: username, password: encryptedPw}, {user: 'SYSTEM'});
+            createResult = await this.save({username: username, password: encryptedPw}, {user: 'SYSTEM'});
             Log.info(createResult);
         }
         catch (e) {

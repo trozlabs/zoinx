@@ -41,7 +41,7 @@ module.exports = class Service extends TelemetryChain {
         return rtn;
     }
 
-    async save(id, body, session) {
+    async save(body, session, id) {
         if (!session || !session.user)
             throw new APIError("Session data must be supplied to save.");
 

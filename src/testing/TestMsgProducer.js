@@ -94,13 +94,10 @@ module.exports = class TestMsgProducer {
                     ip_address: Network.getHostAddress(),
                     testing_obj: testingObj,
                     error_message: error.message
-                },
-                result;
+                };
 
             let service = new tsfService();
-
-            result = await service.save(undefined, saveObj, {user: 'SYSTEM'});
-            // Log.info(result);
+            await service.save(saveObj, {user: 'SYSTEM'});
         }
         catch (e) {
             Log.error(e);

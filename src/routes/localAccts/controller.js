@@ -48,7 +48,7 @@ module.exports = TestHarness(class LocalAcctsCtrlr extends Controller {
         const salt = await bcrypt.genSalt(10);
         req.body.password = await bcrypt.hash(req.body.password, salt);
 
-        let rtn = await this.service.save(req.params.id, req.body, {user: 'SYSTEM'});
+        let rtn = await this.service.save(req.body, {user: 'SYSTEM'}, req.params.id);
 
         if (!rtn) {
             throw new APIError(`Failed to create ${routeLabel}.`);

@@ -78,7 +78,7 @@ module.exports = TestHarness(class RouteRolesService extends Service {
                     roles.push(role);
                     existingRouteRoles[i].set('role_names', roles);
 
-                    let rtn = await this.save(existingRouteRoles[i].get('id'), existingRouteRoles[i], {user: 'SYSTEM'});
+                    let rtn = await this.save(existingRouteRoles[i], {user: 'SYSTEM'}, existingRouteRoles[i].get('id'));
                     Log.info(`Updated roles for: ${existingRouteRoles[i].get('route_path')}`);
                 }
                 else {

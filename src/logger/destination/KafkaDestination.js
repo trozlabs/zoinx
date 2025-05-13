@@ -93,7 +93,7 @@ module.exports = class KafkaDestination extends Destination {
                 result;
 
             let service = new lsfService();
-            result = await service.save(undefined, saveObj, {user: 'SYSTEM'});
+            result = await service.save(saveObj, {user: 'SYSTEM'});
         }
         catch (e) {
             Log.error(e);

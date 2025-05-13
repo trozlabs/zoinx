@@ -36,7 +36,7 @@ module.exports = TestHarness(class PicklistController extends Controller {
             throw new APIError(500, 'No document sent to save.');
         }
 
-        let rtn = await this.service.save(req.params.id, req.body, req.verifiedAuth);
+        let rtn = await this.service.save(req.body, req.verifiedAuth, req.params.id);
 
         if (!rtn) {
             throw new APIError(`Failed to create ${routeLabel}.`);
@@ -52,7 +52,7 @@ module.exports = TestHarness(class PicklistController extends Controller {
         if (!req.body || Object.keys(req.body).length < 1) {
             throw new APIError(400, 'No changes sent to save.');
         }
-        let rtn = await this.service.save(req.params.id, req.body, req.verifiedAuth);
+        let rtn = await this.service.save(req.body, req.verifiedAuth, req.params.id);
         if (!rtn) {
             throw new APIError(400, `${routeLabel} with the ID ${req.params.id} was not found and could not be updated.`);
         }
