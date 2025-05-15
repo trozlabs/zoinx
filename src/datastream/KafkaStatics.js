@@ -7,7 +7,7 @@ const protobuf = require('protobufjs');
 module.exports = class KafkaStatics {
 
     static logger = Logger.create({ name: 'KafkaStatics' });
-    static testConfig = {}
+    static testConfig = {};
 
     static inferSubjectName(topic, isKey = false) {
         return `${topic}-${isKey ? 'key' : 'value'}`;
@@ -28,11 +28,9 @@ module.exports = class KafkaStatics {
         traverseTypes(root, function(type) {
             messageNames.push(_.trimStart(type.fullName, '.'));
             if (logDetails) {
-                console.log(
-                    type.constructor.className + " " + type.name
-                    + "\n  fully qualified name: " + _.trimStart(type.fullName, '.')
-                    + "\n  parent: " + _.trimStart(type.parent, ',')
-                );
+                console.log(`${type.constructor.className} ${type.name}
+                \n fully qualified name: ${_.trimStart(type.fullName, '.')}
+                \n parent: ${_.trimStart(type.parent, ',')}`);
             }
         });
         return messageNames;
