@@ -1,12 +1,13 @@
 const _ = require('lodash');
-const { Logger } = require('../logger');
+// const { Logger } = require('../logger');
+const Log = require('../log/Log');
 const AppConfig = require('../util/AppConfig');
 const { StaticUtil } = require('../util');
 const protobuf = require('protobufjs');
 
 module.exports = class KafkaStatics {
 
-    static logger = Logger.create({ name: 'KafkaStatics' });
+    // static logger = Logger.create({ name: 'KafkaStatics' });
     static testConfig = {};
 
     static inferSubjectName(topic, isKey = false) {
@@ -46,7 +47,7 @@ module.exports = class KafkaStatics {
                 }
             }
             catch (e) {
-                this.logger.error(e.message);
+                Log.error(e.message);
             }
         }
         return required;
@@ -73,7 +74,7 @@ module.exports = class KafkaStatics {
             }
         }
         catch (e) {
-            this.logger.error(e.message);
+            Log.error(e.message);
         }
 
         return {};
@@ -102,7 +103,7 @@ module.exports = class KafkaStatics {
             }
         }
         catch (e) {
-            this.logger.error(e.message);
+            Log.error(e.message);
         }
 
         return {};
