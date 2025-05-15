@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { Logger } = require('../logger');
+const Logger = require('../logger/Logger');
 const AppConfig = require('../util/AppConfig');
 const { StaticUtil } = require('../util');
 const protobuf = require('protobufjs');
