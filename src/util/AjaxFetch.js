@@ -1,12 +1,11 @@
 // external
 const _ = require('lodash');
-// const fetch = require('node-fetch');
-// local
 const StaticUtil = require('./StaticUtil.js');
 const { Logger } = require('../logger');
-const logger = Logger.get('zoinx/util');
 
 module.exports = class Fetch {
+
+    logger = Logger.create({ name: 'Fetch' });
     #sleepTime = 0;
 
     static async execReq(options, logOptions = false) {
@@ -36,7 +35,7 @@ module.exports = class Fetch {
                 const responseJson = await response.json();
                 resultJsonObj = responseJson;
             } else {
-                if (logOptions) logger.debug('options', options);
+                if (logOptions) this.logger.debug('options', options);
 
                 const response = await fetch(options.url, options);
 
@@ -45,18 +44,18 @@ module.exports = class Fetch {
                         resultJsonObj = await response.json();
                     }
                     catch (e) {
-                        logger.error(e);
+                        this.logger.error(e);
                         resultJsonObj = response;
                     }
                 }
                 else resultJsonObj = response;
             }
         } catch (ex) {
-            logger.error(`execReq error calling ${options.url}\n`, ex);
+            this.logger.error(`execReq error calling ${options.url}\n`, ex);
             resultJsonObj = { error: ex };
         }
 
-        if (logOptions) logger.debug('responseJsonObj', resultJsonObj);
+        if (logOptions) this.logger.debug('responseJsonObj', resultJsonObj);
 
         return resultJsonObj;
     }
