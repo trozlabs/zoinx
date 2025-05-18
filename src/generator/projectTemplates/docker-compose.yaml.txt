@@ -95,9 +95,9 @@ services:
     post_start:
         -   command: "bash -c 'echo Waiting for Kafka to be ready... && \
                      cub kafka-ready -b broker:9092 1 40 && \
-                     kafka-topics --bootstrap-server broker:9092 --create --if-not-exists --topic \$\{LOGGER_TOPIC_NAME\} --replication-factor 1 --partitions \$\{KAFKA_PARTITIONS_PER_TOPIC\} && \
-                     kafka-topics --bootstrap-server broker:9092 --create --if-not-exists --topic \$\{TELEMETRY_TOPIC_NAME\} --replication-factor 1 --partitions \$\{KAFKA_PARTITIONS_PER_TOPIC\} && \
-                     kafka-topics --bootstrap-server broker:9092 --create --if-not-exists --topic \$\{TESTING_TOPIC_NAME\} --replication-factor 1 --partitions \$\{KAFKA_PARTITIONS_PER_TOPIC\} && \
+                     kafka-topics --bootstrap-server broker:9092 --create --if-not-exists --topic \$\{LOGGER_TOPIC_NAME\} --replication-factor 1 --partitions \$\{KAFKA_PARTITIONS_PER_TOPIC\} --config retention.ms=1800000 --config cleanup.policy=delete,compact --config retention.bytes=500000000 && \
+                     kafka-topics --bootstrap-server broker:9092 --create --if-not-exists --topic \$\{TELEMETRY_TOPIC_NAME\} --replication-factor 1 --partitions \$\{KAFKA_PARTITIONS_PER_TOPIC\} --config retention.ms=1800000 --config cleanup.policy=delete,compact --config retention.bytes=500000000 && \
+                     kafka-topics --bootstrap-server broker:9092 --create --if-not-exists --topic \$\{TESTING_TOPIC_NAME\} --replication-factor 1 --partitions \$\{KAFKA_PARTITIONS_PER_TOPIC\} --config retention.ms=1800000 --config cleanup.policy=delete,compact --config retention.bytes=500000000 && \
                      kafka-topics --bootstrap-server broker:9092 --list'"
     networks:
         - <%= projectName %>-network
