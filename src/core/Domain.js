@@ -47,7 +47,7 @@ module.exports = class Domain {
         let thisMdl = this.#Domain.find(),
             action = 'find';
         if (count) {
-            thisMdl = this.#Domain.count();
+            thisMdl = this.#Domain.countDocuments();
             action = 'count';
         }
         else if (deleteMany) {

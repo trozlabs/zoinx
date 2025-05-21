@@ -3,6 +3,7 @@ fields: '[{"field": "object_type", "oper":"startswith", "term":"item"}]'
  */
 
 const _ = require('lodash');
+const StaticUtil = require('StaticUtil');
 
 module.exports = class Filter {
     #queryFilters = [];
@@ -24,7 +25,8 @@ module.exports = class Filter {
         '!in': '!in'
     };
 
-    constructor(req, dbType) {
+    constructor(req, returnFilters=false, dbType='mongo') {
+        returnFilters = StaticUtil.StringToBoolean(returnFilters);
         if (_.isArray(req)) {
             if (!req[0]?.field)
                 req = [];
@@ -36,7 +38,8 @@ module.exports = class Filter {
         }
 
         if (dbType) this.#dbType = dbType;
-        if (this.#queryFilters.length > 0) this.parseFilters();
+        if (this.#queryFilters.length > 0) this.parseFilters().then();
+        if (returnFilters) return this.#filters;
     }
 
     getFilters() {
@@ -52,7 +55,7 @@ module.exports = class Filter {
         }
     }
 
-    parseFilters() {
+    async parseFilters() {
         // console.log(this.#queryFilters);
         for (var i = 0; i < this.#queryFilters.length; i++) {
             if (this.#dbType === 'mongo') {

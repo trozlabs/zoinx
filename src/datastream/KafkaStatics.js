@@ -1,8 +1,8 @@
 const _ = require('lodash');
-// const { Logger } = require('../logger');
+// const Logger = require('../logger/Logger');
 const Log = require('../log/Log');
 const AppConfig = require('../util/AppConfig');
-const { StaticUtil } = require('../util');
+const StaticUtil = require('../util/StaticUtil');
 const protobuf = require('protobufjs');
 
 module.exports = class KafkaStatics {

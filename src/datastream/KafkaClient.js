@@ -1,6 +1,7 @@
 const _ = require('lodash');
-const { Logger } = require('../logger');
-const { StaticUtil } = require('../util');
+// const Logger = require('../logger/Logger');
+const Log = require('../log/Log');
+const StaticUtil = require('../util/StaticUtil');
 const KafkaStatics = require('./KafkaStatics');
 const KafkaSchema = require('./KafkaSchema');
 const { Kafka,
@@ -10,7 +11,7 @@ const { Kafka,
 
 module.exports = class KafkaClient {
 
-    logger = Logger.create({ name: 'KafkaClient' });
+    // logger = Logger.create({ name: 'KafkaClient' });
 
     #logOptions = false;
     #clientId = '';
@@ -39,13 +40,13 @@ module.exports = class KafkaClient {
             this.#schemaServer = new KafkaSchema(schemaServer);
         }
         else
-            this.logger.warn(`URL to Schema Server is invalid: ${schemaServer}`);
+            Log.warn(`URL to Schema Server is invalid: ${schemaServer}`);
     }
 
     async setClientConfig(varNamePrefix='DEFAULT_KAFKA', env='DEV', ssl=true) {
 
         if (_.isEmpty(varNamePrefix) || _.isEmpty(env)) {
-            this.logger.warn('Must supply a topic prefix for the ENV vars and supply an environment name.');
+            Log.warn('Must supply a topic prefix for the ENV vars and supply an environment name.');
         }
         else {
             try {
@@ -78,15 +79,15 @@ module.exports = class KafkaClient {
                 }
 
                 if (this.#logOptions) {
-                    this.logger.banner('KafkaClient Config', '+');
-                    this.logger.json(kafkaJS);
+                    Log.banner('KafkaClient Config', '+');
+                    Log.json(kafkaJS);
                 }
 
                 this.#kafkaClient = new Kafka({kafkaJS});
                 this.#config = kafkaJS;
             }
             catch (e) {
-                this.logger.error(e);
+                Log.error(e);
             }
         }
     }
@@ -103,7 +104,7 @@ module.exports = class KafkaClient {
                 this.#producer = await this.#kafkaClient.producer();
             }
         } catch (e) {
-            this.logger.error(e.message);
+            Log.error(e.message);
         }
     }
 
@@ -113,7 +114,7 @@ module.exports = class KafkaClient {
             this.#producerIsConnected = true;
         }
         catch (e) {
-            this.logger.error(e.message);
+            Log.error(e.message);
             throw e;
         }
     }
@@ -134,7 +135,7 @@ module.exports = class KafkaClient {
             });
         }
         catch (e) {
-            this.logger.error(e);
+            Log.error(e);
             throw e;
         }
     }
@@ -153,10 +154,10 @@ module.exports = class KafkaClient {
                 });
             }
             else
-                this.logger.warn(`Message failed schema validation on topic: ${topicName} or has an incorrect schemaId: ${schemaId}.`);
+                Log.warn(`Message failed schema validation on topic: ${topicName} or has an incorrect schemaId: ${schemaId}.`);
         }
         catch (e) {
-            this.logger.error(e);
+            Log.error(e);
             throw e;
         }
     }
@@ -167,7 +168,7 @@ module.exports = class KafkaClient {
 
     async sendMessageBatch(messages=[], topicName='dev-topic') {
         if (_.isEmpty(messages) || !_.isArray(messages)) {
-            this.logger.warn('No topic messages provided.')
+            Log.warn('No topic messages provided.')
             return;
         }
 
@@ -193,21 +194,21 @@ module.exports = class KafkaClient {
             return await this.#producer.sendBatch(batch);
         }
         catch (e) {
-            this.logger.error(e);
+            Log.error(e);
         }
     }
 
     async sendValidatedMessageBatch(messages=[], topicName='dev-topic', idProp='id') {
         if (_.isEmpty(messages) || !_.isArray(messages)) {
-            this.logger.warn('No topic messages provided.')
+            Log.warn('No topic messages provided.')
             return;
         }
 
         let batchResults = '';
 
         try {
-            if (_.isEmpty(this.#producer)) await this.#createProducer();
-            if (!this.#producerIsConnected) await this.connectProducer();
+            // if (_.isEmpty(this.#producer)) await this.#createProducer();
+            // if (!this.#producerIsConnected) await this.connectProducer();
 
             let sendResults = {
                 success: [],
@@ -232,7 +233,7 @@ module.exports = class KafkaClient {
             batchResults = sendResults;
         }
         catch (e) {
-            this.logger.error(e.message);
+            Log.error(e.message);
         }
 
         return batchResults;
@@ -244,7 +245,7 @@ module.exports = class KafkaClient {
                 this.#consumer = this.#kafkaClient.consumer({ groupId: this.#clientId });
             }
         } catch (e) {
-            this.logger.error(e.message);
+            Log.error(e.message);
         }
     }
 
@@ -264,7 +265,7 @@ module.exports = class KafkaClient {
             payload;
         try {
             if (_.isEmpty(topicName) || !_.isFunction(calllbackFunc)) {
-                this.logger.warn(`No topic name or callback provided for consumer,  ${this.#clientId}`);
+                Log.warn(`No topic name or callback provided for consumer,  ${this.#clientId}`);
                 return;
             }
 
@@ -280,17 +281,17 @@ module.exports = class KafkaClient {
                     }
 
                     if (this.#logOptions)
-                        this.logger.log(JSON.stringify(this.msgObj));
+                        Log.log(JSON.stringify(this.msgObj));
 
                     if (_.isFunction(calllbackFunc))
                         calllbackFunc(this.msgObj);
                     else
-                        this.logger.warn('No callback function defined to process messages.');
+                        Log.warn('No callback function defined to process messages.');
                 }
             });
         }
         catch (e) {
-            this.logger.error(e.message);
+            Log.error(e.message);
         }
     }
 

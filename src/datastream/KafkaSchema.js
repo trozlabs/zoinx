@@ -1,5 +1,6 @@
 const _ = require('lodash');
-const { Logger } = require('../logger');
+const Logger = require('../logger/Logger');
+const Log = require('../log/Log');
 const { TestHarness } = require('../testing');
 const KafkaStatics = require('./KafkaStatics');
 const { SchemaRegistryClient,
@@ -16,7 +17,7 @@ const ProtobufHandler = require('./ProtobufHandler');
 
 module.exports = TestHarness(class KafkaSchema {
 
-    logger = Logger.create({ name: 'KafkaSchema' });
+    // logger = Logger.create({ name: 'KafkaSchema' });
     static testConfig = {};
 
     #registry
@@ -25,7 +26,7 @@ module.exports = TestHarness(class KafkaSchema {
 
     constructor(schemaRegistryUrl, auth={}) {
         if (_.isEmpty(schemaRegistryUrl)) {
-            this.logger.warn('Schema Registry URL must be provided');
+            Log.warn('Schema Registry URL must be provided');
             return;
         }
         this.#registry = new SchemaRegistryClient({
@@ -57,7 +58,7 @@ module.exports = TestHarness(class KafkaSchema {
                     validatorFn = (message) => {
                         let valid = avroType.isValid(message);
                         if (!valid) {
-                            this.logger.warn('Message does not conform to AVRO schema');
+                            Log.warn('Message does not conform to AVRO schema');
                         }
                         return valid;
                     };
@@ -75,7 +76,7 @@ module.exports = TestHarness(class KafkaSchema {
                         let valid = validate(message);
                         try {
                             if (validate != null && !valid) {
-                                this.logger.warn(`Message does not conform to JSON schema`);
+                                Log.warn(`Message does not conform to JSON schema`);
                             }
                         }
                         catch (e) {
@@ -96,7 +97,7 @@ module.exports = TestHarness(class KafkaSchema {
                         let valid = pbh.validate(message);
                         try {
                             if (!valid) {
-                                this.logger.warn(`Message does not conform to PROTOBUF schema`);
+                                Log.warn(`Message does not conform to PROTOBUF schema`);
                             }
                         }
                         catch (e) {
@@ -109,7 +110,7 @@ module.exports = TestHarness(class KafkaSchema {
                     break;
 
                 default:
-                    this.logger.warn(`Unsupported schema type: ${this.#schema.schemaType}`);
+                    Log.warn(`Unsupported schema type: ${this.#schema.schemaType}`);
             }
 
             this.#schemaCache.set(this.#schema.id, {
@@ -123,7 +124,7 @@ module.exports = TestHarness(class KafkaSchema {
             return this.#schema.id;
         }
         catch (e) {
-            this.logger.error(e);
+            Log.error(e);
         }
 
         return undefined;
@@ -141,11 +142,11 @@ module.exports = TestHarness(class KafkaSchema {
                 }
             }
             catch (e) {
-                this.logger.error(e);
+                Log.error(e);
             }
         }
         else
-            this.logger.warn('A topic name must be supplied to find a schema by topic.');
+            Log.warn('A topic name must be supplied to find a schema by topic.');
 
         return undefined;
     }
@@ -165,7 +166,7 @@ module.exports = TestHarness(class KafkaSchema {
     async isMessageValid(schemaId, message={}){
         try {
             if (!_.isNumber(schemaId)) {
-                this.logger.warn(`schemaId must be a number to check validity: ${schemaId}`);
+                Log.warn(`schemaId must be a number to check validity: ${schemaId}`);
             }
             else {
                 const cachedSchema = this.#schemaCache.get(schemaId);
@@ -173,7 +174,7 @@ module.exports = TestHarness(class KafkaSchema {
             }
         }
         catch (e) {
-            this.logger.error(e);
+            Log.error(e);
         }
 
         return false;
@@ -184,7 +185,7 @@ module.exports = TestHarness(class KafkaSchema {
 
         try {
             if (!_.isNumber(schemaId)) {
-                this.logger.warn('schemaId must be a number to serialize.')
+                Log.warn('schemaId must be a number to serialize.')
             }
             else {
                 const cachedSchema = this.#schemaCache.get(schemaId);
@@ -192,7 +193,7 @@ module.exports = TestHarness(class KafkaSchema {
             }
         }
         catch (e) {
-            this.logger.error(e);
+            Log.error(e);
         }
 
         return serialized;
@@ -203,7 +204,7 @@ module.exports = TestHarness(class KafkaSchema {
 
         try {
             if (!_.isNumber(schemaId)) {
-                this.logger.warn('schemaId must be a number to deserialize.')
+                Log.warn('schemaId must be a number to deserialize.')
             }
             else {
                 const cachedSchema = this.#schemaCache.get(schemaId);
@@ -211,7 +212,7 @@ module.exports = TestHarness(class KafkaSchema {
             }
         }
         catch (e) {
-            this.logger.error(e);
+            Log.error(e);
         }
 
         return deserialized;

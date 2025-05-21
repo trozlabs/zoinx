@@ -23,6 +23,7 @@ const Encryption = require('../../util/Encryption');
 module.exports = class KafkaDestination extends Destination {
     type = 'kafka';
     env
+    #enabled
 
     /**
      * @param {Object} options
@@ -33,9 +34,12 @@ module.exports = class KafkaDestination extends Destination {
      */
     constructor(options = {}) {
         super(...arguments);
-        this.#createLoggerProducer().catch((err) => {
-            console.error(err);
-        });
+        this.#enabled = options.enabled;
+        if (this.#enabled) {
+            this.#createLoggerProducer().catch((err) => {
+                console.error(err);
+            });
+        }
     }
 
     async #createLoggerProducer() {
@@ -54,31 +58,32 @@ module.exports = class KafkaDestination extends Destination {
     }
 
     async handle(data) {
-        let logMsg = data?.plain,
-            keyString = (process.env.SERVICE_NAME) ? process.env.SERVICE_NAME : 'DevApplication';
+        if (this.#enabled) {
+            let logMsg = data?.plain,
+                keyString = (process.env.SERVICE_NAME) ? process.env.SERVICE_NAME : 'DevApplication';
 
-        try {
-            if (!_.isEmpty(logMsg)) {
-                if (StaticUtil.StringToBoolean(process.env['LOGGER_ENCRYPT'])) {
-                    logMsg = await Encryption.encrypt(logMsg, process.env['LOGGER_SECRET_KEY'] , process.env['LOGGER_SECRET_IV']);
+            try {
+                if (!_.isEmpty(logMsg)) {
+                    if (StaticUtil.StringToBoolean(process.env['LOGGER_ENCRYPT'])) {
+                        logMsg = await Encryption.encrypt(logMsg, process.env['LOGGER_SECRET_KEY'], process.env['LOGGER_SECRET_IV']);
+                    }
+
+                    keyString += `.${data.level}.${data.logger.name}:${new Date().getTime()}`;
+                    if (_.isEmpty(keyString))
+                        keyString = randomUUID();
+
+                    await global.kafka.LoggerProducer.sendMessage({
+                        key: keyString,
+                        value: JSON.stringify(logMsg)
+                    }, process.env['LOGGER_TOPIC_NAME']);
                 }
-
-                keyString += `.${data.level}.${data.logger.name}:${new Date().getTime()}`;
-                if (_.isEmpty(keyString))
-                    keyString = randomUUID();
-
-                await global.kafka.LoggerProducer.sendMessage({
+            } catch (e) {
+                let loggingObj = {
                     key: keyString,
-                    value: JSON.stringify(logMsg)
-                }, process.env['LOGGER_TOPIC_NAME']);
+                    message: logMsg
+                }
+                await this.saveLoggingSendFail(loggingObj, e);
             }
-        }
-        catch (e) {
-            let loggingObj = {
-                key: keyString,
-                message: logMsg
-            }
-            await this.saveLoggingSendFail(loggingObj, e);
         }
     }
 

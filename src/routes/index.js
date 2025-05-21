@@ -6,8 +6,8 @@ const fs = require('fs');
 const express = require('express');
 const _ = require('lodash');
 // zoinx
-const { Log } = require('../log');
-const { StaticUtil } = require('../util');
+const Log = require('../log/Log');
+const StaticUtil = require('../util/StaticUtil');
 const error = require('./RouteError');
 const rrService = require('./routeRoles/service');
 const laService = require('./localAccts/service');

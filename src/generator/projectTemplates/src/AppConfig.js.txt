@@ -58,7 +58,7 @@ module.exports = class ZoinxAppConfig extends AppConfig {
                     transformers: []
                 }),
                 new Logger.destinations.KafkaDestination({
-                    enabled: true,
+                    enabled: false,
                     name: 'kafka-logger',
                     config: {},
                     filters: [],

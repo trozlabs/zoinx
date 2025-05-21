@@ -3,9 +3,8 @@ const path = require('path');
 const bcrypt = require("bcryptjs");
 const fs = require("fs");
 const mkdirp = require('mkdirp');
-
-const { Log } = require('../log');
-const { StaticUtil } = require('../util');
+const Log = require('../log/Log');
+const StaticUtil = require('../util/StaticUtil');
 const AppCache = require("../core/AppCache");
 const TypeDefinitions = require('./TypeDefinitions');
 const UtilMethods = require('./UtilMethods');

@@ -1,5 +1,6 @@
 const _ = require('lodash');
-const { Logger } = require('../logger');
+const Logger = require('../logger/Logger');
+const Log = require('../log/Log');
 const KafkaStatics = require('./KafkaStatics');
 const protobuf = require('protobufjs');
 
@@ -21,7 +22,7 @@ module.exports = class ProtobufHandler {
 
     async initialize(schemaString) {
         if (_.isEmpty(schemaString) || !_.isString(schemaString)) {
-            this.logger.warn('A schemaString must be provided to use ProtobufHandler');
+            Log.warn('A schemaString must be provided to use ProtobufHandler');
             return;
         }
 
@@ -36,7 +37,7 @@ module.exports = class ProtobufHandler {
             }
         }
         catch (e) {
-            this.logger.error(e.message);
+            Log.error(e.message);
         }
     }
 
@@ -51,13 +52,13 @@ module.exports = class ProtobufHandler {
     validate(json) {
         const errMsg = this.#messageObjects[0].message.verify(json);
         if (errMsg) {
-            this.logger.error(`Validation error: ${errMsg}`);
+            Log.error(`Validation error: ${errMsg}`);
             return false;
         }
 
         for (const field of  this.#messageObjects[0].required) {
             if (json[field] === undefined || json[field] === null || json[field] === '') {
-                this.logger.error(`Missing required field: ${field}`);
+                Log.error(`Missing required field: ${field}`);
                 return false;
             }
         }
