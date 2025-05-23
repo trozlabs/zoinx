@@ -3,7 +3,7 @@ fields: '[{"field": "object_type", "oper":"startswith", "term":"item"}]'
  */
 
 const _ = require('lodash');
-const StaticUtil = require('StaticUtil');
+const StaticUtil = require('./StaticUtil');
 
 module.exports = class Filter {
     #queryFilters = [];
