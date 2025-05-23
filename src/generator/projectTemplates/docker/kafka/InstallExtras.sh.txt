@@ -7,4 +7,3 @@ apt-get install -y vim
 apt-get install -y net-tools
 apt-get install -y kafkacat
 apt-get install -y procps
-apt-get install -y librdkafka

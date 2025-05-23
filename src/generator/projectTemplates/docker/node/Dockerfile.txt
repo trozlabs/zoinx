@@ -34,6 +34,7 @@ RUN apt-get install -y vim
 RUN apt-get install -y net-tools
 RUN apt-get install -y kafkacat
 RUN apt-get install -y git
+RUN apt-get install -y librdkafka
 
 WORKDIR /usr/src/app
 COPY --from=builder --chown=node:node /usr/src/app .
