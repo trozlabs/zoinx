@@ -5,6 +5,7 @@ const Filter = require("../util/Filter");
 const Sort = require('../util/Sort');
 const SelectInclude = require('../util/SelectInclude');
 const TelemetryChain = require('../telemetry/TelemetryChain');
+const StaticUtil = require('../util/StaticUtil');
 
 module.exports = class Service extends TelemetryChain {
 
@@ -42,6 +43,9 @@ module.exports = class Service extends TelemetryChain {
     }
 
     async save(body, session, id) {
+        if (!session && StaticUtil.StringToBoolean(process.env.RBA_ALLOW_NOAUTH))
+            session = {user: 'NOAUTH'}
+
         if (!session || !session.user)
             throw new APIError("Session data must be supplied to save.");
 

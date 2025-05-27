@@ -4,6 +4,7 @@ const _ = require('lodash');
 const { Log } = require('../log');
 const { Filter, Sort, SelectInclude, StaticUtil} = require('../util');
 const telemetryEvent = require('../telemetry/TelemetryEventModel');
+const mongoose = require('mongoose');
 
 module.exports = class Domain {
     #Domain;
@@ -187,8 +188,9 @@ module.exports = class Domain {
             }
         } else {
             try {
+                doc._id = new mongoose.Types.ObjectId();;
                 let saveData = new this.#Domain(doc);
-                return await saveData.save();;
+                return await saveData.save();
             }
             catch (e) {
                 return Promise.reject(e.message);
