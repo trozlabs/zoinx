@@ -64,6 +64,7 @@ module.exports = class Service extends TelemetryChain {
             }
             catch (e) {
                 this.logger.error(e);
+                throw e;
             }
         }
         return rtn;
