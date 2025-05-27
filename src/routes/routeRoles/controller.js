@@ -78,10 +78,10 @@ module.exports = TestHarness(class RouteRolesCtrlr extends Controller {
         let rtn = await this.service.save(req.body, {user: 'SYSTEM'}, req.params.id);
 
         if (!rtn) {
-            throw new APIError(`Failed to create ${routeLabel}.`);
+            throw new APIError(511, `Failed to create ${routeLabel}.`);
         }
         else if (rtn.stack) {
-            throw new APIError(`${rtn.message} ${routeLabel}.`);
+            throw new APIError(500, `${rtn.message} ${routeLabel}.`);
         }
 
         rtn = ResponseObj.omitProperties(rtn, '_doc', ['__v']);

@@ -47,7 +47,7 @@ module.exports = class Service extends TelemetryChain {
             session = {user: 'NOAUTH'}
 
         if (!session || !session.user)
-            throw new APIError("Session data must be supplied to save.");
+            throw new APIError(404, "Session data must be supplied to save.");
 
         let rtn;
         if (id) {
