@@ -1,6 +1,6 @@
-ARG VARIANT=22.1-apline
+ARG VARIANT=22.1-alpine
 
-FROM node:22.16-apline AS builder
+FROM node:22.16-alpine AS builder
 
 # Required to build application
 # RUN npm install --no-audit --no-fund --loglevel=warn
