@@ -438,9 +438,9 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             await cmd.run(true);
             console.log(await cmd.getCmdResults());
 
-            cmd = new ShellCmd(`npm audit fix --force`);
-            await cmd.run(true);
-            console.log(await cmd.getCmdResults());
+            // cmd = new ShellCmd(`npm audit fix --force`);
+            // await cmd.run(true);
+            // console.log(await cmd.getCmdResults());
 
             await this.#cliParent.horizontalLine();
             await this.#cliParent.verticalSpace();
