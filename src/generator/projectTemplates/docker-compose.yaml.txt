@@ -65,6 +65,13 @@ services:
   <%= projectName %>-broker:
     profiles: [ confluent ]
     image: confluentinc/cp-server:7.5.0
+    volumes:
+        - ./docker/kafka/log4j.properties:/etc/kafka/log4j.properties
+    logging:
+        driver: "json-file"
+        options:
+            max-size: "10m"
+            max-file: "3"
     hostname: broker
     container_name: \$\{SERVICE_NAME\}-broker-\$\{ENV\}
     restart: unless-stopped

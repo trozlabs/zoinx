@@ -3,6 +3,8 @@ const { Filter } = require('zoinx/util');
 const { VerifyAuth } = require('zoinx/middle');
 const {TestHarness} = require("zoinx/testing");
 const TestConfig = require('./testConfigs/controller');
+const  _ = require('lodash');
+const { randomUUID } = require('crypto');
 
 const routeLabel = 'Picklists';
 
@@ -73,7 +75,7 @@ module.exports = TestHarness(class PicklistController extends Controller {
         let rtn = await this.service.getPLList();
         let lists = [];
         for (let i = 0; i < rtn.length; i++) {
-            lists.push({ list: rtn[i] });
+            lists.push({ _id: randomUUID(), val: rtn[i], lbl: _.capitalize(rtn[i].replace('_',' ')) });
         }
         return lists;
     }
