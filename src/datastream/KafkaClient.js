@@ -1,6 +1,6 @@
 const _ = require('lodash');
 // const Logger = require('../logger/Logger');
-const Log = require('../log/Log');
+const Log = require('../log/Log')
 const StaticUtil = require('../util/StaticUtil');
 const KafkaStatics = require('./KafkaStatics');
 const KafkaSchema = require('./KafkaSchema');
@@ -10,6 +10,16 @@ const { Kafka,
 } = require("@confluentinc/kafka-javascript").KafkaJS;
 
 module.exports = class KafkaClient {
+
+    #ProducerState = Object.freeze({
+        INIT: 0,
+        CONNECTING: 1,
+        INITIALIZING_TRANSACTIONS: 2,
+        INITIALIZED_TRANSACTIONS: 3,
+        CONNECTED: 4,
+        DISCONNECTING: 5,
+        DISCONNECTED: 6,
+    });
 
     // logger = Logger.create({ name: 'KafkaClient' });
 
@@ -23,7 +33,7 @@ module.exports = class KafkaClient {
     #producer;
     #producerIsConnected = false;
     #consumer;
-    #connectionTimeout = 3000;
+    #connectionTimeout = 30000;
     #initialRetryTime = 10000;
     #retries = 3;
 
@@ -36,8 +46,10 @@ module.exports = class KafkaClient {
 
     async setSchemaConfig(schemaServer='http://localhost:8081', auth={}, logOptions = false){
         if(StaticUtil.isHttpURI(schemaServer)) {
-            if (!_.isEmpty(auth) && _.isObject(auth)) this.#schemaServerAuth = auth;
-            this.#schemaServer = new KafkaSchema(schemaServer);
+            if (!_.isEmpty(auth) && _.isObject(auth))
+                this.#schemaServerAuth = auth;
+
+            this.#schemaServer = new KafkaSchema(schemaServer, auth);
         }
         else
             Log.warn(`URL to Schema Server is invalid: ${schemaServer}`);
@@ -51,7 +63,7 @@ module.exports = class KafkaClient {
         else {
             try {
                 if (_.isString(ssl)) ssl = StaticUtil.StringToBoolean(ssl);
-                let { mech, protocol, user, pwd} = KafkaStatics.getKafkaSSLProps(varNamePrefix, env);
+                let { mech, protocol, user, pwd} = await KafkaStatics.getKafkaSSLProps(varNamePrefix, env);
 
                 let kafkaJS = {
                     brokers: this.#brokers,
@@ -83,7 +95,7 @@ module.exports = class KafkaClient {
                     Log.json(kafkaJS);
                 }
 
-                this.#kafkaClient = new Kafka({kafkaJS});
+                this.#kafkaClient = new Kafka({ kafkaJS });
                 this.#config = kafkaJS;
             }
             catch (e) {
@@ -207,8 +219,8 @@ module.exports = class KafkaClient {
         let batchResults = '';
 
         try {
-            // if (_.isEmpty(this.#producer)) await this.#createProducer();
-            // if (!this.#producerIsConnected) await this.connectProducer();
+            if (_.isEmpty(this.#producer)) await this.#createProducer();
+            if (!this.#producerIsConnected) await this.connectProducer();
 
             let sendResults = {
                 success: [],

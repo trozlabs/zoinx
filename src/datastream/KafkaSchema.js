@@ -1,9 +1,10 @@
 const _ = require('lodash');
-const Logger = require('../logger/Logger');
-const Log = require('../log/Log');
-const { TestHarness } = require('../testing');
+const Log = require('../log/Log')
+// const Logger = require('../logger/Logger');
+const TestHarness = require('../testing/TestHarness');
 const KafkaStatics = require('./KafkaStatics');
 const { SchemaRegistryClient,
+    ClientConfig,
     SerdeType,
     AvroSerializer,
     AvroDeserializer,
@@ -29,9 +30,17 @@ module.exports = TestHarness(class KafkaSchema {
             Log.warn('Schema Registry URL must be provided');
             return;
         }
-        this.#registry = new SchemaRegistryClient({
-            baseURLs: [schemaRegistryUrl]
-        })
+
+        const clientConfig = {
+            baseURLs: [schemaRegistryUrl],
+            createAxiosDefaults: {timeout: 10000},
+            cacheCapacity: 512,
+            cacheLatestTtlSecs: 60,
+        };
+        if (_.isObject(auth) && !_.isEmpty(auth))
+            clientConfig.basicAuthCredentials = auth;
+
+        this.#registry = new SchemaRegistryClient(clientConfig)
         this.#schemaCache = new Map();
     }
 
