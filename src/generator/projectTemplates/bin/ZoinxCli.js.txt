@@ -11,7 +11,7 @@ class Zoinx extends ZoinxCli {
     constructor(process) {
         super(process);
         if (this.useDB) {
-            AppConfig.initConfig(false, this.envArg).catch((err) => {
+            AppConfig.initConfigCLI(this.envArg).catch((err) => {
                 Log.error(err);
             });
             exports.db = require('../src/db');
