@@ -37,7 +37,7 @@ module.exports = class SelectInclude {
         let tmpSelect = '';
         for (let i = 0; i < this.#selectInclude.length; i++) {
             if (this.#dbType === 'mongo') {
-                if (this.#selectInclude[i].exclude) tmpSelect = '-';
+                if (this.#selectInclude[i].exclude) tmpSelect += '-';
                 tmpSelect += this.#selectInclude[i].property + ' ';
             }
         }
