@@ -65,7 +65,7 @@ Why use Zoinx:
 Zoinx is based in NodeJS with MongoDB as the main datastore. It does not support using any SQL based datastore for the primary datastore.<br/>
 It is of course possible to add connectivity to any SQL datastore but that is a per-project decision.
 
-Zoinx is event driven out of the box. To support an event driven architecture, Kafka is used to produce and consume messages. Kafka is more than pub/sub messaging but Zoinx does not dictate how it can be used but sets up the basic functionality inside of Docker.
+Zoinx is event driven out of the box. To support an event driven architecture, Kafka via Confluent Platform Community edition is used to produce and consume messages. Confluent is more than pub/sub messaging but Zoinx does not dictate how it can be used but sets up the basic functionality inside Docker.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
@@ -83,10 +83,10 @@ Zoinx requires certain applications and environments to be ready to use. If you 
 * npm/node version 20+
 * nvm (suggested not required)
 * Docker Desktop or a Docker environment
-* Shell environment (specifically on Windows use GitBash, PowerShell or CMD will not work)
+* Shell environment (specifically on Windows use GitBash or WSL, PowerShell or CMD will not work)
 * Mongo Compass (suggested not required)
 * API Platform i.e. Postman, Insomnia, etc.
-* Kafka client (akhq is included but not installed to Docker by default)
+* Confluent Control Center is included but a Kafka client might be useful
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
