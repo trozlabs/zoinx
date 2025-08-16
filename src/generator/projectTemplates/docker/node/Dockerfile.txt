@@ -8,9 +8,8 @@ FROM node:22.15-bookworm AS builder
 WORKDIR /usr/src/app
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 # where available (npm@5+)
-COPY ../package*.json ./
+COPY package*.json ./
 ARG NODE_ENV=development
-# RUN npm ci --no-audit --no-fund --loglevel=warn
 COPY . .
 CMD ["node", "bin/www.js"]
 # RUN npm start
