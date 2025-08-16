@@ -6,7 +6,7 @@ const Colors = {
     BLINK: '\x1b[5m',
     REVERSE: '\x1b[7m',
     HIDDEN: '\x1b[8m',
-    BOLD: '\033[1m',
+    BOLD: '\x1b[1m',
     FG: {
         BLACK: '\x1b[30m',
         RED: '\x1b[31m',
@@ -37,7 +37,7 @@ const Color = new Proxy({
     BLINK: '\x1b[5m',
     REVERSE: '\x1b[7m',
     HIDDEN: '\x1b[8m',
-    BOLD: '\033[1m',
+    BOLD: '\x1b[1m',
     LOG: {
         FG: Colors.RESET
     },
