@@ -443,6 +443,9 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             await cmd.run(true);
             console.log(await cmd.getCmdResults());
 
+            cmd = new ShellCmd(`rm -rf ${this.#installPath}/node_modules/zoinx/src/generator/`);
+            await cmd.run(true);
+
             await this.#cliParent.horizontalLine();
             await this.#cliParent.verticalSpace();
             console.log('Zoinx application is installed. Run the below command to spin up the application in Docker.');

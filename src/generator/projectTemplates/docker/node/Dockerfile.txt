@@ -12,6 +12,7 @@ COPY ../package*.json ./
 ARG NODE_ENV=development
 # RUN npm ci --no-audit --no-fund --loglevel=warn
 COPY . .
+CMD ["node", "bin/www.js"]
 # RUN npm start
 
 FROM node:\$\{VARIANT\}
