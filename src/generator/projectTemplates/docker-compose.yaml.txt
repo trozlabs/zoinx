@@ -1,5 +1,3 @@
-version: "3.9"
-
 name: \$\{COMPOSE_PROJECT_NAME\}
 
 volumes:
@@ -65,8 +63,6 @@ services:
   <%= projectName %>-broker:
     profiles: [ confluent ]
     image: confluentinc/cp-server:7.5.0
-    volumes:
-        - ./docker/kafka/log4j.properties:/etc/kafka/log4j.properties
     logging:
         driver: "json-file"
         options:
@@ -109,7 +105,7 @@ services:
     networks:
         - <%= projectName %>-network
     volumes:
-        - /docker/kafka/InstallExtras.sh
+        - ./docker/kafka/InstallExtras.sh:/etc/kafka/log4j.properties
 
   <%= projectName %>-schema-registry:
     profiles: [ confluent ]
