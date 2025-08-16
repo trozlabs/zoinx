@@ -10,7 +10,7 @@ const ENV_VAR_REGEX = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(
  * @classdesc A class for loading environment variables from a file[s].
  * @example
  * const { env }= require('zoinx/util');
- * 
+ *
  * to load additional files not already loaded by default
  * @example
  * Env.load('.env.custom', '.env.custom.local');
@@ -85,14 +85,7 @@ class Env {
      * @returns {boolean} The parsed boolean.
      */
     boolean(name) {
-        if (process.env[name] === '1') return true;
-        if (process.env[name] === 'TRUE') return true;
-        if (process.env[name] === 'true') return true;
-        if (process.env[name] === 'T') return true;
-        if (process.env[name] === 't') return true;
-        if (process.env[name] === 'Y') return true;
-        if (process.env[name] === 'y') return true;
-        else return false;
+        return ['1', 'TRUE', 'true', 'T', 't', 'Y', 'y'].includes(process.env[name]);
     }
 
     /**
@@ -101,7 +94,11 @@ class Env {
      * @returns {string[]} The parsed list.
      */
     array(name) {
-        return process.env[name]?.trim().split(/,|\s+|\s/) ?? [];
+        const v = process.env[name];
+        if (v == null) return [];
+        const s = String(v).trim();
+        if (s === '') return ['']; // preserve explicit empty
+        return s.split(/[,\s]+/);
     }
 
     /**
@@ -119,11 +116,9 @@ class Env {
      * @returns {Env} instance
      */
     load(...files) {
-        files.forEach(async (file) => {
+        files.forEach((file) => {
             const vars = this.#parseFile(file);
-            if (vars) {
-                Object.assign(process.env, this.variables);
-            }
+            if (vars) Object.assign(process.env, vars);
         });
         return this;
     }
@@ -136,7 +131,7 @@ class Env {
      */
     #parseFile(file) {
         let filepath, envFile;
-        
+
         try {
             filepath = path.resolve(process.cwd(), file);
 
@@ -161,15 +156,13 @@ class Env {
 
         let match;
         while ((match = ENV_VAR_REGEX.exec(envFile)) !== null) {
-            let [ line, name, value ] = match;
-
-            this.variables[name] = this.#stripQuotes(value);
+            const [, name, value] = match;
 
             if (value?.includes('${')) {
                 const expandedValue = this.#expandVariable(value);
-                if (expandedValue !== undefined) {
-                    this.variables[name] = expandedValue;
-                }
+                this.variables[name] = this.#stripQuotes(expandedValue);
+            } else {
+                this.variables[name] = this.#stripQuotes(value);
             }
         }
 
@@ -181,7 +174,7 @@ class Env {
      * @method
      * @private
      * @param {string} string - The string to expand.
-     * @returns {any} result 
+     * @returns {any} result
      * @example
      * ```js
      * process.env.FOO = 'bar';
@@ -191,27 +184,31 @@ class Env {
      * #expandVariable('zoinx-${ENV:-bar}') // zoinx-bar
      * ```
      */
-    #expandVariable(string) {
-        const regex = /\${(.*?)}/g;
-        const [ expandable ] = string.match(regex);
-        const [ variable, fallback ] = expandable?.replace('${', '').replace('}', '').split(':-') ?? [];
-        const defaultValue = this.#stripQuotes(fallback);
-        const value = this.variables[variable] ?? process.env[variable] ?? defaultValue;
-        const result = string.replace(regex, value === 'undefined' ? undefined : value);
+    #expandVariable(str = '') {
+        return this.#stripQuotes(
+            String(str).replace(/\${(.*?)}/g, (_m, inner) => {
+            const [name, fallback] = String(inner).split(':-');
+            const defaultValue = this.#stripQuotes(fallback);
+            const raw =
+                this.variables[name] ??
+                process.env[name] ??
+                defaultValue;
 
-        // console.log({ string, expandable, fallback, variable, value, result });
-
-        return result;
+            if (raw === undefined || raw === null || raw === 'undefined') return '';
+                return this.#stripQuotes(String(raw));
+            })
+        );
     }
 
     /**
-     * Strip quotes from a string.
+     * Strip quotes `"|'` from a string.
      * @method
      * @private
      * @param {string} string - The string to strip quotes from.
      * @returns {string} The string without quotes.
      */
     #stripQuotes(string) {
-        return string?.replace(/(^"|"$)|(^'|'$)/g, '');
+        if (string == null) return '';
+        return String(string).replace(/(^"|"$)|(^'|'$)/g, '');
     }
 }
