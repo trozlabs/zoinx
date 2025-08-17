@@ -1,15 +1,13 @@
-const { Log } = require('../log');
+// TODO: solution to route sorting for conflict prevention:
+// https://gist.github.com/ca69cd4c7163bcd9289cfcec2022ab67
+
 const { Logger } = require('../logger');
 // local
 const Telemetry = require('../telemetry/Telemetry.js');
-const Network = require('../util/Network.js');
 const APIResponse = require('./APIResponse.js');
 const APIError = require('./APIError.js');
-const Route = require('./Route.js');
 
 const _ = require('lodash');
-const path = require('path');
-const { randomUUID } = require('crypto');
 
 module.exports = class Controller {
     defaultRoutes = [
@@ -159,5 +157,18 @@ module.exports = class Controller {
     async catch(req, res) {
         // console.log(`${this.constructor.name}.delete`);
         throw new APIError(501);
+    }
+
+    /**
+     * Attempts to order routes to prevent conflicts.
+     */
+    #sortRoutes(routes) {
+        return routes.sort((a, b) => {
+            if (a.path === b.path) {
+                return a.method.localeCompare(b.method);
+            } else {
+                return b.path.length - a.path.length;
+            }
+        });
     }
 };
