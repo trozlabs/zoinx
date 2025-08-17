@@ -443,7 +443,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             await cmd.run(true);
             console.log(await cmd.getCmdResults());
 
-            cmd = new ShellCmd(`rm -rf ${this.#installPath}/node_modules/zoinx/src/generator/`);
+            cmd = new ShellCmd(`rm -rf ${this.#installPath}/node_modules/zoinx/src/generator/projectTemplates`);
             await cmd.run(true);
 
             await this.#cliParent.horizontalLine();
