@@ -33,11 +33,12 @@ Log.debug(`testing zoinx/log`);
 Log.info(`testing zoinx/log`);
 Log.warn(`testing zoinx/log`);
 Log.error(`testing zoinx/log`);
-Log.banner(`testing zoinx/log`);
+Log.banner(`testing zoinx/log banner default`);
+Log.banner(`testing zoinx/log banner custom`, '/');
 Log.json({ msg: `testing zoinx/log` });
 
 Log.style(Log.BOLD, Log.FG.CYAN)(`
 ------------------------------------------------------------
- Done
+ Done with Log Tests
 ------------------------------------------------------------
 `);
