@@ -2,6 +2,36 @@ module.exports = createWorkflow;
 
 /**
  *
+ * @example
+ * const myWorkflow = createWorkflow(
+ *     function step1(initialInput) {
+ *         console.log(initialInput);
+ *         return new Promise((resolve, reject) => {
+ *             setTimeout(() => resolve(initialInput + 1), 1000);
+ *         });
+ *     },
+ *     async function step2(input) {
+ *         console.log(input);
+ *         if (input > 2) throw new Error(`you did it wrong, yo!`);
+ *         return input + 1;
+ *     },
+ *     function step3(input) {
+ *         console.log(input);
+ *         return new Promise((resolve, reject) => {
+ *             setTimeout(() => resolve(input + 1), 1000);
+ *         });
+ *     },
+ *     function step4(input) {
+ *     		console.log(input);
+ *         return input + 1;
+ *     }
+ * );
+ *
+ * // runs to completion
+ * myWorkflow(0).then(console.log).catch(console.error);
+ *
+ * // causes error
+ * myWorkflow(2).then(console.log).catch(console.error);
  */
 function createWorkflow(...functions) {
     return async function workflow(initialInput) {
@@ -38,32 +68,4 @@ function createWorkflow(...functions) {
     }
 }
 
-// const myWorkflow = createWorkflow(
-//     function step1(initialInput) {
-//         console.log(initialInput);
-//         return new Promise((resolve, reject) => {
-//             setTimeout(() => resolve(initialInput + 1), 1000);
-//         });
-//     },
-//     async function step2(input) {
-//         console.log(input);
-//         if (input > 2) throw new Error(`you did it wrong, yo!`);
-//         return input + 1;
-//     },
-//     function step3(input) {
-//         console.log(input);
-//         return new Promise((resolve, reject) => {
-//             setTimeout(() => resolve(input + 1), 1000);
-//         });
-//     },
-//     function step4(input) {
-//     		console.log(input);
-//         return input + 1;
-//     }
-// );
 
-// runs to completion
-// myWorkflow(0).then(console.log).catch(console.error);
-
-// causes error
-// myWorkflow(2).then(console.log).catch(console.error);
