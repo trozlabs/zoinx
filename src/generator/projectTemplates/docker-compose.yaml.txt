@@ -28,7 +28,6 @@ services:
         NODE_ENV: \$\{NODE_ENV\}
         PORT: \$\{PORT\}
     restart: unless-stopped
-    command: npm run develop
     networks:
       - <%= projectName %>-network
     ports:
@@ -37,7 +36,10 @@ services:
       - 9222:9222
       - 9229:9229
     volumes:
-      - ./:/usr/src/app
+        - ./:/usr/src/app
+        - /usr/src/app/node_modules      # prevents host override
+    working_dir: /usr/src/app
+    command: ["npm", "start"]
     depends_on:
       - <%= projectName %>-db
 

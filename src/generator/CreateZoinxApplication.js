@@ -110,7 +110,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
                 '-> One uppercase letter\n' +
                 '-> One lowercase letter\n' +
                 '-> One number\n' +
-                '-> One special character (@$!%*&)',
+                '-> One special character (@$!*&)',
             answerProp: 'mongoRootPw',
             answerType: 'string',
             answerDefault: undefined,
@@ -134,7 +134,7 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
                 '-> One uppercase letter\n' +
                 '-> One lowercase letter\n' +
                 '-> One number\n' +
-                '-> One special character (@$!%*&)',
+                '-> One special character (@$!*&)',
             answerProp: 'mongoPw',
             answerType: 'string',
             answerDefault: undefined,
@@ -443,8 +443,8 @@ module.exports = class CreateZoinxApplication extends GeneratorBase{
             await cmd.run(true);
             console.log(await cmd.getCmdResults());
 
-            cmd = new ShellCmd(`rm -rf ${this.#installPath}/node_modules/zoinx/src/generator/projectTemplates`);
-            await cmd.run(true);
+            // cmd = new ShellCmd(`rm -rf ${this.#installPath}/node_modules/zoinx/src/generator/projectTemplates`);
+            // await cmd.run(true);
 
             await this.#cliParent.horizontalLine();
             await this.#cliParent.verticalSpace();
