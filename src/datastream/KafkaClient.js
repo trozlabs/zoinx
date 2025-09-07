@@ -254,7 +254,10 @@ module.exports = class KafkaClient {
     async #createConsumer() {
         try {
             if (_.isObject(this.#kafkaClient)) {
-                this.#consumer = this.#kafkaClient.consumer({ groupId: this.#clientId });
+                this.#config.groupId = this.#clientId
+                delete this.#config.acks;
+                delete this.#config.compression;
+                this.#consumer = this.#kafkaClient.consumer();
             }
         } catch (e) {
             Log.error(e.message);

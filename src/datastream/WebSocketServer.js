@@ -1,18 +1,19 @@
 const { WebSocket } = require('ws');
-const http = require('http');
 const _ = require('lodash');
 const Logger = require('../logger/Logger');
 const WebSocketStream = require('./WebSocketStream');
+const url = require('url');
 
 module.exports = class WebSocketServer {
 
     logger = Logger.create({ name: 'WebSocketServer' });
     channelStreams = new Map();
-    sockserver
+    sockserver;
+    historyLimit = 100; // max messages kept per channel
 
-    constructor(channels=['heap'], config={ port: process.env.WS_PORT }, autoConnectHeapChannel=false) {
+    constructor(channels = ['heap'], config = { port: process.env.WS_PORT }, autoConnectHeapChannel = false) {
         if (!_.isArray(channels)) {
-            this.logger.warn('Must supply a list of channels to createa Web Socket Server.');
+            this.logger.warn('Must supply a list of channels to create a Web Socket Server.');
             return;
         }
         if (!_.isObject(config)) {
@@ -24,102 +25,153 @@ module.exports = class WebSocketServer {
         this.#setUpChannels(channels).catch((err) => {
             this.logger.error(err);
         });
+
         this.sockserver.on('connection', (ws, req) => this.#startConnectionListener(ws, req));
+
         if (autoConnectHeapChannel && this.channelStreams.has('heap'))
             this.startHeapChannel();
     }
 
-    async #setUpChannels(channels=[]) {
-        if (!_.isArray(channels) || _.isEmpty(channels)) {
-            this.logger.warn('No channels provided to setup web socket server.')
-            return;
-        }
+    async #setUpChannels(channels = []) {
+        for (let ch of channels) {
+            let channelName = ch,
+                tmpCallback = () => {};
 
-        for (let i=0; i<channels.length; i++) {
-            let channelName = 'heap',
-                tmpCallback = function() { return; };
-
-            if (_.isString(channels[i]) && channels[i] === 'heap')
+            if (_.isString(ch) && ch === 'heap') {
                 tmpCallback = this.startHeapChannel;
-            else if (_.isObject(channels[i]) && _.isString(channels[i].channelName) && _.isFunction(channels[i].callback)) {
-                channelName = channels[i].channelName;
-                tmpCallback = channels[i].callback;
+            } else if (_.isObject(ch) && _.isString(ch.channelName) && _.isFunction(ch.callback)) {
+                channelName = ch.channelName;
+                tmpCallback = ch.callback;
             }
 
-            this.channelStreams.set(channelName, {stream: undefined, callback: tmpCallback});
+            if (!this.channelStreams.has(channelName)) {
+                this.channelStreams.set(channelName, {
+                    clients: new Map(),   // clientId -> {stream, lastMsgId}
+                    history: [],          // array of {id, msg}
+                    nextMsgId: 1,         // incremental message id
+                    callback: tmpCallback
+                });
+            }
         }
     }
 
-    async addChannel(channelName, channelCallback=function() { return undefined; }) {
+    async addChannel(channelName, channelCallback = () => {}) {
         if (_.isEmpty(channelName) || !_.isString(channelName) || !_.isFunction(channelCallback)) {
-            this.logger.warn('Must supply a channel name and a channel callback function to add a channel to the web socket server.');
+            this.logger.warn('Must supply a channel name and callback function.');
             return;
         }
 
-        this.#setUpChannels([{channelName: channelName, callback: channelCallback}]);
+        this.#setUpChannels([{ channelName, callback: channelCallback }]);
     }
 
     async send(channelName, msg) {
-        if (_.isEmpty(channelName) || !_.isString(channelName) || _.isEmpty(msg) || !_.isString(msg)) {
-            this.logger.warn('Must supply a channel name and a channel callback function to add a channel to the web socket server.');
+        if (_.isEmpty(channelName) || !_.isString(channelName) || _.isEmpty(msg)) {
+            this.logger.warn('Must supply a channel name and a non-empty message.');
             return;
         }
 
-        let channelStream = this.channelStreams.get(channelName);
-        if (_.isUndefined(channelStream)) {
+        const channelStream = this.channelStreams.get(channelName);
+        if (!channelStream) {
             this.logger.warn(`No channel found for ${channelName}.`);
             return;
         }
 
-        if (!_.isUndefined(channelStream.stream)) {
-            channelStream.stream.write(msg);
+        // assign message ID and push to history
+        const message = { id: channelStream.nextMsgId++, msg };
+        channelStream.history.push(message);
+        if (channelStream.history.length > this.historyLimit) {
+            channelStream.history.shift();
+        }
 
-            if (_.isFunction(channelStream.callback))
-                channelStream.callback(msg);
+        // broadcast
+        for (let [clientId, clientInfo] of channelStream.clients.entries()) {
+            try {
+                clientInfo.stream.write(JSON.stringify(message));
+                clientInfo.lastMsgId = message.id; // update delivered ID
+            }
+            catch (err) {
+                // this.logger.error(`Failed to send to client ${clientId}:`, err);
+            }
+        }
+
+        if (_.isFunction(channelStream.callback)) {
+            channelStream.callback(msg);
         }
     }
 
     async #startConnectionListener(ws, req) {
-        const channel = req.url.split('/')[1];
+        const { pathname, query } = url.parse(req.url, true);
+        const channel = pathname.replace(/^\//, '');
+        const clientId = query.clientId || `${Math.random().toString(36).substr(2, 9)}`;
 
         if (this.channelStreams.has(channel)) {
-            let stream = new WebSocketStream(ws),
-                channelStream = this.channelStreams.get(channel);
+            const channelStream = this.channelStreams.get(channel);
+            let stream = new WebSocketStream(ws);
 
-            if (_.isUndefined(channelStream.stream))
-                channelStream.stream = stream;
+            let lastDeliveredId = 0;
 
-            ws.on('error', this.logger.error);
+            // If reconnect, grab last delivered ID
+            if (channelStream.clients.has(clientId)) {
+                const oldClient = channelStream.clients.get(clientId);
+                lastDeliveredId = oldClient.lastMsgId || 0;
 
-            ws.on('close', function close() {
-                console.log('Client disconnected');
+                this.logger.info(`Client ${clientId} reconnected on ${channel}, resuming from message ${lastDeliveredId}`);
+                try {
+                    oldClient.stream.close();
+                }
+                catch (err) {
+                    this.logger.warn(err.message)
+                }
+            }
 
-                // If there are no more clients connected to this channel, remove the stream
-                // if (this.sockserver.clients.size === 0) {
-                //     this.channelStreams.delete(channel);
-                // }
+            // Store new connection
+            channelStream.clients.set(clientId, { stream, lastMsgId: lastDeliveredId });
+            this.logger.info(`Client ${clientId} connected to channel: ${channel}.`);
+
+            // Replay missed messages
+            if (lastDeliveredId > 0) {
+                const missed = channelStream.history.filter(m => m.id > lastDeliveredId);
+                missed.forEach(m => {
+                    try {
+                        stream.write(JSON.stringify(m));
+                    }
+                    catch (err) {
+                        this.logger.error(`Replay failed for client ${clientId}:`, err);
+                    }
+                });
+                this.logger.info(`Replayed ${missed.length} messages to ${clientId}`);
+            }
+
+            ws.on('error', (err) => {
+                this.logger.error(`Socket error on ${channel} (client ${clientId}):`, err);
             });
+
+            ws.on('close', () => {
+                const ci = channelStream.clients.get(clientId);
+                if (ci && ci.stream === stream) {
+                    // keep record, just remove socket
+                    channelStream.clients.set(clientId, { stream: null, lastMsgId: ci.lastMsgId });
+                    this.logger.info(`Client ${clientId} disconnected from ${channel}.`);
+                }
+            });
+        } else {
+            this.logger.warn(`Connection attempted to unknown channel: ${channel}`);
+            ws.close(1008, 'Channel not found');
         }
     }
 
     async startHeapChannel() {
-        this.sockserver.on('connection', function (ws, req) {
-            const id = setInterval(function () {
-                ws.send(JSON.stringify(process.memoryUsage()), function () {
-                });
+        this.sockserver.on('connection', (ws, req) => {
+            if (!req.url.includes('/heap')) return;
+
+            const id = setInterval(() => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify(process.memoryUsage()));
+                }
             }, 1000);
 
             ws.on('error', this.logger.error);
-
-            ws.on('close', function () {
-                clearInterval(id);
-            });
-
+            ws.on('close', () => clearInterval(id));
         });
     }
-
-    async onSocketError(err) {
-        console.error(err);
-    }
-
-}
+};
