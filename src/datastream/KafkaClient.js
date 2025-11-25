@@ -1,5 +1,4 @@
 const _ = require('lodash');
-// const Logger = require('../logger/Logger');
 const Log = require('../log/Log')
 const StaticUtil = require('../util/StaticUtil');
 const KafkaStatics = require('./KafkaStatics');
@@ -21,8 +20,7 @@ module.exports = class KafkaClient {
         DISCONNECTED: 6,
     });
 
-    // logger = Logger.create({ name: 'KafkaClient' });
-
+    #producerConnectPromise
     #logOptions = false;
     #clientId = '';
     #brokers = [];
@@ -109,11 +107,14 @@ module.exports = class KafkaClient {
         return this.#kafkaClient.getBrokers();
     }
 
+    get brokers() {
+        return this.#brokers;
+    }
 
     async #createProducer() {
         try {
             if (_.isObject(this.#kafkaClient) && !this.#producerIsConnected) {
-                this.#producer = await this.#kafkaClient.producer();
+                this.#producer = this.#kafkaClient.producer();
             }
         } catch (e) {
             Log.error(e.message);
@@ -122,7 +123,10 @@ module.exports = class KafkaClient {
 
     async connectProducer() {
         try {
-            await this.#producer.connect();
+            if (_.isUndefined(this.#producerConnectPromise)) {
+                this.#producerConnectPromise = this.#producer.connect();
+            }
+            await this.#producerConnectPromise;
             this.#producerIsConnected = true;
         }
         catch (e) {
@@ -132,13 +136,13 @@ module.exports = class KafkaClient {
     }
 
     async disconnectProducer() {
-        await this.#producer.disconnect();
+        this.#producer.disconnect();
         this.#producerIsConnected = false;
     }
 
     async sendMessage(message = { value: 'Hello Kafka user!' }, topicName = 'dev-topic') {
         try {
-            if (_.isEmpty(this.#producer)) await this.#createProducer();
+            if (_.isUndefined(this.#producer)) await this.#createProducer();
             if (!this.#producerIsConnected) await this.connectProducer();
 
             await this.#producer.send({
@@ -154,7 +158,7 @@ module.exports = class KafkaClient {
 
     async sendValidatedMessage(message = { value: 'Hello Kafka user!' }, topicName = 'dev-topic') {
         try {
-            if (_.isEmpty(this.#producer)) await this.#createProducer();
+            if (_.isUndefined(this.#producer)) await this.#createProducer();
             if (!this.#producerIsConnected) await this.connectProducer();
 
             const schemaId = await this.#schemaServer.initByTopic(topicName);
@@ -185,7 +189,7 @@ module.exports = class KafkaClient {
         }
 
         try {
-            if (_.isEmpty(this.#producer)) await this.#createProducer();
+            if (_.isUndefined(this.#producer)) await this.#createProducer();
             if (!this.#producerIsConnected) await this.connectProducer();
 
             const kafkaMessages = messages.map((message) => {
@@ -219,7 +223,7 @@ module.exports = class KafkaClient {
         let batchResults = '';
 
         try {
-            if (_.isEmpty(this.#producer)) await this.#createProducer();
+            if (_.isUndefined(this.#producer)) await this.#createProducer();
             if (!this.#producerIsConnected) await this.connectProducer();
 
             let sendResults = {
@@ -251,10 +255,11 @@ module.exports = class KafkaClient {
         return batchResults;
     }
 
-    async #createConsumer() {
+    async #createConsumer(fromBeginning = false) {
         try {
             if (_.isObject(this.#kafkaClient)) {
                 this.#config.groupId = this.#clientId
+                this.#config.fromBeginning = fromBeginning;
                 delete this.#config.acks;
                 delete this.#config.compression;
                 this.#consumer = this.#kafkaClient.consumer();
@@ -268,10 +273,10 @@ module.exports = class KafkaClient {
         return this.#consumer;
     }
 
-    async prepareConsumer(topicName = 'dev-topic', fromBeginning = false) {
+    async prepareConsumer(topicName = 'dev-topic') {
         if (_.isEmpty(this.#consumer)) await this.#createConsumer();
         await this.#consumer.connect();
-        await this.#consumer.subscribe({ topic: topicName, fromBeginning: fromBeginning });
+        await this.#consumer.subscribe({ topic: topicName });
         return this.#consumer;
     }
 

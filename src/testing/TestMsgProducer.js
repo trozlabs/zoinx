@@ -1,13 +1,10 @@
 const _ = require('lodash');
-const {randomUUID} = require("crypto");
+const { randomUUID } = require("crypto");
 const bcrypt = require("bcryptjs");
 
-const { Log } = require('../log');
-const Network = require('../util/Network');
+const Log = require('../log/Log');
 const tsfService = require('../routes/testingSendFails/service');
-const KafkaClient = require('../datastream/KafkaClient');
-const StaticUtil = require('../util/StaticUtil');
-const Encryption = require('../util/Encryption');
+const { StaticUtil, Encryption, Network } = require('zoinx/util');
 
 module.exports = class TestMsgProducer {
 
@@ -20,24 +17,10 @@ module.exports = class TestMsgProducer {
         this.#testingName = `${testObj.className}.${testObj.methodName}`;
     }
 
-    async #createTestMsgProducer() {
-        try {
-            if (_.isUndefined(global.kafka)) global.kafka = {};
-            if (_.isUndefined(global.kafka.TestMsgProducer)) {
-                let kafkaClient = new KafkaClient('TestMsgProducer', [process.env.TESTING_MESSAGE_SERVERS]);
-                await kafkaClient.setClientConfig('TESTING_MESSAGE', process.env.TESTING_ENV, process.env.TESTING_USE_SSL);
-                global.kafka.TestMsgProducer = kafkaClient;
-            }
-        }
-        catch (e) {
-            Log.error(e);
-        }
-    }
-
     async send() {
         let keyString = (process.env.SERVICE_NAME) ? process.env.SERVICE_NAME : 'DevApplication';
         try {
-            if (global.testingConfig?.sendResult2Kafka) {
+            if (global.testingConfig?.sendResult2Kafka && global.kafka?.TestMsgProducer) {
                 if (_.isEmpty(this.#testObj) || !_.isObject(this.#testObj)) {
                     keyString = randomUUID();
                 }
@@ -45,7 +28,6 @@ module.exports = class TestMsgProducer {
                     keyString += `.${this.#testObj.className}.${this.#testObj.methodName}`; //:${this.#testObj.stopWatchStart}`;
                 }
 
-                await this.#createTestMsgProducer();
                 delete this.#testObj.passedArguments;
                 let testObj = JSON.stringify(this.#testObj);
                 if (StaticUtil.StringToBoolean(process.env.TESTING_ENCRYPT)) {
@@ -71,7 +53,7 @@ module.exports = class TestMsgProducer {
             if (!global.testingConfig?.sendResult2Kafka && !global.testingConfig?.consoleOut)
                 Log.warn(e.message, this.#testObj);
             else
-                await this.#saveTestMsgSendFail(this.#testObj.json, e);
+                await this.#saveTestMsgSendFail(this.#testObj, e);
         }
     }
 
@@ -94,10 +76,13 @@ module.exports = class TestMsgProducer {
                     ip_address: Network.getHostAddress(),
                     testing_obj: testingObj,
                     error_message: error.message
-                };
+                },
+                result;
 
             let service = new tsfService();
-            await service.save(saveObj, {user: 'SYSTEM'});
+
+            result = await service.save(undefined, saveObj, {user: 'SYSTEM'});
+            // Log.info(result);
         }
         catch (e) {
             Log.error(e);

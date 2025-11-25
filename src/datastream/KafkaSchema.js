@@ -1,7 +1,5 @@
 const _ = require('lodash');
-const Log = require('../log/Log')
-// const Logger = require('../logger/Logger');
-const TestHarness = require('../testing/TestHarness');
+const Log = require('../log/Log');
 const KafkaStatics = require('./KafkaStatics');
 const { SchemaRegistryClient,
     ClientConfig,
@@ -16,14 +14,12 @@ const { SchemaRegistryClient,
 const ProtobufHandler = require('./ProtobufHandler');
 
 
-module.exports = TestHarness(class KafkaSchema {
-
-    // logger = Logger.create({ name: 'KafkaSchema' });
-    static testConfig = {};
+module.exports = class KafkaSchema {
 
     #registry
     #schema
     #schemaCache
+    #piiFields
 
     constructor(schemaRegistryUrl, auth={}) {
         if (_.isEmpty(schemaRegistryUrl)) {
@@ -44,6 +40,10 @@ module.exports = TestHarness(class KafkaSchema {
         this.#schemaCache = new Map();
     }
 
+    get piiFields() {
+        return this.#piiFields;
+    }
+
     async #loadSchema(topic, subject, version = 'latest') {
         try {
             if (!_.isEmpty(version) && _.isString(version)) {
@@ -57,6 +57,8 @@ module.exports = TestHarness(class KafkaSchema {
             if (_.isEmpty(this.#schema))
                 this.#schema = (version === 'latest') ? await this.#registry.getLatestSchemaMetadata(subject) : await this.#registry.getSchemaMetadata(subject, version);
             let validatorFn, serializer, deserializer;
+
+            this.#piiFields = await this.extractPIIFields(JSON.parse(this.#schema.schema));
 
             switch (this.#schema.schemaType) {
                 case undefined:
@@ -227,5 +229,56 @@ module.exports = TestHarness(class KafkaSchema {
         return deserialized;
     }
 
+    async extractPIIFieldsTopLevel(schema) {
+        if (_.isEmpty(schema?.fields)) return [];
 
-})
+        return schema.fields
+            .filter(f => f.tags && f.tags.includes('PII'))
+            .map(f => f.name)
+    }
+
+    async extractPIIFields(schema, prefix = '') {
+        let piiPaths = []
+
+        if (!schema.fields) return piiPaths
+
+        for (const field of schema.fields) {
+            const fieldPath = prefix ? `${prefix}.${field.name}` : field.name
+
+            // If this field itself is tagged as PII
+            if (field.tags && field.tags.includes('PII')) {
+                piiPaths.push(fieldPath)
+            }
+
+            // If this field is a nested record type
+            if (typeof field.type === 'object') {
+                // Avro "record"
+                if (field.type.type === 'record') {
+                    piiPaths = piiPaths.concat(
+                        extractPIIFields(field.type, fieldPath)
+                    )
+                }
+
+                // Avro "array" of records
+                if (field.type.type === 'array' && typeof field.type.items === 'object') {
+                    if (field.type.items.type === 'record') {
+                        piiPaths = piiPaths.concat(
+                            extractPIIFields(field.type.items, fieldPath + '[]')
+                        )
+                    }
+                }
+
+                // Avro "map" of records
+                if (field.type.type === 'map' && typeof field.type.values === 'object') {
+                    if (field.type.values.type === 'record') {
+                        piiPaths = piiPaths.concat(
+                            extractPIIFields(field.type.values, fieldPath + '{}')
+                        )
+                    }
+                }
+            }
+        }
+
+        return piiPaths
+    }
+}

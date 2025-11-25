@@ -6,7 +6,7 @@ const UtilMethods = require('./UtilMethods');
 const { TestFuncDetails, TestParamDetails, TestExecutionDetails} = require('./model');
 const TestMsgProducer = require('./TestMsgProducer');
 const AppCache = require('../core/AppCache');
-const path = require('path');
+const KafkaClient = require('../datastream/KafkaClient');
 
 module.exports = class ZoinxTest {
 
@@ -23,7 +23,21 @@ module.exports = class ZoinxTest {
         }
     }
 
-    static setupFuncTest(clazz, func, passedArguments, errorStack, testConfig, targetName, notes='') {
+    static async createTestMsgProducer() {
+        try {
+            if (_.isUndefined(global.kafka)) global.kafka = {};
+            if (_.isUndefined(global.kafka.TestMsgProducer)) {
+                let kafkaClient = new KafkaClient('TestMsgProducer', [process.env.TESTING_MESSAGE_SERVERS]);
+                await kafkaClient.setClientConfig('TESTING_MESSAGE', process.env.TESTING_ENV, process.env.TESTING_USE_SSL);
+                global.kafka.TestMsgProducer = kafkaClient;
+            }
+        }
+        catch (e) {
+            Log.error(e);
+        }
+    }
+
+    static async setupFuncTest(clazz, func, passedArguments, errorStack, testConfig, targetName, notes = '') {
         let newFuncRec,
             methodInput,
             methodOutput;
@@ -42,14 +56,16 @@ module.exports = class ZoinxTest {
             return;
         }
 
+        if (global.testingConfig?.isTestingEnabled && global.testingConfig?.sendResult2Kafka) {
+            await this.createTestMsgProducer();
+        }
+
         try {
             if (!_.isUndefined(clazz) && !_.isNull(clazz) && !_.isUndefined(func) && !_.isNull(func)) {
                 newFuncRec = this.createMethodTest(clazz, func, passedArguments, errorStack, methodInput, methodOutput, testConfig);
                 if (!_.isUndefined(newFuncRec)) newFuncRec.set('notes', notes);
-            }
-            else Log.info(`Class and arguments must be supplied to setup test. ${clazz?.constructor.name}.${func?.name}`);
-        }
-        catch (e) {
+            } else Log.info(`Class and arguments must be supplied to setup test. ${clazz?.constructor.name}.${func?.name}`);
+        } catch (e) {
             Log.error('setupFuncTest failed:\n', e);
         }
 
