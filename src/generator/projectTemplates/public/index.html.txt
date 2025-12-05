@@ -1,0 +1,11 @@
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Hello Zoinx</title>
+    </head>
+    <body>
+        <h1>Hello Zoinx!</h1>
+        <p>You've enabled public static content</p>
+    </body>
+    </html>
+sd
