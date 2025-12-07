@@ -43,7 +43,7 @@ module.exports = class UtilMethods {
             const val = obj[key];
             const type = this.getPrimitive(val);
 
-            if (type === 'array' || type === 'object') {
+            if (type === 'array' || type === 'object' && !_.isRegExp(val)) {
                 results = this.queryObject(val, {
                     results,
                     value,

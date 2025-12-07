@@ -9,6 +9,7 @@
     "test": "node ./test",
     "start": "node bin/www.js",
     "start-dev": "nodemon bin/www.js",
+    "start-debug": "node --inspect bin/www.js",
     "develop": "npm ci && nodemon --trace-warnings --inspect=0.0.0.0 bin/www.js",
     "develop-break-on-startup": "npm install && nodemon --trace-warnings --inspect-brk=0.0.0.0 bin/www.js",
     "run-scenario-test": "node ./bin/TestRunner.js .env.local usedb 'rssf--/src/scenarios/AppStatics.json'",

@@ -21,7 +21,7 @@ module.exports = class ZoinxCli extends BaseCli {
         this.addInputs(
             {
                 'create local acct': {fn: 'createLocalAcct', desc: 'Create an account to be used for local only operations. Example usage: create local acct --{"username":"yourSpecialUser", "password":"12345678"}'},
-                'set route roles': {fn: 'setRouteRoles', desc: 'Set route role either per route or for all roles. Example usage: set route roles --{"route":["all"], "role":"exampleRole"}'},
+                'set route roles': {fn: 'setRouteRoles', desc: 'Set route role either per route or for all roles. Example usage: set route roles --{"route":["/exampleRoute/exactRoute"] or set route roles --{"route":["/exampleRoute*"], "role":"exampleRole"} "role":"exampleRole"}set route roles --{"route":["all"], "role":"exampleRole"}'},
                 'stats': {fn: 'sysStats', desc: 'Get Statistic on the underlying OS and resource utilities'},
                 'mongo ping': {fn: 'mongoPing', desc:'Pings Mongo DB'},
                 'mongo stats': {fn: 'mongoStats', desc:'Returns Mongo DB statistics'},
@@ -105,7 +105,7 @@ module.exports = class ZoinxCli extends BaseCli {
                 Log.info('Must provide route and role to create assign a role to a route. i.e.  {"route":["exampleRoute"], "role":"exampleRole"}');
             }
             else if (!this.useDB) {
-                Log.warn('CLI must be connected to DB for this process. Us the "with DB" option when starting this CLI.');
+                Log.warn('CLI must be connected to DB for this process. Use the "with DB" option when starting this CLI.');
             }
             else {
                 let routeRolesService = new rrService();

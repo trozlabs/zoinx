@@ -165,6 +165,9 @@ module.exports = class Domain {
                 }
             }
         }
+        else if (StaticUtil.queryObject(filters, {property: '$regex'})?.length > 0) {
+            thisMdl.find(filters);
+        }
 
         if (updateMany)
             return thisMdl;

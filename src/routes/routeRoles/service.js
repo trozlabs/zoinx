@@ -66,8 +66,17 @@ module.exports = TestHarness(class RouteRolesService extends Service {
                 filterObject = {filters: []},
                 roles;
 
-            if (routes[0].toLowerCase() !== 'all') {
-                filterObject = {filters: filters.getFilters()};
+            if (_.endsWith(routes[0], '*')) {
+                const escaped = routes[0].replace(/[-/\\^$+?.()|[\]{}]/g, "\\$&");
+                const regexString = `^${escaped.replace(/\*/g, "")}`;
+                filterObject = {
+                    filters: {
+                        route_path: { $regex: new RegExp(regexString) }
+                    }
+                }
+            }
+            else if (routes[0].toLowerCase() !== 'all') {
+                filterObject = { filters: filters.getFilters() };
             }
 
             let existingRouteRoles = await this.find(filterObject);
