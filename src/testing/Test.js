@@ -37,7 +37,7 @@ module.exports = class ZoinxTest {
         }
     }
 
-    static async setupFuncTest(clazz, func, passedArguments, errorStack, testConfig, targetName, notes = '') {
+    static setupFuncTest(clazz, func, passedArguments, errorStack, testConfig, targetName, notes = '') {
         let newFuncRec,
             methodInput,
             methodOutput;
@@ -57,7 +57,7 @@ module.exports = class ZoinxTest {
         }
 
         if (global.testingConfig?.isTestingEnabled && global.testingConfig?.sendResult2Kafka) {
-            await this.createTestMsgProducer();
+            this.createTestMsgProducer().catch(r => {Log.error(r)});
         }
 
         try {

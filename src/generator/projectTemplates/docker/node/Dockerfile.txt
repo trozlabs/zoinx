@@ -1,13 +1,27 @@
 FROM node:22.15-bookworm AS builder
 
+#COPY certs/cert.pem /usr/local/share/ca-certificates/cert.pem
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
-        python3 \
-        pkg-config \
-        librdkafka-dev \
-        ca-certificates && \
+    python3 \
+    pkg-config \
+    librdkafka-dev \
+    ca-certificates && \
+    update-ca-certificates \ && \
     rm -rf /var/lib/apt/lists/* \
+
+#RUN npm config set strict-ssl true \ &&  \
+#    npm config set registry "https://registry.npmjs.org/"
+
+RUN apt-get update
+RUN apt-get install -y iputils-ping
+RUN apt-get install -y sudo
+RUN apt-get install -y vim
+RUN apt-get install -y net-tools
+
+ENV NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/cert.pem
 
 WORKDIR /usr/src/app
 COPY package*.json ./
