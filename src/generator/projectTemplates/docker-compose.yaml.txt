@@ -110,7 +110,7 @@ services:
     networks:
         - <%= projectName %>-network
     volumes:
-        - ./docker/kafka/InstallExtras.sh:/etc/kafka/log4j.properties
+        - ./docker/kafka/log4j.properties:/etc/kafka/log4j.properties
 
   <%= projectName %>-schema-registry:
     profiles: [ confluent ]
@@ -269,3 +269,39 @@ services:
         KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
     networks:
         - <%= projectName %>-network
+
+  <%= projectName %>-flink-jobmanager:
+      image: bokf-docker.jfrog.io/cnfldemos/flink-kafka:1.19.1-scala_2.12-java17
+      hostname: flink-jobmanager
+      container_name: \$\{SERVICE_NAME\}-flink-jobmanager-\$\{ENV\}
+      ports:
+          - 9081:9081
+      command: jobmanager
+      environment:
+          - |
+              FLINK_PROPERTIES=
+              jobmanager.rpc.address: flink-jobmanager
+              rest.bind-port: 9081
+
+  <%= projectName %>-flink-sql-client:
+      image: bokf-docker.jfrog.io/cnfldemos/flink-sql-client-kafka:1.19.1-scala_2.12-java17
+      depends_on:
+          - <%= projectName %>-flink-jobmanager
+      hostname: flink-sql-client
+      container_name: \$\{SERVICE_NAME\}-flink-sql-client-\$\{ENV\}
+      environment:
+          FLINK_JOBMANAGER_HOST: flink-jobmanager
+
+  <%= projectName %>-flink-taskmanager:
+      image: bokf-docker.jfrog.io/cnfldemos/flink-kafka:1.19.1-scala_2.12-java17
+      hostname: flink-taskmanager
+      container_name: \$\{SERVICE_NAME\}-flink-taskmanager-\$\{ENV\}
+      depends_on:
+          - <%= projectName %>-flink-jobmanager
+      command: taskmanager
+      scale: 1
+      environment:
+          - |
+              FLINK_PROPERTIES=
+              jobmanager.rpc.address: flink-jobmanager
+              taskmanager.numberOfTaskSlots: 10

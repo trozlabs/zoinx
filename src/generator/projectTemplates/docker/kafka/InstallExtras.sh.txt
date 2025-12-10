@@ -1,9 +1,3 @@
 #!/bin/bash
 
-apt-get update
-apt-get install -y iputils-ping
-apt-get install -y sudo
-apt-get install -y vim
-apt-get install -y net-tools
-apt-get install -y kafkacat
-apt-get install -y procps
+docker exec -it <%= projectName %>-flink-sql-client-\$\{ENV\} /opt/flink/bin/sql-client.sh
