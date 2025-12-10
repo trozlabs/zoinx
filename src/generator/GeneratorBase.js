@@ -68,7 +68,7 @@ module.exports = class GeneratorBase {
             contents = await this.readFileAsync(templatePath);
             if (!_.isEmpty(this.#confObj)) {
                 let tmpCompiled = _.template(contents);
-                contents = tmpCompiled(this.#confObj); //{ 'name': name, 'className': className, 'schemaName': schemaName });
+                contents = tmpCompiled(this.#confObj);
             }
 
             // Template strings had to be escaped for the above replacements. These 2 lines removed those escaped strings.

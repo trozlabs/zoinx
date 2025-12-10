@@ -1,3 +1,2 @@
 #!/bin/bash
-
-docker exec -it <%= projectName %>-flink-sql-client-\$\{ENV\} /opt/flink/bin/sql-client.sh
+docker exec -it <%= projectName %>-flink-sql-client-dev /opt/flink/bin/sql-client.sh

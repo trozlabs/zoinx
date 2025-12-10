@@ -271,7 +271,7 @@ services:
         - <%= projectName %>-network
 
   <%= projectName %>-flink-jobmanager:
-      image: bokf-docker.jfrog.io/cnfldemos/flink-kafka:1.19.1-scala_2.12-java17
+      image: cnfldemos/flink-kafka:1.19.1-scala_2.12-java17
       hostname: flink-jobmanager
       container_name: \$\{SERVICE_NAME\}-flink-jobmanager-\$\{ENV\}
       ports:
@@ -284,7 +284,7 @@ services:
               rest.bind-port: 9081
 
   <%= projectName %>-flink-sql-client:
-      image: bokf-docker.jfrog.io/cnfldemos/flink-sql-client-kafka:1.19.1-scala_2.12-java17
+      image: cnfldemos/flink-sql-client-kafka:1.19.1-scala_2.12-java17
       depends_on:
           - <%= projectName %>-flink-jobmanager
       hostname: flink-sql-client
@@ -293,7 +293,7 @@ services:
           FLINK_JOBMANAGER_HOST: flink-jobmanager
 
   <%= projectName %>-flink-taskmanager:
-      image: bokf-docker.jfrog.io/cnfldemos/flink-kafka:1.19.1-scala_2.12-java17
+      image: cnfldemos/flink-kafka:1.19.1-scala_2.12-java17
       hostname: flink-taskmanager
       container_name: \$\{SERVICE_NAME\}-flink-taskmanager-\$\{ENV\}
       depends_on:
