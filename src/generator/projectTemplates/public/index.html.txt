@@ -8,4 +8,3 @@
         <p>You've enabled public static content</p>
     </body>
     </html>
-sd
