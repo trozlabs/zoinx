@@ -81,7 +81,7 @@ module.exports = class TestMsgProducer {
 
             let service = new tsfService();
 
-            result = await service.save(undefined, saveObj, {user: 'SYSTEM'});
+            result = await service.save(saveObj, {user: 'SYSTEM'});
             // Log.info(result);
         }
         catch (e) {
