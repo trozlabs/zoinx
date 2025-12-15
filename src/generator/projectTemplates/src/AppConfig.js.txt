@@ -148,16 +148,16 @@ module.exports = class ZoinxAppConfig extends AppConfig {
 | DATABASE_NAME                           | \$\{env.get('MONGO_DB_NAME')\}
 | DATABASE_OPTIONS                        | \$\{env.get('MONGO_OPTIONS')\}
 |-----------------------------------------------------------------------------
-| KAFKA_BROKER_ID                         | ${env.get('KAFKA_BROKER_ID')}
-| KRAFT_CONTAINER_HOST_NAME               | ${env.get('KAFKA_ADVERTISED_HOST_NAME')}
-| TELEMETRY_MESSAGE_SERVERS               | ${env.get('TELEMETRY_MESSAGE_SERVERS')}
-| TESTING_MESSAGE_SERVERS                 | ${env.get('TESTING_MESSAGE_SERVERS')}
-| LOGGER_MESSAGE_SERVERS                  | ${env.get('LOGGER_MESSAGE_SERVERS')}
-| KAFKA_ADVERTISED_LISTENERS              | ${env.get('KAFKA_ADVERTISED_LISTENERS')}
-| KAFKA_LISTENER_SECURITY_PROTOCOL_MAP    | ${env.get('KAFKA_LISTENER_SECURITY_PROTOCOL_MAP')}
-| KAFKA_CREATED_TOPICS                    | ${env.get('KAFKA_CREATED_TOPICS')}
-| KAFKA_PARTITIONS_PER_TOPIC              | ${env.get('KAFKA_PARTITIONS_PER_TOPIC')}
-| KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR  | ${env.get('KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR')}
+| KAFKA_BROKER_ID                         | \$\{env.get('KAFKA_BROKER_ID')\}
+| KRAFT_CONTAINER_HOST_NAME               | \$\{env.get('KAFKA_ADVERTISED_HOST_NAME')\}
+| TELEMETRY_MESSAGE_SERVERS               | \$\{env.get('TELEMETRY_MESSAGE_SERVERS')\}
+| TESTING_MESSAGE_SERVERS                 | \$\{env.get('TESTING_MESSAGE_SERVERS')\}
+| LOGGER_MESSAGE_SERVERS                  | \$\{env.get('LOGGER_MESSAGE_SERVERS')\}
+| KAFKA_ADVERTISED_LISTENERS              | \$\{env.get('KAFKA_ADVERTISED_LISTENERS')\}
+| KAFKA_LISTENER_SECURITY_PROTOCOL_MAP    | \$\{env.get('KAFKA_LISTENER_SECURITY_PROTOCOL_MAP')\}
+| KAFKA_CREATED_TOPICS                    | \$\{env.get('KAFKA_CREATED_TOPICS')\}
+| KAFKA_PARTITIONS_PER_TOPIC              | \$\{env.get('KAFKA_PARTITIONS_PER_TOPIC')\}
+| KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR  | \$\{env.get('KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR')\}
 |-----------------------------------------------------------------------------
 `
         );
