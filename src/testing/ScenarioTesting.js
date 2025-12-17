@@ -304,7 +304,7 @@ module.exports = class ScenarioTesting {
                     hashedKey, testResult;
 
                 for (let j=0; j<scenarios.length; j++) {
-                    hashedKey = await bcrypt.hash(JSON.stringify(scenarios[j].inputValues), global.testing.testResultCacheSalt);
+                    hashedKey = bcrypt.hashSync(JSON.stringify(scenarios[j].inputValues), global.testing.testResultCacheSalt);
                     testResult = global.testing.testResultCache.get(hashedKey);
 
                     if (!_.isUndefined(testResult)) {
