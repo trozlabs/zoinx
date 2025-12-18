@@ -3,6 +3,7 @@ const Test = require('./Test');
 const UtilMethods = require('./UtilMethods');
 const { Log } = require('../log');
 const TypeDefinitions = require('./TypeDefinitions');
+const hrt = require('./HighResTimer');
 
 class TestHarness {
 
@@ -20,13 +21,13 @@ class TestHarness {
                 updatedTestConfig = UtilMethods.getUpdatedTestConfig(target, thisArg, testConfig);
                 targetName = updatedTestConfig?.targetName;
 
-                let start = Date.now();
+                let hrtTimer = new hrt(true);
                 // Executes actual method and catches returned output
                 if (TypeDefinitions.isFunctionAsync(target))
                     retVal = target.apply(thisArg, argumentsList).then();
                 else
                     retVal = target.apply(thisArg, argumentsList);
-                let end = Date.now();
+                hrtTimer.stop();
 
                 if (!_.isEmpty(updatedTestConfig?.updatedTestConfig[targetName])) {
                     newTestRec = Test.setupFuncTest(thisArg,
@@ -38,10 +39,12 @@ class TestHarness {
 
                     if (!_.isUndefined(newTestRec)) {
                         let optionalVals = {
-                            stopWatchStart: start,
-                            stopWatchEnd: end,
+                            stopWatchStart: hrtTimer.getStartTime(),
+                            stopWatchEnd: hrtTimer.getEndTime(),
+                            executionTimer: hrtTimer,
                             executionResult: retVal
                         }
+
                         // Delays test processing so actual functionality can proceed and not be waiting for test results.
                         setImmediate((newTestRec, optionalVals) => {
                             Test.execFuncTest(thisArg, target, argumentsList, newTestRec, optionalVals);

@@ -8,6 +8,7 @@ const StaticUtil = require('../util/StaticUtil');
 const AppCache = require("../core/AppCache");
 const TypeDefinitions = require('./TypeDefinitions');
 const UtilMethods = require('./UtilMethods');
+const HighResTimer = require('./HighResTimer');
 
 module.exports = class ScenarioTesting {
 
@@ -126,7 +127,7 @@ module.exports = class ScenarioTesting {
             this.#scenarioTestComplete++;
             if (this.#scenarioTestComplete >= this.#totalScenarioCount) {
                 this.#endTime = Date.now();
-                await this.generateReport();
+                const totalTestTime = await this.generateReport();
                 if (!_.isUndefined(this.#cli)) {
                     Log.log(`\n\x1b[32m Scenario tests ran in ${this.#endTime - this.#startTime} millis`);
                     if (this.#cli)
@@ -289,9 +290,8 @@ module.exports = class ScenarioTesting {
     }
 
     async generateReport() {
-        let report = '',
-            totalTestCount = 0,
-            totalTestTime = 0,
+        let totalTestCount = 0,
+            totalTestTime = 0n,
             passedCount = 0,
             failedCount = 0,
             passFailColor = '\x1b[33m';
@@ -309,7 +309,7 @@ module.exports = class ScenarioTesting {
 
                     if (!_.isUndefined(testResult)) {
                         testResult.notes = scenarios[j].scenarioKey;
-                        totalTestTime += testResult.runningTimeMillis;
+                        totalTestTime += testResult.runningTime;
 
                         if (testResult.passed && testResult.executionPassed) {
                             (scenarios[j].shouldFail) ? failedCount++ : passedCount++;
@@ -320,7 +320,7 @@ module.exports = class ScenarioTesting {
                         }
 
                         // Log.warn(`${testResult.stopWatchEnd} - ${testResult.stopWatchStart} = ${(testResult.stopWatchEnd - testResult.stopWatchStart)}`);
-                        Log.log(`\n\x1b[36m ${testResult.notes} -> ran in: ${testResult.runningTimeMillis} milli(s)`);
+                        Log.log(`\n\x1b[36m ${testResult.notes} -> Method ran in: ${HighResTimer.formatMsUsNs(testResult.runningTime)} (ms.µs.ns)`);
                         Log.log(`\x1b[33m \t-> ${testResult.className}.${testResult.methodName}(${_.truncate(JSON.stringify(scenarios[j].inputValues), {length: 300})})`);
                         Log.log(`${passFailColor} \t-> Method output: ${_.truncate(JSON.stringify(testResult.executionResult), {'length': 300, 'separator': ','}) }`);
                         Log.log(`${passFailColor} \t-> Method Passed: ${testResult.passed} -> Should Fail: ${scenarios[j].shouldFail}`);
@@ -337,16 +337,14 @@ module.exports = class ScenarioTesting {
         }
 
         Log.log('\n\n\x1b[32m====================================================================================');
-        Log.log(`\x1b[36m Total tests run: ${totalTestCount} -> ran in: ${totalTestTime} milli(s)`);
+        Log.log(`\x1b[36m Total tests run: ${totalTestCount} -> ran in: ${HighResTimer.formatMsUsNs(totalTestTime)} (ms.µs.ns)`);
         Log.log(`\x1b[32m Tests Passed: ${passedCount}`);
         Log.log(`\x1b[31m Tests Failed: ${failedCount}\x1b[37m `);
-
-
 
         if (this.#writeTestData && totalTestCount > 0)
             this.#createTestDataFile();
 
-        return report;
+        return totalTestTime;
     }
 
     async #createTestDataFile() {
@@ -355,7 +353,12 @@ module.exports = class ScenarioTesting {
                 destDir = `${appDir}/testingResults/`,
                 fullPath = `${destDir}${StaticUtil.appendTimestamp('ScenarioTesting_')}.json`;
             const cacheData = global.testing.testResultCache.mget(global.testing.testResultCache.keys());
-            const jsonData = JSON.stringify(cacheData, null, 2);
+            const jsonData = JSON.stringify(cacheData, (key, value) => {
+                if (typeof value === 'bigint') {
+                    return Number(value);
+                }
+                return value;
+            }, 2);
 
             mkdirp.sync(destDir);
             fs.writeFileSync(fullPath, jsonData);

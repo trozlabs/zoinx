@@ -3,7 +3,7 @@ const _ = require('lodash');
 const { Log } = require('../log');
 const TypeDefinitions = require('./TypeDefinitions');
 const UtilMethods = require('./UtilMethods');
-const { TestFuncDetails, TestParamDetails, TestExecutionDetails} = require('./model');
+const { TestFuncDetails, TestParamDetails, TestExecutionDetails } = require('./model');
 const TestMsgProducer = require('./TestMsgProducer');
 const AppCache = require('../core/AppCache');
 const KafkaClient = require('../datastream/KafkaClient');
@@ -31,8 +31,7 @@ module.exports = class ZoinxTest {
                 await kafkaClient.setClientConfig('TESTING_MESSAGE', process.env.TESTING_ENV, process.env.TESTING_USE_SSL);
                 global.kafka.TestMsgProducer = kafkaClient;
             }
-        }
-        catch (e) {
+        } catch (e) {
             Log.error(e);
         }
     }
@@ -57,7 +56,9 @@ module.exports = class ZoinxTest {
         }
 
         if (global.testingConfig?.isTestingEnabled && global.testingConfig?.sendResult2Kafka) {
-            this.createTestMsgProducer().catch(r => {Log.error(r)});
+            this.createTestMsgProducer().catch(r => {
+                Log.error(r);
+            });
         }
 
         try {
@@ -103,7 +104,7 @@ module.exports = class ZoinxTest {
             funcTestConfig.paramsCount = UtilMethods.getSignatureParamsCount(funcTestConfig.methodSignature);
             funcTestConfig.serverInstance = os.hostname();
 
-            if ( !_.isString(methodInput) || methodInput.toLowerCase() !== 'trace')
+            if (!_.isString(methodInput) || methodInput.toLowerCase() !== 'trace')
                 funcTestConfig.doArgumentCountsMatch = UtilMethods.doesPassedCountEqualExpectedCount(passedArguments, expectedParams);
 
             if (!funcTestConfig.doArgumentCountsMatch && passedArguments.length > expectedParams.length)
@@ -135,7 +136,7 @@ module.exports = class ZoinxTest {
     static async execFuncTest(clazz, func, passedArguments, testRec = {}, optionalVals = {}) {
 
         if (Object.keys(testRec).length < 1) {
-            Log.error('No test record provided to run.')
+            Log.error('No test record provided to run.');
             return false;
         }
 
@@ -155,11 +156,9 @@ module.exports = class ZoinxTest {
                         let tmpResult = optionalVals[key];
                         if (key === 'executionResult') {
                             if (TypeDefinitions.isObjectLike(tmpResult)) {
-
-                                if (tmpResult.constructor.name === 'Promise')
+                                if (tmpResult.constructor.name === 'Promise') {
                                     tmpResult = await tmpResult;
-
-                                testRec.set('stopWatchEnd', Date.now());
+                                }
                                 tmpResult = await this.reduceObjectOrArray(tmpResult);
                             }
                         }
@@ -172,10 +171,16 @@ module.exports = class ZoinxTest {
                 UtilMethods.logTestResult('noclass', 'nomethod', 'No matching test record found.');
             }
             else {
-                if (_.isDate(testRec.get('stopWatchStart')) && _.isDate(testRec.get('stopWatchEnd')))
+                if (_.isDate(testRec.get('stopWatchStart')) && _.isDate(testRec.get('stopWatchEnd'))) {
                     testRec.set('runningTimeMillis', (+testRec.get('stopWatchEnd') - +testRec.get('stopWatchStart')));
-                else if (_.isInteger(testRec.get('stopWatchStart')) && _.isInteger(testRec.get('stopWatchEnd')))
+                }
+                else if (!_.isEmpty(optionalVals.executionTimer) && _.isObject(optionalVals.executionTimer)) {
+                    testRec.set('runningTime', optionalVals.executionTimer.durationNs());
+                    testRec.set('runningTimeMillis', optionalVals.executionTimer.durationMs());
+                }
+                else if (_.isInteger(testRec.get('stopWatchStart')) && _.isInteger(testRec.get('stopWatchEnd'))) {
                     testRec.set('runningTimeMillis', (testRec.get('stopWatchEnd') - testRec.get('stopWatchStart')));
+                }
                 await this.functionTest(clazz, func, passedArguments, testRec);
             }
         }
@@ -240,7 +245,7 @@ module.exports = class ZoinxTest {
                     tmpReduced = [];
 
                 // There isn't a need to
-                for (let i=0; i<origPassedArguments.length; i++) {
+                for (let i = 0; i < origPassedArguments.length; i++) {
                     tmpReduced.push(await this.reduceObjectOrArray(origPassedArguments[i]));
                 }
                 if (tmpReduced.length > 0) {
@@ -256,7 +261,7 @@ module.exports = class ZoinxTest {
                 // 2 great examples. This is hopefully a temporary "fix".
                 let reassign = true,
                     paramKeys = Object.keys(testRec.testedParams);
-                for (let i=0; i<paramKeys.length; i++) {
+                for (let i = 0; i < paramKeys.length; i++) {
                     try {
                         if (JSON.stringify(testRec.testedParams[i]).includes('CIRCULAR'))
                             reassign = false;
@@ -287,7 +292,7 @@ module.exports = class ZoinxTest {
             passedArgIdx = -1,
             testObject;
 
-        for (let i=0; i<paramConfig.length; i++) {
+        for (let i = 0; i < paramConfig.length; i++) {
             if (paramConfig[i].name !== currentParamName) {
                 currentParamName = paramConfig[i].name;
                 passedArgIdx++;
@@ -306,7 +311,7 @@ module.exports = class ZoinxTest {
                 subTypePassed: true
             });
 
-            if ((!_.isUndefined(testObject) && !_.isNull(testObject)) || paramTest.get('isOptional') ) {
+            if ((!_.isUndefined(testObject) && !_.isNull(testObject)) || paramTest.get('isOptional')) {
 
                 // Use static def typeTests to easily test declared data type
                 let tmpFn = TypeDefinitions.typeTests[paramTest.get('jsType')].typeFn;
@@ -363,7 +368,7 @@ module.exports = class ZoinxTest {
             testObject,
             execTest = {};
 
-        for (let i=0; i<outputConfig.length; i++) {
+        for (let i = 0; i < outputConfig.length; i++) {
             testObject = funcDetails.get('executionResult');
             execTest = {
                 name: (outputConfig[i].name) ? outputConfig[i].name : 'None Supplied',
@@ -380,7 +385,7 @@ module.exports = class ZoinxTest {
             execTest.testParamConfigStr = outputConfig[i].testParamConfigStr;
             execTest.expectedOut = outputConfig[i].expectedOut;
 
-            if (execTest.typePassed && (outputConfig[i].type === "undefined" || outputConfig[i].type === "null")) {
+            if (execTest.typePassed && (outputConfig[i].type === 'undefined' || outputConfig[i].type === 'null')) {
                 execTest.passed = true;
             }
             else {
@@ -392,13 +397,13 @@ module.exports = class ZoinxTest {
                                 funcDetails.get('distinctParamNames'),
                                 funcDetails.get('passedArguments'));
 
-
                             if (testValue === funcDetails.get('executionResult')) {
                                 execTest.passed = true;
                                 execTest.resultMessage = testValue;
                             }
-                            else
+                            else {
                                 execTest.passed = false;
+                            }
                         }
                         else {
                             execTest.resultMessage = funcDetails.get('executionResult');
@@ -447,9 +452,6 @@ module.exports = class ZoinxTest {
                 paramTest.set('passed', true);
             }
 
-            // if (_.isFunction(paramConfig.acceptedValues[0]))
-            //     Log.log('===========');
-
             if (paramConfig.acceptedValues.length > 0) {
                 if (!paramConfig.acceptedValues.includes(testObject)) {
                     paramTest.set('passed', false);
@@ -482,7 +484,7 @@ module.exports = class ZoinxTest {
             this.testArray(paramConfig, paramTest, passedArgument, testObject);
         }
         else {
-            typeAccepted = TypeDefinitions.getTypeAccepted(`${paramTest.get("jsType")}=:${paramTest.get("subType")}`, testObject);
+            typeAccepted = TypeDefinitions.getTypeAccepted(`${paramTest.get('jsType')}=:${paramTest.get('subType')}`, testObject);
             paramTest.set('typePassed', typeAccepted.typeAccepted);
             paramTest.set('passed', false);
 
@@ -504,7 +506,8 @@ module.exports = class ZoinxTest {
                     for (let k = 0; k < objectPath.length; k++) {
                         if (!_.isEmpty(objectRef[objectPath[k]]) || objectRef.hasOwnProperty(objectPath[k])) {
                             objectRef = objectRef[objectPath[k]];
-                        } else {
+                        }
+                        else {
                             objectRef = undefined;
                             break;
                         }
@@ -563,16 +566,18 @@ module.exports = class ZoinxTest {
         let typeAccepted;
 
         try {
-            typeAccepted = TypeDefinitions.getTypeAccepted(`${paramTest.get("jsType")}=:${paramTest.get("subType")}`, testObject);
+            typeAccepted = TypeDefinitions.getTypeAccepted(`${paramTest.get('jsType')}=:${paramTest.get('subType')}`, testObject);
             paramConfig.subType = typeAccepted.subType;
             paramTest.set('typePassed', typeAccepted.typeAccepted);
             paramTest.set('subTypePassed', typeAccepted.subTypeAccepted);
 
             if (typeAccepted.typeAccepted && typeAccepted.subType !== 'N/A') {
-                if (typeAccepted.subTypeAccepted)
-                    paramTest.set('passed', testObject.every(TypeDefinitions.typeTests[paramTest.get("subType")].typeFn))
-                else
+                if (typeAccepted.subTypeAccepted) {
+                    paramTest.set('passed', testObject.every(TypeDefinitions.typeTests[paramTest.get('subType')].typeFn));
+                }
+                else {
                     paramTest.set('passed', false);
+                }
             }
             else if (typeAccepted.typeAccepted && typeAccepted.subType === 'N/A') {
                 paramTest.set('passed', true);
@@ -593,14 +598,14 @@ module.exports = class ZoinxTest {
         let depthLevel = 0,
             propPath, propName, objectPath, objectQueryResponse;
 
-        for (let i=0; i<required.length; i++) {
+        for (let i = 0; i < required.length; i++) {
             propPath = required[i].propName;
             objectPath = propPath.split('.');
             depthLevel = objectPath.length;
 
             propName = _.takeRight(objectPath)[0];
             //options = Object.assign({ value: undefined, property: undefined, fn: undefined, results: [], path: [], depth: 1 }, (options || {}));
-            objectQueryResponse = UtilMethods.queryObject(testObject, {property: propName, depth: depthLevel});
+            objectQueryResponse = UtilMethods.queryObject(testObject, { property: propName, depth: depthLevel });
             if (objectQueryResponse) {
                 Log.log(objectQueryResponse);
             }
@@ -612,4 +617,4 @@ module.exports = class ZoinxTest {
         return true;
     }
 
-}
+};

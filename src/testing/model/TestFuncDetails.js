@@ -109,6 +109,11 @@ module.exports = class TestFuncDetails extends Model {
             name: 'stopWatchEnd'
         },
         {
+            type: 'bigint',
+            defaultValue: 0n,
+            name: 'runningTime'
+        },
+        {
             type: 'int',
             defaultValue: 0,
             name: 'runningTimeMillis'
