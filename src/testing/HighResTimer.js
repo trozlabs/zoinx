@@ -3,42 +3,46 @@ const _ = require('lodash');
 const Log = require('../log/Log');
 
 module.exports = class HighResTimer {
+
+    #start
+    #end
+
     constructor(autoStart = true) {
-        this._start = null;
-        this._end = null;
+        this.#start = null;
+        this.#end = null;
         if (autoStart) this.start();
     }
 
     getStartTime() {
-        return this._start;
+        return this.#start;
     }
 
     getEndTime() {
-        return this._end;
+        return this.#end;
     }
 
     start() {
-        this._start = process.hrtime.bigint();
-        this._end = null;
+        this.#start = process.hrtime.bigint();
+        this.#end = null;
     }
 
     stop() {
-        if (!this._start) {
+        if (!this.#start) {
             throw new Error('Timer has not been started');
         }
-        this._end = process.hrtime.bigint();
+        this.#end = process.hrtime.bigint();
     }
 
     reset() {
-        this._start = null;
-        this._end = null;
+        this.#start = null;
+        this.#end = null;
     }
 
     // --- raw duration ---
     durationNs() {
-        if (!this._start) return 0n;
-        const end = this._end ?? process.hrtime.bigint();
-        return end - this._start;
+        if (!this.#start) return 0n;
+        const end = this.#end ?? process.hrtime.bigint();
+        return end - this.#start;
     }
 
     durationUs() {
@@ -51,7 +55,7 @@ module.exports = class HighResTimer {
 
     // --- formatted output ---
     formatMsUsNs() {
-        HighResTimer.formatMsUsNs(this.durationNs());
+        return HighResTimer.formatMsUsNs(this.durationNs());
     }
 
     // --- helpers ---

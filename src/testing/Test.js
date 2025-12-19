@@ -174,7 +174,7 @@ module.exports = class ZoinxTest {
                 if (_.isDate(testRec.get('stopWatchStart')) && _.isDate(testRec.get('stopWatchEnd'))) {
                     testRec.set('runningTimeMillis', (+testRec.get('stopWatchEnd') - +testRec.get('stopWatchStart')));
                 }
-                else if (!_.isEmpty(optionalVals.executionTimer) && _.isObject(optionalVals.executionTimer)) {
+                else if (_.isObject(optionalVals.executionTimer) && optionalVals.executionTimer.constructor?.name === 'HighResTimer') {
                     testRec.set('runningTime', optionalVals.executionTimer.durationNs());
                     testRec.set('runningTimeMillis', optionalVals.executionTimer.durationMs());
                 }
