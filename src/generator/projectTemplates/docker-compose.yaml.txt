@@ -162,7 +162,7 @@ services:
         - <%= projectName %>-network
 
   <%= projectName %>-ksqldb-server:
-    profiles: [ confluent ]
+    profiles: [ ksql ]
     image: confluentinc/cp-ksqldb-server:7.5.0
     hostname: ksqldb-server
     container_name: \$\{SERVICE_NAME\}-ksqldb-server-\$\{ENV\}
@@ -215,7 +215,7 @@ services:
         - <%= projectName %>-network
 
   <%= projectName %>-ksqldb-cli:
-    profiles: [ confluent ]
+    profiles: [ ksql ]
     image: confluentinc/cp-ksqldb-cli:7.5.0
     container_name: \$\{SERVICE_NAME\}-ksqldb-cli-\$\{ENV\}
     depends_on:
@@ -228,7 +228,7 @@ services:
         - <%= projectName %>-network
 
   <%= projectName %>-ksql-datagen:
-    profiles: [ confluent ]
+    profiles: [ ksql ]
     image: confluentinc/ksqldb-examples:7.5.0
     hostname: ksql-datagen
     container_name: \$\{SERVICE_NAME\}-ksql-datagen-\$\{ENV\}
