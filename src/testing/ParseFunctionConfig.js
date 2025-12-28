@@ -10,6 +10,8 @@ module.exports = class ParseFunctionConfig {
     static rxCarrots = /\.?(\<.+\>)/mi;
     static rxWacks = /\.?(\/.+\/)/mi;
     static rxRegExp = /\/(.*)\/([mgiyuvsd]*)/;
+    static rxRejected = /\srejectedValues=:\[[^\]]+\]/;
+    static rxFunction = /\[([^\]]+)\]/;
 
     static requiredPrefix = 'required=:';
     static acceptedPrefix = 'acceptedValues=:';
@@ -17,12 +19,10 @@ module.exports = class ParseFunctionConfig {
     static expectedOutPrefix = 'expectedOut=:';
 
     static parse(inputStr, isOutputConfig=false) {
-        let me = this,
-            finalOutput = {type:'PARSE_ERROR'},
-            paramType, paramSubType='', paramName, paramOptional = false, initialSplit, detailsSplit = [];
+        let finalOutput = {type:'PARSE_ERROR'},
+            initialSplit;
 
         if (!_.isEmpty(inputStr)) {
-
             initialSplit = inputStr.split('=>');
             if (initialSplit.length < 1) return finalOutput;
             if (initialSplit[0].includes("=")) {
@@ -36,150 +36,148 @@ module.exports = class ParseFunctionConfig {
         return finalOutput;
     }
 
-    static getInitialTestConfig(initialSplit, inputStr='') {
-        if (_.isEmpty(initialSplit) || !_.isArray(initialSplit)) return undefined;
-
-        let parsedConfig,
-            paramName,
-            paramOptional = false,
-            maskValue = false,
-            paramType,
-            detailsSplit;
-
-        if (initialSplit[0].includes('?')) {
-            initialSplit[0] = initialSplit[0].replace('?', '');
-            paramOptional = true;
+    static getInitialTestConfig(initialSplit, inputStr = '') {
+        if (!Array.isArray(initialSplit) || initialSplit.length === 0) {
+            return undefined;
         }
 
-        if (initialSplit[0].includes('*')) {
-            initialSplit[0] = initialSplit[0].replace('*', '');
-            maskValue = true;
-        }
+        let rawName = initialSplit[0] ?? '';
+        let paramOptional = rawName.includes('?');
+        let maskValue = rawName.includes('*');
 
-        paramName = initialSplit[0];
+        const paramName = rawName.replace(/[?*]/g, '');
 
-        if (_.isEmpty(initialSplit[1])) {
-            parsedConfig = {
-                name: paramName,
-                type: 'string',
-                optional: paramOptional,
-                maskValue: maskValue,
-                required: [],
-                acceptedValues: [],
-                rejectedValues: [],
-                expectedOut: [undefined],
-                testParamConfigStr: ''
-            };
-            parsedConfig.constructor.type = 'parsedTestConfig';
-            return parsedConfig;
-        }
-
-        // See if details are contained in <>, if not return error
-        // if (!this.rxCarrots.test(initialSplit[1])) return {type:'PARSE_ERROR', reason: 'Test config details must with <>', confDetails: initialSplit[1]};
-        if (!initialSplit[1].startsWith('<') || !initialSplit[1].endsWith('>'))
-            return {type:'PARSE_ERROR', reason: 'Test config details must with <>', confDetails: initialSplit[1]};;
-
-        let tmpObjStr = initialSplit[1].slice();
-        paramType = tmpObjStr.substring(1, (tmpObjStr.length-1))
-        if (paramType.includes(' '))
-            paramType = paramType.substring(0, tmpObjStr.indexOf(' '));
-
-        if (_.isEmpty(paramType) && !_.isEmpty(initialSplit[1])) {
-            if (initialSplit[1].includes('<'))
-                paramType = initialSplit[1].substring(0, initialSplit[1].indexOf('<'));
-            else
-                paramType = initialSplit[1];
-        }
-        else {
-            if (initialSplit[1].indexOf(' ') >= 0) {
-                detailsSplit = initialSplit[1].substring(initialSplit[1].indexOf(' '), initialSplit[1].length).trim();
-                if (detailsSplit.endsWith('>'))
-                    detailsSplit = detailsSplit.slice(0, -1);
-            }
-        }
-
-        let typeTest;
-        typeTest = TypeDefinitions.getTypeAccepted(paramType);
-        if (_.isEmpty(typeTest))
-            typeTest = TypeDefinitions.getTypeAccepted(detailsSplit);
-
-        if (!typeTest.typeAccepted) return finalOutput;
-
-        parsedConfig = {
+        // Base config factory
+        const baseConfig = {
             name: paramName,
-            type: typeTest.type,
-            subType: (typeTest.subType) ? typeTest.subType : paramSubType,
+            type: 'string',
+            subType: undefined,
             optional: paramOptional,
-            maskValue: maskValue,
+            maskValue,
             required: [],
             acceptedValues: [],
             rejectedValues: [],
             expectedOut: [],
             testParamConfigStr: inputStr
         };
+
+        // No details provided → default string config
+        if (!initialSplit[1]) {
+            baseConfig.expectedOut = [undefined];
+            baseConfig.constructor.type = 'parsedTestConfig';
+            return baseConfig;
+        }
+
+        const details = initialSplit[1].trim();
+
+        // Must be enclosed in <>
+        if (!details.startsWith('<') || !details.endsWith('>')) {
+            return {
+                type: 'PARSE_ERROR',
+                reason: 'Test config details must be enclosed in <>',
+                confDetails: details
+            };
+        }
+
+        // Strip < >
+        const inner = details.slice(1, -1).trim();
+
+        // Extract type + optional metadata
+        const [paramType, ...rest] = inner.split(/\s+/);
+        const detailsSplit = rest.join(' ') || undefined;
+
+        // Resolve type
+        let typeTest = TypeDefinitions.getTypeAccepted(paramType)
+            || (detailsSplit && TypeDefinitions.getTypeAccepted(detailsSplit));
+
+        if (!typeTest || !typeTest.typeAccepted) {
+            return {
+                type: 'PARSE_ERROR',
+                reason: 'Unsupported parameter type',
+                confDetails: details
+            };
+        }
+
+        const parsedConfig = {
+            ...baseConfig,
+            type: typeTest.type,
+            subType: typeTest.subType
+        };
+
         parsedConfig.constructor.type = 'parsedTestConfig';
         return parsedConfig;
     }
 
     static parseObjectTestConfig(configObj, parseParts) {
-        let rejectedRx = /\srejectedValues=:\[[^\]]+\]/;
+        if (!Array.isArray(parseParts) || parseParts.length < 2) return;
 
-        if (!_.isEmpty(parseParts) && _.isArray(parseParts)) {
-            try {
-                if (parseParts.length > 1) {
+        try {
+            let part = parseParts[1];
 
-                    let requiredStr = '';
-                    if (parseParts[1].indexOf(this.requiredPrefix) >= 0) {
-                        requiredStr = parseParts[1].substring(parseParts[1].indexOf(this.requiredPrefix), parseParts[1].length);
-                        requiredStr = requiredStr.substring(0, (requiredStr.indexOf('}]')+2));
-                        configObj.required = this.getAdvancedObjectConf(requiredStr, this.requiredPrefix);
-                    }
+            // ---- REQUIRED ----
+            this.parseObjectPrefix(
+                part,
+                this.requiredPrefix,
+                value => (configObj.required = value)
+            );
 
-                    let acceptedStr = '',
-                        rejectedStr = '';
-                    if (parseParts[1].indexOf(this.acceptedPrefix) >= 0) {
-                        parseParts[1]= parseParts[1].replace(rejectedRx, '');
-                        acceptedStr = parseParts[1].slice().substring(parseParts[1].indexOf(this.acceptedPrefix), parseParts[1].length);
-                        if (acceptedStr.split(this.acceptedPrefix)[1].startsWith('[')) {
-                            acceptedStr = acceptedStr.substring(0, (acceptedStr.indexOf(']>') + 1));
-                            configObj.acceptedValues = this.getAdvancedValueConf(acceptedStr, this.acceptedPrefix, configObj.type);
-                        }
-                        else {
-                            acceptedStr = acceptedStr.substring(0, (acceptedStr.indexOf('}]') + 2));
-                            configObj.acceptedValues = this.getAdvancedObjectConf(acceptedStr, this.acceptedPrefix);
-                        }
-                    }
-
-                    // let rejectedStr = '';
-                    else if (parseParts[1].indexOf(this.rejectedPrefix) >= 0) {
-                        rejectedStr = parseParts[1].slice().substring(parseParts[1].indexOf(this.rejectedPrefix), parseParts[1].length);
-                        if (rejectedStr.split(this.rejectedPrefix)[1].startsWith('[')) {
-                            rejectedStr = rejectedStr.substring(0, (rejectedStr.indexOf(']>') + 1));
-                            configObj.rejectedValues = this.getAdvancedValueConf(rejectedStr, this.rejectedPrefix, configObj.type);
-                        }
-                        else {
-                            rejectedStr = rejectedStr.substring(0, (rejectedStr.indexOf('}]') + 2));
-                            configObj.rejectedValues = this.getAdvancedObjectConf(rejectedStr, this.rejectedPrefix);
-                        }
-                    }
-// TODO make work like accepted
-                    let expectedOutStr = '';
-                    if (parseParts[1].indexOf(this.expectedOutPrefix) >= 0) {
-                        expectedOutStr = parseParts[1].slice().substring(parseParts[1].indexOf(this.expectedOutPrefix), parseParts[1].length);
-                        if (expectedOutStr.split(this.expectedOutPrefix)[1].startsWith('[')) {
-                            expectedOutStr = expectedOutStr.substring(0, (expectedOutStr.indexOf(']>') + 1));
-                            configObj.expectedOut = this.getAdvancedValueConf(expectedOutStr, this.expectedOutPrefix, configObj.type);
-                        }
-                        else {
-                            expectedOutStr = expectedOutStr.substring(0, (expectedOutStr.indexOf('}]') + 2));
-                            configObj.expectedOut = this.getAdvancedObjectConf(expectedOutStr, this.expectedOutPrefix);
-                        }
-                    }
-                }
+            // ---- ACCEPTED (strip rejected first) ----
+            if (part.includes(this.acceptedPrefix)) {
+                part = part.replace(this.rxRejected, '');
             }
-            catch (ex) {
-                console.error(ex);
-            }
+
+            this.parseValueOrObjectPrefix(
+                part,
+                this.acceptedPrefix,
+                configObj.type,
+                value => (configObj.acceptedValues = value)
+            );
+
+            // ---- REJECTED ----
+            this.parseValueOrObjectPrefix(
+                part,
+                this.rejectedPrefix,
+                configObj.type,
+                value => (configObj.rejectedValues = value)
+            );
+
+            // ---- EXPECTED OUT ----
+            this.parseValueOrObjectPrefix(
+                part,
+                this.expectedOutPrefix,
+                configObj.type,
+                value => (configObj.expectedOut = value)
+            );
+
+        }
+        catch (ex) {
+            console.error(ex);
+        }
+    }
+
+    static parseObjectPrefix(str, prefix, assignFn) {
+        const idx = str.indexOf(prefix);
+        if (idx === -1) return;
+
+        let sub = str.substring(idx);
+        sub = sub.substring(0, sub.indexOf('}]') + 2);
+        assignFn(this.getAdvancedObjectConf(sub, prefix));
+    }
+
+    static parseValueOrObjectPrefix(str, prefix, type, assignFn) {
+        const idx = str.indexOf(prefix);
+        if (idx === -1) return;
+
+        let sub = str.substring(idx);
+        const body = sub.split(prefix)[1];
+
+        if (body.startsWith('[')) {
+            sub = sub.substring(0, sub.indexOf(']>') + 1);
+            assignFn(this.getAdvancedValueConf(sub, prefix, type));
+        }
+        else {
+            sub = sub.substring(0, sub.indexOf('}]') + 2);
+            assignFn(this.getAdvancedObjectConf(sub, prefix));
         }
     }
 
@@ -191,7 +189,7 @@ module.exports = class ParseFunctionConfig {
             try {
                 tmpSplit = configStr.split(configPrefix);
 
-                if (/\[([^\]]+)\]/.test(tmpSplit[1])) {
+                if (this.rxFunction.test(tmpSplit[1])) {
                     let tmpArrayStr = tmpSplit[1].substring(1, (tmpSplit[1].length - 1)),
                         tmpSplitArray = tmpArrayStr.split('|'),
                         parsedArray = [];
@@ -228,21 +226,22 @@ module.exports = class ParseFunctionConfig {
     static getAdvancedObjectConf(configStr, configPrefix) {
         let parsedJson = [],
             groupingArray = [],
-            isOr = false,
             rawRequired, requiredObjects;
 
-        if (!_.isEmpty(configStr)) {
-
+        if (!configStr) {
             rawRequired = configStr.split(configPrefix)[1];
+
             try {
                 requiredObjects = JSON.parse(rawRequired);
                 if (!_.isArray(requiredObjects)) {
                     console.error('required=:[] must be an array');
                 }
                 else {
-                    isOr = (requiredObjects.length > 1);
+                    const isOr = (requiredObjects.length > 1);
+
                     for (let i=0; i<requiredObjects.length; i++) {
-                        let configKeys = Object.keys(requiredObjects[i]);
+                        const reqObj = requiredObjects[i];
+                        const configKeys = Object.keys(reqObj);
 
                         for (let j=0; j<configKeys.length; j++) {
                             let requiredObj = {
@@ -252,34 +251,41 @@ module.exports = class ParseFunctionConfig {
                                 },
                                 arrayTest, regexText, functionText, tmpArrayStr;
 
-                            requiredObj.maskValue = requiredObjects[i][configKeys[j]].includes('*=');
-                            if (requiredObj.maskValue)
-                                requiredObjects[i][configKeys[j]] = requiredObjects[i][configKeys[j]].replace('*=', '=');
+                            const propName = configKeys[j];
+                            let value = reqObj[propName];
+                            if (value.includes('*=')) {
+                                requiredObj.maskValue = true;
+                                value = value.replace('*=', '=');
+                            }
+                            else {
+                                requiredObj.maskValue = false;
+                            }
+                            reqObj[propName] = value;
 
-                            arrayTest   = this.rxBrackets.exec(requiredObjects[i][configKeys[j]]);
-                            regexText   = this.rxWacks.exec(requiredObjects[i][configKeys[j]]);
-                            functionText= /\[([^\]]+)\]/.exec(requiredObjects[i][configKeys[j]]);
+                            arrayTest   = this.rxBrackets.exec(reqObj[propName]);
+                            regexText   = this.rxWacks.exec(reqObj[propName]);
+                            functionText= this.rxFunction.exec(reqObj[propName]);
 
                             if (!_.isEmpty(arrayTest) && _.isEmpty(regexText)) {
-                                requiredObj.type = requiredObjects[i][configKeys[j]].substring(0, arrayTest['index']-1);
+                                requiredObj.type = reqObj[propName].substring(0, arrayTest['index']-1);
                                 tmpArrayStr = arrayTest[0];
-                                if (/\[([^\]]+)\]/.test(tmpArrayStr)) {
+                                if (this.rxFunction.test(tmpArrayStr)) {
                                     tmpArrayStr = tmpArrayStr.substring(1, (tmpArrayStr.length-1));
                                     requiredObj.values = tmpArrayStr.split('|');
                                 }
                             }
                             else if (!_.isEmpty(functionText) && functionText[1].endsWith(')')) {
-                                requiredObj.type = requiredObjects[i][configKeys[j]].substring(0, functionText['index']-1);
+                                requiredObj.type = reqObj[propName].substring(0, functionText['index']-1);
                                 tmpArrayStr = functionText[1];
                                 requiredObj.dynaFunc = TypeDefinitions.toDynaFunction(tmpArrayStr);
                             }
                             else if (!_.isEmpty(regexText)) {
-                                requiredObj.type = requiredObjects[i][configKeys[j]].substring(0, regexText['index']-2);
+                                requiredObj.type = reqObj[propName].substring(0, regexText['index']-2);
                                 tmpArrayStr = regexText[0];
-                                requiredObj.regex = TypeDefinitions.toRegExp(requiredObjects[i][configKeys[j]]);
+                                requiredObj.regex = TypeDefinitions.toRegExp(reqObj[propName]);
                             }
                             else {
-                                requiredObj.type = requiredObjects[i][configKeys[j]];
+                                requiredObj.type = reqObj[propName];
                             }
 
                             groupingArray.push(requiredObj);
@@ -320,17 +326,20 @@ module.exports = class ParseFunctionConfig {
                                 dynaFunc = required[i][j].dynaFunc;
                             if (regex) {
                                 configObj.required[i][j].regex = regex.toString();
-                            } else if (dynaFunc) {
+                            }
+                            else if (dynaFunc) {
                                 configObj.required[i][j].function = required[i][j].dynaFunc.name;
                             }
                         }
                     }
-                } else {
+                }
+                {
                     if (_.isArray(accepted) && accepted?.length > 0) {
                         tmpArray = accepted;
                         assignTo = configObj.acceptedValues;
                         configObj.rejectedValues = [];
-                    } else if (_.isArray(rejected) && rejected.length > 0) {
+                    }
+                    else if (_.isArray(rejected) && rejected.length > 0) {
                         tmpArray = rejected;
                         assignTo = configObj.rejectedValues;
                         configObj.acceptedValues = [];
@@ -340,7 +349,8 @@ module.exports = class ParseFunctionConfig {
                         let value = tmpArray[i];
                         if (_.isRegExp(tmpArray[i])) {
                             assignTo[i] = value.toString();
-                        } else if (_.isFunction(tmpArray[i])) {
+                        }
+                        else if (_.isFunction(tmpArray[i])) {
                             assignTo[i] = `Function: ${value.name}`;
                         }
                     }
