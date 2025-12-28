@@ -29,7 +29,12 @@ module.exports = class TestMsgProducer {
                 }
 
                 delete this.#testObj.passedArguments;
-                let testObj = JSON.stringify(this.#testObj);
+                let testObj = JSON.stringify(this.#testObj, (key, value) => {
+                    if (typeof value === 'bigint') {
+                        return Number(value);
+                    }
+                    return value;
+                }, 2);
                 if (StaticUtil.StringToBoolean(process.env.TESTING_ENCRYPT)) {
                     testObj = await Encryption.encrypt(testObj, process.env.TESTING_SECRET_KEY, process.env.TESTING_SECRET_IV);
                 }
