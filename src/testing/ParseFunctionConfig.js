@@ -115,38 +115,36 @@ module.exports = class ParseFunctionConfig {
             let part = parseParts[1];
 
             // ---- REQUIRED ----
-            this.parseObjectPrefix(
+            configObj.required = this.parseObjectPrefix(
                 part,
-                this.requiredPrefix,
-                value => (configObj.required = value)
+                this.requiredPrefix
+                // value => (configObj.required = value)
             );
 
             // ---- ACCEPTED (strip rejected first) ----
-            if (part.includes(this.acceptedPrefix)) {
-                part = part.replace(this.rxRejected, '');
-            }
+            // if (part.includes(this.acceptedPrefix)) {
+            //     part = part.replace(this.rxRejected, '');
+            // }
 
-            this.parseValueOrObjectPrefix(
+            // ---- ACCEPTED ----
+            configObj.acceptedValues = this.parseValueOrObjectPrefix(
                 part,
                 this.acceptedPrefix,
-                configObj.type,
-                value => (configObj.acceptedValues = value)
+                configObj.type
             );
 
             // ---- REJECTED ----
-            this.parseValueOrObjectPrefix(
+            configObj.rejectedValues = this.parseValueOrObjectPrefix(
                 part,
                 this.rejectedPrefix,
-                configObj.type,
-                value => (configObj.rejectedValues = value)
+                configObj.type
             );
 
             // ---- EXPECTED OUT ----
-            this.parseValueOrObjectPrefix(
+            configObj.expectedOut = this.parseValueOrObjectPrefix(
                 part,
                 this.expectedOutPrefix,
-                configObj.type,
-                value => (configObj.expectedOut = value)
+                configObj.type
             );
 
         }
@@ -155,16 +153,16 @@ module.exports = class ParseFunctionConfig {
         }
     }
 
-    static parseObjectPrefix(str, prefix, assignFn) {
+    static parseObjectPrefix(str, prefix) {
         const idx = str.indexOf(prefix);
         if (idx === -1) return;
 
         let sub = str.substring(idx);
         sub = sub.substring(0, sub.indexOf('}]') + 2);
-        assignFn(this.getAdvancedObjectConf(sub, prefix));
+        return this.getAdvancedObjectConf(sub, prefix);
     }
 
-    static parseValueOrObjectPrefix(str, prefix, type, assignFn) {
+    static parseValueOrObjectPrefix(str, prefix, type) {
         const idx = str.indexOf(prefix);
         if (idx === -1) return;
 
@@ -173,11 +171,11 @@ module.exports = class ParseFunctionConfig {
 
         if (body.startsWith('[')) {
             sub = sub.substring(0, sub.indexOf(']>') + 1);
-            assignFn(this.getAdvancedValueConf(sub, prefix, type));
+            return this.getAdvancedValueConf(sub, prefix, type);
         }
         else {
             sub = sub.substring(0, sub.indexOf('}]') + 2);
-            assignFn(this.getAdvancedObjectConf(sub, prefix));
+            return this.getAdvancedObjectConf(sub, prefix);
         }
     }
 
@@ -228,7 +226,7 @@ module.exports = class ParseFunctionConfig {
             groupingArray = [],
             rawRequired, requiredObjects;
 
-        if (!configStr) {
+        if (configStr) {
             rawRequired = configStr.split(configPrefix)[1];
 
             try {

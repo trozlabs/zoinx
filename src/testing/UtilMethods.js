@@ -335,8 +335,8 @@ module.exports = class UtilMethods {
             rejectedFound = false;
 
         if (!_.isEmpty(paramConfig)) {
-            accepted = paramConfig.acceptedValues;
-            rejected = paramConfig.rejectedValues;
+            accepted = paramConfig.acceptedValues ?? [];
+            rejected = paramConfig.rejectedValues ?? [];
 
             if (accepted.length > 0 && rejected.length > 0) {
                 for (let i = 0; i < rejected.length; i++) {
