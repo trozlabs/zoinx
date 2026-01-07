@@ -121,11 +121,6 @@ module.exports = class ParseFunctionConfig {
                 // value => (configObj.required = value)
             );
 
-            // ---- ACCEPTED (strip rejected first) ----
-            // if (part.includes(this.acceptedPrefix)) {
-            //     part = part.replace(this.rxRejected, '');
-            // }
-
             // ---- ACCEPTED ----
             configObj.acceptedValues = this.parseValueOrObjectPrefix(
                 part,

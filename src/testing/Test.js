@@ -347,7 +347,7 @@ module.exports = class ZoinxTest {
             paramTest.set('successCount', (_.isBoolean(paramTest.get('passed')) && paramTest.get('passed')) ? 1 : 0);
 
             if (paramTest.get('maskValue') && _.isString(testObject))
-                paramTest.set('testObject', UtilMethods.maskString(testObject, 2));
+                paramTest.set('testObject', UtilMethods.maskValue(testObject));
 
             paramDetails.push(paramTest);
         }
@@ -477,90 +477,90 @@ module.exports = class ZoinxTest {
         }
     }
 
-    static testObject(paramConfig, paramTest, passedArgument, testObject) {
-        let typeAccepted;
-
-        if (paramConfig.type === 'array') {
-            this.testArray(paramConfig, paramTest, passedArgument, testObject);
-        }
-        else {
-            typeAccepted = TypeDefinitions.getTypeAccepted(`${paramTest.get('jsType')}=:${paramTest.get('subType')}`, testObject);
-            paramTest.set('typePassed', typeAccepted.typeAccepted);
-            paramTest.set('passed', false);
-
-            try {
-                let successCount = 0,
-                    isOr = true,
-                    requiredItems = paramConfig.required;
-
-                if (_.isArray(paramConfig.required[0])) {
-                    requiredItems = paramConfig.required[0];
-                    isOr = false;
-                }
-
-                for (let j = 0; j < requiredItems.length; j++) {
-                    let objectPath = requiredItems[j].propName.split('.'),
-                        objectRef = passedArgument;
-
-                    // get the value of the property referred by dot notation i.e. object.someProp.toCheck
-                    for (let k = 0; k < objectPath.length; k++) {
-                        if (!_.isEmpty(objectRef[objectPath[k]]) || objectRef.hasOwnProperty(objectPath[k])) {
-                            objectRef = objectRef[objectPath[k]];
-                        }
-                        else {
-                            objectRef = undefined;
-                            break;
-                        }
-                    }
-
-                    let regexTest = requiredItems[j].regex?.test(objectRef),
-                        funcTest = undefined,
-                        dynaFunc = requiredItems[j].dynaFunc;
-
-                    if (dynaFunc && _.isFunction(dynaFunc)) {
-                        // let idx = global.testingConfig.functionExclusionList.indexOf(dynaFunc.name);
-                        funcTest = TypeDefinitions.toBoolean(dynaFunc(objectRef));
-                    }
-
-                    if (requiredItems[j].values.length > 0 && requiredItems[j].values.includes(objectRef)) {
-                        successCount++;
-                    }
-                    else if (regexTest) {
-                        successCount++;
-                    }
-                    else if (funcTest) {
-                        successCount++;
-                    }
-                    else if (requiredItems[j].values.length < 1 && _.isUndefined(regexTest) && _.isUndefined(funcTest) && TypeDefinitions.typeTests[requiredItems[j].type].typeFn(objectRef)) {
-                        successCount++;
-                    }
-
-                    if (requiredItems[j].maskValue && _.isString(objectRef)) {
-                        let endsCharCount = (objectPath.includes('password')) ? 0 : 1,
-                            maskRef = UtilMethods.maskString(objectRef, endsCharCount),
-                            tmpObj = passedArgument;
-
-                        for (let i = 0; i < objectPath.length - 1; i++) {
-                            const key = objectPath[i];
-                            if (!tmpObj[key]) {
-                                tmpObj[key] = {};
-                            }
-                            tmpObj = tmpObj[key];
-                        }
-                        tmpObj[objectPath[objectPath.length - 1]] = maskRef;
-                        // console.log(passedArgument);
-                    }
-                }
-                if (successCount === requiredItems.length || (isOr && successCount > 0)) {
-                    paramTest.set('passed', true);
-                }
-
-            }
-            catch (e) {
-                console.error(e.message);
-            }
-        }
-    }
+    // static testObject(paramConfig, paramTest, passedArgument, testObject) {
+    //     let typeAccepted;
+    //
+    //     if (paramConfig.type === 'array') {
+    //         this.testArray(paramConfig, paramTest, passedArgument, testObject);
+    //     }
+    //     else {
+    //         typeAccepted = TypeDefinitions.getTypeAccepted(`${paramTest.get('jsType')}=:${paramTest.get('subType')}`, testObject);
+    //         paramTest.set('typePassed', typeAccepted.typeAccepted);
+    //         paramTest.set('passed', false);
+    //
+    //         try {
+    //             let successCount = 0,
+    //                 isOr = true,
+    //                 requiredItems = paramConfig.required;
+    //
+    //             if (_.isArray(paramConfig.required[0])) {
+    //                 requiredItems = paramConfig.required[0];
+    //                 isOr = false;
+    //             }
+    //
+    //             for (let j = 0; j < requiredItems.length; j++) {
+    //                 let objectPath = requiredItems[j].propName.split('.'),
+    //                     objectRef = passedArgument;
+    //
+    //                 // get the value of the property referred by dot notation i.e. object.someProp.toCheck
+    //                 for (let k = 0; k < objectPath.length; k++) {
+    //                     if (!_.isEmpty(objectRef[objectPath[k]]) || objectRef.hasOwnProperty(objectPath[k])) {
+    //                         objectRef = objectRef[objectPath[k]];
+    //                     }
+    //                     else {
+    //                         objectRef = undefined;
+    //                         break;
+    //                     }
+    //                 }
+    //
+    //                 let regexTest = requiredItems[j].regex?.test(objectRef),
+    //                     funcTest = undefined,
+    //                     dynaFunc = requiredItems[j].dynaFunc;
+    //
+    //                 if (dynaFunc && _.isFunction(dynaFunc)) {
+    //                     // let idx = global.testingConfig.functionExclusionList.indexOf(dynaFunc.name);
+    //                     funcTest = TypeDefinitions.toBoolean(dynaFunc(objectRef));
+    //                 }
+    //
+    //                 if (requiredItems[j].values.length > 0 && requiredItems[j].values.includes(objectRef)) {
+    //                     successCount++;
+    //                 }
+    //                 else if (regexTest) {
+    //                     successCount++;
+    //                 }
+    //                 else if (funcTest) {
+    //                     successCount++;
+    //                 }
+    //                 else if (requiredItems[j].values.length < 1 && _.isUndefined(regexTest) && _.isUndefined(funcTest) && TypeDefinitions.typeTests[requiredItems[j].type].typeFn(objectRef)) {
+    //                     successCount++;
+    //                 }
+    //
+    //                 if (requiredItems[j].maskValue && _.isString(objectRef)) {
+    //                     let endsCharCount = (objectPath.includes('password')) ? 0 : 1,
+    //                         maskRef = UtilMethods.maskValue(objectRef),
+    //                         tmpObj = passedArgument;
+    //
+    //                     for (let i = 0; i < objectPath.length - 1; i++) {
+    //                         const key = objectPath[i];
+    //                         if (!tmpObj[key]) {
+    //                             tmpObj[key] = {};
+    //                         }
+    //                         tmpObj = tmpObj[key];
+    //                     }
+    //                     tmpObj[objectPath[objectPath.length - 1]] = maskRef;
+    //                     // console.log(passedArgument);
+    //                 }
+    //             }
+    //             if (successCount === requiredItems.length || (isOr && successCount > 0)) {
+    //                 paramTest.set('passed', true);
+    //             }
+    //
+    //         }
+    //         catch (e) {
+    //             console.error(e.message);
+    //         }
+    //     }
+    // }
 
     static testArray(paramConfig, paramTest, passedArgument, testObject) {
         let typeAccepted;
@@ -615,6 +615,100 @@ module.exports = class ZoinxTest {
         }
 
         return true;
+    }
+
+
+    static async testObject(paramConfig, paramTest, passedArgument, testObject) {
+        try {
+            if (paramConfig.type === 'array') {
+                await this.testArray(paramConfig, paramTest, passedArgument, testObject);
+                return;
+            }
+
+            // 1. Validate input parameters
+            if (!paramTest.has('jsType') || !paramTest.has('subType')) {
+                throw new Error('Missing required test parameters');
+            }
+
+            // 2. Determine accepted type
+            const typeAccepted = await TypeDefinitions.getTypeAccepted(
+                `${paramTest.get('jsType')}=:${paramTest.get('subType')}`,
+                testObject
+            );
+            paramTest.set('typeAccepted', typeAccepted);
+            paramTest.set('passed', false);
+
+            // 3. Process required items validation
+            await this.processRequiredItems(paramConfig, paramTest, passedArgument, testObject);
+
+            // 4. Handle masking if needed
+            await this.handleMasking(paramConfig, paramTest, passedArgument, testObject);
+        }
+        catch (error) {
+            Log.error(`Validation error: ${error.message}`);
+            paramTest.set('passed', false);
+            // throw error; // Re-throw for caller handling
+        }
+    }
+
+    static async processRequiredItems(paramConfig, paramTest, passedArgument, testObject) {
+        const requiredItems = this.getRequiredItems(paramConfig);
+        let successCount = 0;
+        const isOr = !Array.isArray(requiredItems[0]);
+
+        for (const item of requiredItems) {
+            const objectRef = this.getNestedValue(passedArgument, item.propName);
+            if (!objectRef) continue; // Skip if path doesn't exist
+
+            await this.validateItem(item, objectRef);
+            successCount++;
+        }
+
+        // Update test result based on validation
+        paramTest.set('passed', successCount > 0 && isOr);
+    }
+
+    static getRequiredItems(paramConfig) {
+        const isOr = !Array.isArray(paramConfig.required[0]);
+        return isOr ? paramConfig.required : paramConfig.required[0];
+    }
+
+    static getNestedValue(obj, path) {
+        const parts = path.split('.');
+        let current = obj;
+
+        for (const part of parts) {
+            // if (current === null || current === undefined || !Object.prototype.hasOwnProperty.call(current, part)) {
+            if (_.isEmpty(current) || (!current[part] && !Object.prototype.hasOwnProperty.call(current, part))) {
+                return undefined;
+            }
+            current = current[part];
+        }
+
+        return current;
+    }
+
+    static async validateItem(item, value) {
+        // Handle regex, function, or value matching
+        if (item.regex?.test(value)) return;
+        if (typeof item.dynaFunc === 'function' && item.dynaFunc(value)) return;
+        if (item.values.length > 0 && item.values.includes(value)) return;
+
+        // Fallback type check
+        await TypeDefinitions.typeTests[item.type]?.typeFn(value);
+    }
+
+    static async handleMasking(paramConfig, paramTest, passedArgument, testObject) {
+        if (!paramConfig.maskValue || !paramTest.get('passed')) return;
+
+        const objectPath = paramConfig.maskValue.propName.split('.');
+        const value = this.getNestedValue(passedArgument, objectPath);
+
+        if (typeof value === 'string') {
+            const maskedValue = UtilMethods.maskValue(value);
+            // Update nested property in passedArgument
+            // (Implementation depends on how nested objects are handled)
+        }
     }
 
 };

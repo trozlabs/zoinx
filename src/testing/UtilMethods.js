@@ -85,22 +85,40 @@ module.exports = class UtilMethods {
         return value ? value.nodeName === "#text" : false;
     }
 
-    static maskString(toBeMasked, endsCharCount=0, maskChar='*', endOnly=false) {
-        if (_.isEmpty(toBeMasked) || !_.isString(toBeMasked) || toBeMasked.length <= (endsCharCount * 2))
-            return toBeMasked;
+    static maskValue(value, maskLength, maskPos='start', maskChar='*') {
+        try {
+            if (!_.isEmpty(value) && !_.isEmpty(maskChar) && _.isNumber(maskLength) && !_.isEmpty(maskPos)) {
 
-        let maskCharCount = toBeMasked.length - (endsCharCount * 2),
-            maskedStr, endOnlyStr;
+                maskPos = maskPos.toLowerCase();
+                if (!['start','middle','end'].includes(maskPos.toLowerCase())) {
+                    maskPos = 'start';
+                }
 
-        if (endOnly) {
-            endOnlyStr = toBeMasked.slice(-endsCharCount);
-            maskedStr = endOnlyStr.padStart(toBeMasked.length, maskChar);
+                if (maskLength >= value.length) {
+                    return maskChar.repeat(value.length);
+                }
+                else {
+                    if (maskPos === 'start') {
+                        return maskChar.repeat(maskLength) + value.slice(maskLength)
+                    }
+                    else if (maskPos === 'end') {
+                        return value.substring(0, (value.length-maskLength)) + maskChar.repeat(maskLength);
+                    }
+                    else {
+                        const start = Math.floor((value.length - maskLength) / 2);
+                        return value.substring(0, start) + maskChar.repeat(maskLength) + value.substring(start + maskLength);
+                    }
+                }
+            }
+            else {
+                return maskChar.repeat(value.length);
+            }
         }
-        else {
-            maskedStr = `${toBeMasked.substring(0, endsCharCount)}${maskChar.repeat(maskCharCount)}${toBeMasked.substring((toBeMasked.length - endsCharCount), toBeMasked.length)}`;
+        catch (e) {
+            Log.error(`Error maskValue: ${e.message}`, e);
         }
 
-        return maskedStr;
+        return value;
     }
 
     static isIterable(value) {
