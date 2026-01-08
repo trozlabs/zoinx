@@ -280,7 +280,7 @@ module.exports = class ZoinxTest {
                 return testRec;
             }
             catch (e) {
-                console.error('functionTest failed:\n', e);
+                Log.error('functionTest failed:\n', e);
             }
         }
     }
@@ -473,94 +473,94 @@ module.exports = class ZoinxTest {
             }
         }
         catch (e) {
-            console.error(e.message);
+            Log.error(e.message);
         }
     }
 
-    static testObject(paramConfig, paramTest, passedArgument, testObject) {
-        let typeAccepted;
-
-        if (paramConfig.type === 'array') {
-            this.testArray(paramConfig, paramTest, passedArgument, testObject);
-        }
-        else {
-            typeAccepted = TypeDefinitions.getTypeAccepted(`${paramTest.get('jsType')}=:${paramTest.get('subType')}`, testObject);
-            paramTest.set('typePassed', typeAccepted.typeAccepted);
-            paramTest.set('passed', false);
-
-            try {
-                let successCount = 0,
-                    isOr = true,
-                    requiredItems = paramConfig.required;
-
-                if (_.isArray(paramConfig.required[0])) {
-                    requiredItems = paramConfig.required[0];
-                    isOr = false;
-                }
-
-                for (let j = 0; j < requiredItems.length; j++) {
-                    let objectPath = requiredItems[j].propName.split('.'),
-                        objectRef = passedArgument;
-
-                    // get the value of the property referred by dot notation i.e. object.someProp.toCheck
-                    for (let k = 0; k < objectPath.length; k++) {
-                        if (!_.isEmpty(objectRef[objectPath[k]]) || objectRef.hasOwnProperty(objectPath[k])) {
-                            objectRef = objectRef[objectPath[k]];
-                        }
-                        else {
-                            objectRef = undefined;
-                            break;
-                        }
-                    }
-
-                    let regexTest = requiredItems[j].regex?.test(objectRef),
-                        funcTest = undefined,
-                        dynaFunc = requiredItems[j].dynaFunc;
-
-                    if (dynaFunc && _.isFunction(dynaFunc)) {
-                        // let idx = global.testingConfig.functionExclusionList.indexOf(dynaFunc.name);
-                        funcTest = TypeDefinitions.toBoolean(dynaFunc(objectRef));
-                    }
-
-                    if (requiredItems[j].values.length > 0 && requiredItems[j].values.includes(objectRef)) {
-                        successCount++;
-                    }
-                    else if (regexTest) {
-                        successCount++;
-                    }
-                    else if (funcTest) {
-                        successCount++;
-                    }
-                    else if (requiredItems[j].values.length < 1 && _.isUndefined(regexTest) && _.isUndefined(funcTest) && TypeDefinitions.typeTests[requiredItems[j].type].typeFn(objectRef)) {
-                        successCount++;
-                    }
-
-                    if (requiredItems[j].maskValue && _.isString(objectRef)) {
-                        let endsCharCount = (objectPath.includes('password')) ? 0 : 1,
-                            maskRef = UtilMethods.maskValue(objectRef),
-                            tmpObj = passedArgument;
-
-                        for (let i = 0; i < objectPath.length - 1; i++) {
-                            const key = objectPath[i];
-                            if (!tmpObj[key]) {
-                                tmpObj[key] = {};
-                            }
-                            tmpObj = tmpObj[key];
-                        }
-                        tmpObj[objectPath[objectPath.length - 1]] = maskRef;
-                        // console.log(passedArgument);
-                    }
-                }
-                if (successCount === requiredItems.length || (isOr && successCount > 0)) {
-                    paramTest.set('passed', true);
-                }
-
-            }
-            catch (e) {
-                console.error(e.message);
-            }
-        }
-    }
+    // static testObject3(paramConfig, paramTest, passedArgument, testObject) {
+    //     let typeAccepted;
+    //
+    //     if (paramConfig.type === 'array') {
+    //         this.testArray(paramConfig, paramTest, passedArgument, testObject);
+    //     }
+    //     else {
+    //         typeAccepted = TypeDefinitions.getTypeAccepted(`${paramTest.get('jsType')}=:${paramTest.get('subType')}`, testObject);
+    //         paramTest.set('typePassed', typeAccepted.typeAccepted);
+    //         paramTest.set('passed', false);
+    //
+    //         try {
+    //             let successCount = 0,
+    //                 isOr = true,
+    //                 requiredItems = paramConfig.required;
+    //
+    //             if (_.isArray(paramConfig.required[0])) {
+    //                 requiredItems = paramConfig.required[0];
+    //                 isOr = false;
+    //             }
+    //
+    //             for (let j = 0; j < requiredItems.length; j++) {
+    //                 let objectPath = requiredItems[j].propName.split('.'),
+    //                     objectRef = passedArgument;
+    //
+    //                 // get the value of the property referred by dot notation i.e. object.someProp.toCheck
+    //                 for (let k = 0; k < objectPath.length; k++) {
+    //                     if (!_.isEmpty(objectRef[objectPath[k]]) || objectRef.hasOwnProperty(objectPath[k])) {
+    //                         objectRef = objectRef[objectPath[k]];
+    //                     }
+    //                     else {
+    //                         objectRef = undefined;
+    //                         break;
+    //                     }
+    //                 }
+    //
+    //                 let regexTest = requiredItems[j].regex?.test(objectRef),
+    //                     funcTest = undefined,
+    //                     dynaFunc = requiredItems[j].dynaFunc;
+    //
+    //                 if (dynaFunc && _.isFunction(dynaFunc)) {
+    //                     // let idx = global.testingConfig.functionExclusionList.indexOf(dynaFunc.name);
+    //                     funcTest = TypeDefinitions.toBoolean(dynaFunc(objectRef));
+    //                 }
+    //
+    //                 if (requiredItems[j].values.length > 0 && requiredItems[j].values.includes(objectRef)) {
+    //                     successCount++;
+    //                 }
+    //                 else if (regexTest) {
+    //                     successCount++;
+    //                 }
+    //                 else if (funcTest) {
+    //                     successCount++;
+    //                 }
+    //                 else if (requiredItems[j].values.length < 1 && _.isUndefined(regexTest) && _.isUndefined(funcTest) && TypeDefinitions.typeTests[requiredItems[j].type].typeFn(objectRef)) {
+    //                     successCount++;
+    //                 }
+    //
+    //                 if (requiredItems[j].maskValue && _.isString(objectRef)) {
+    //                     let endsCharCount = (objectPath.includes('password')) ? 0 : 1,
+    //                         maskRef = UtilMethods.maskValue(objectRef, endsCharCount),
+    //                         tmpObj = passedArgument;
+    //
+    //                     for (let i = 0; i < objectPath.length - 1; i++) {
+    //                         const key = objectPath[i];
+    //                         if (!tmpObj[key]) {
+    //                             tmpObj[key] = {};
+    //                         }
+    //                         tmpObj = tmpObj[key];
+    //                     }
+    //                     tmpObj[objectPath[objectPath.length - 1]] = maskRef;
+    //                     // Log.log(passedArgument);
+    //                 }
+    //             }
+    //             if (successCount === requiredItems.length || (isOr && successCount > 0)) {
+    //                 paramTest.set('passed', true);
+    //             }
+    //
+    //         }
+    //         catch (e) {
+    //             Log.error(e.message);
+    //         }
+    //     }
+    // }
 
     static testArray(paramConfig, paramTest, passedArgument, testObject) {
         let typeAccepted;
@@ -587,7 +587,7 @@ module.exports = class ZoinxTest {
             }
         }
         catch (e) {
-            console.error(e.message);
+            Log.error(e.message);
         }
 
         return paramTest.get('passed');
@@ -610,28 +610,27 @@ module.exports = class ZoinxTest {
                 Log.log(objectQueryResponse);
             }
             else {
-                console.warn(`Object query did not find ${propName}`);
+                Log.warn(`Object query did not find ${propName}`);
             }
         }
 
         return true;
     }
 
-
-    static async testObject2(paramConfig, paramTest, passedArgument, testObject) {
+    static testObject(paramConfig, paramTest, passedArgument, testObject) {
         try {
             if (paramConfig.type === 'array') {
-                await this.testArray(paramConfig, paramTest, passedArgument, testObject);
+                this.testArray(paramConfig, paramTest, passedArgument, testObject);
                 return;
             }
 
             // 1. Validate input parameters
-            if (!paramTest.has('jsType') || !paramTest.has('subType')) {
+            if (!Object.hasOwn(paramTest.json, 'jsType') || !Object.hasOwn(paramTest.json, 'subType')) {
                 throw new Error('Missing required test parameters');
             }
 
             // 2. Determine accepted type
-            const typeAccepted = await TypeDefinitions.getTypeAccepted(
+            const typeAccepted = TypeDefinitions.getTypeAccepted(
                 `${paramTest.get('jsType')}=:${paramTest.get('subType')}`,
                 testObject
             );
@@ -639,10 +638,13 @@ module.exports = class ZoinxTest {
             paramTest.set('passed', false);
 
             // 3. Process required items validation
-            await this.processRequiredItems(paramConfig, paramTest, passedArgument, testObject);
+            this.processRequiredItems(paramConfig, paramTest, passedArgument, testObject);
 
             // 4. Handle masking if needed
-            await this.handleMasking(paramConfig, paramTest, passedArgument, testObject);
+            this.handleMasking(paramConfig, paramTest, passedArgument, testObject);
+
+            // TODO need to see if this is really needed anymore beyond the accumulator.
+            paramTest.set('successCount', (_.isBoolean(paramTest.get('passed')) && paramTest.get('passed')) ? 1 : 0);
         }
         catch (error) {
             Log.error(`Validation error: ${error.message}`);
@@ -651,21 +653,28 @@ module.exports = class ZoinxTest {
         }
     }
 
-    static async processRequiredItems(paramConfig, paramTest, passedArgument, testObject) {
+    static processRequiredItems(paramConfig, paramTest, passedArgument, testObject) {
         const requiredItems = this.getRequiredItems(paramConfig);
         let successCount = 0;
         const isOr = !Array.isArray(requiredItems[0]);
 
-        for (const item of requiredItems) {
-            const objectRef = this.getNestedValue(passedArgument, item.propName);
-            if (!objectRef) continue; // Skip if path doesn't exist
+        try {
+            for (const item of requiredItems) {
+                const objectRef = this.getNestedValue(passedArgument, item.propName);
+                if (!objectRef) continue; // Skip if path doesn't exist
 
-            await this.validateItem(item, objectRef);
-            successCount++;
+                this.validateItem(item, objectRef);
+                successCount++;
+            }
+
+            // Update test result based on validation
+            if (successCount === requiredItems.length || (isOr && successCount > 0)) {
+                paramTest.set('passed', true);
+            }
         }
-
-        // Update test result based on validation
-        paramTest.set('passed', successCount > 0 && isOr);
+        catch (error) {
+            Log.error(`Test.processRequiredItems error: ${error.message}`);
+        }
     }
 
     static getRequiredItems(paramConfig) {
@@ -677,37 +686,50 @@ module.exports = class ZoinxTest {
         const parts = path.split('.');
         let current = obj;
 
-        for (const part of parts) {
-            // if (current === null || current === undefined || !Object.prototype.hasOwnProperty.call(current, part)) {
-            if (_.isEmpty(current) || (!current[part] && !Object.prototype.hasOwnProperty.call(current, part))) {
-                return undefined;
+        try {
+            for (const part of parts) {
+                if (_.isEmpty(current) || (!current[part] && !Object.prototype.hasOwnProperty.call(current, part))) {
+                    return undefined;
+                }
+                current = current[part];
             }
-            current = current[part];
+        }
+        catch (error) {
+            Log.error(`Test.getNestedValue error: ${error.message}`);
         }
 
         return current;
     }
 
-    static async validateItem(item, value) {
-        // Handle regex, function, or value matching
-        if (item.regex?.test(value)) return;
-        if (typeof item.dynaFunc === 'function' && item.dynaFunc(value)) return;
-        if (item.values.length > 0 && item.values.includes(value)) return;
+    static validateItem(item, value) {
+        try {
+            // Handle regex, function, or value matching
+            if (item.regex?.test(value)) return;
+            if (typeof item.dynaFunc === 'function' && item.dynaFunc(value)) return;
+            if (item.values.length > 0 && item.values.includes(value)) return;
 
-        // Fallback type check
-        await TypeDefinitions.typeTests[item.type]?.typeFn(value);
+            // Fallback type check
+            TypeDefinitions.typeTests[item.type]?.typeFn(value);
+        }
+        catch (error) {
+            Log.error(`Test.validateItem error: ${error.message}`);
+        }
     }
 
-    static async handleMasking(paramConfig, paramTest, passedArgument, testObject) {
+    static handleMasking(paramConfig, paramTest, passedArgument, testObject) {
         if (!paramConfig.maskValue || !paramTest.get('passed')) return;
 
-        const objectPath = paramConfig.maskValue.propName.split('.');
-        const value = this.getNestedValue(passedArgument, objectPath);
-
-        if (typeof value === 'string') {
-            const maskedValue = UtilMethods.maskValue(value);
-            // Update nested property in passedArgument
-            // (Implementation depends on how nested objects are handled)
+        try {
+            const objectPath = paramConfig.maskValue.propName.split('.');
+            const value = this.getNestedValue(passedArgument, objectPath);
+            if (typeof value === 'string') {
+                const maskedValue = UtilMethods.maskValue(value);
+                // Update nested property in passedArgument
+                // (Implementation depends on how nested objects are handled)
+            }
+        }
+        catch (error) {
+            Log.error(`Test.handleMasking error: ${error.message}`);
         }
     }
 
