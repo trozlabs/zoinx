@@ -483,7 +483,7 @@ module.exports = class UtilMethods {
 
             for (let i=expectedParams.length; i<passedArguments.length; i++) {
                 let paramTest = {
-                    name: `Untested ${i+1}`,
+                    name: `Param Position: ${i+1}`,
                     testObject: passedArguments[i]
                 };
 

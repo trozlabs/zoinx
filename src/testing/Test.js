@@ -286,26 +286,27 @@ module.exports = class ZoinxTest {
     }
 
     static execParamTests(clazz, func, passedArguments, funcDetails) {
-        let paramConfig = funcDetails.get('testParamConfig'),
-            paramDetails = [],
-            currentParamName = '',
+        const paramConfig = funcDetails.get('testParamConfig');
+        const paramDetails = [];
+        let currentParamName = '',
             passedArgIdx = -1,
             testObject;
 
         for (let i = 0; i < paramConfig.length; i++) {
-            if (paramConfig[i].name !== currentParamName) {
-                currentParamName = paramConfig[i].name;
+            const config = paramConfig[i];
+            if (config.name !== currentParamName) {
+                currentParamName = config.name;
                 passedArgIdx++;
             }
 
             testObject = passedArguments[passedArgIdx];
             let paramTest = new TestParamDetails({
-                jsType: paramConfig[i].type,
-                subType: paramConfig[i].subType,
+                jsType: config.type,
+                subType: config.subType,
                 name: currentParamName,
                 testObject: testObject,
-                isOptional: paramConfig[i].optional,
-                maskValue: paramConfig[i].maskValue,
+                isOptional: config.optional,
+                maskValue: config.maskValue,
                 passed: false,
                 typePassed: false,
                 subTypePassed: true
@@ -319,25 +320,28 @@ module.exports = class ZoinxTest {
                 if (_.isString(tmpFn)) paramTest.set('typePassed', require(tmpFn)(testObject));
                 else paramTest.set('typePassed', tmpFn(testObject));
 
-                if (TypeDefinitions.primitives.includes(paramTest.get('jsType'))) {
-                    this.testPrimitive(paramConfig[i], paramTest, passedArguments[i], testObject);
+                const jsType = paramTest.get('jsType');
+                if (TypeDefinitions.primitives.includes(jsType)) {
+                    this.testPrimitive(config, paramTest, passedArguments[i], testObject);
                 }
-                else if (TypeDefinitions.objects.includes(paramTest.get('jsType'))) {
-                    this.testObject(paramConfig[i], paramTest, passedArguments[i], testObject);
+                else if (TypeDefinitions.objects.includes(jsType)) {
+                    this.testObject(config, paramTest, passedArguments[i], testObject);
                 }
-                else if (TypeDefinitions.otherTypes.includes(paramTest.get('jsType'))) {
-                    this.testOthers(paramConfig[i], paramTest, passedArguments[i], testObject);
+                else if (TypeDefinitions.otherTypes.includes(jsType)) {
+                    this.testOthers(config, paramTest, passedArguments[i], testObject);
                 }
 
-                if (UtilMethods.areRejectedInAccepted(paramConfig[i])) {
+                if (UtilMethods.areRejectedInAccepted(config)) {
                     UtilMethods.logTestResult(clazz, passedArguments, 'Rejected values were found in accepted values from test config.');
                     paramTest.set('passed', false);
                 }
 
-                if (paramTest.get('isOptional')) paramTest.set('passed', true);
+                if (paramTest.get('isOptional')) {
+                    paramTest.set('passed', true);
+                }
             }
 
-            paramTest.set('testParamConfigStr', paramConfig[i].testParamConfigStr);
+            paramTest.set('testParamConfigStr', config.testParamConfigStr);
             // Set the final booleans to help best understand what was tested
             paramTest.set('isEmpty', _.isEmpty(testObject));
             paramTest.set('isElement', _.isElement(testObject));
@@ -362,77 +366,67 @@ module.exports = class ZoinxTest {
     }
 
     static execOutputTest(clazz, func, passedArguments, funcDetails) {
-        let outputConfig = funcDetails.get('testOutputConfig'),
-            outDetails = [],
-            successCount = 0,
-            testObject,
-            execTest = {};
+        const outputConfig = funcDetails.get('testOutputConfig');
+        const executionResult = funcDetails.get('executionResult');
+        const distinctParamNames = funcDetails.get('distinctParamNames');
 
-        for (let i = 0; i < outputConfig.length; i++) {
-            testObject = funcDetails.get('executionResult');
-            execTest = {
-                name: (outputConfig[i].name) ? outputConfig[i].name : 'None Supplied',
-                isOptional: outputConfig[i].optional
+        const outDetails = [];
+        let successCount = 0;
+
+        funcDetails.set('passedArguments', passedArguments);
+
+        for (const config of outputConfig) {
+            const execTest = {
+                name: config.name ?? 'None Supplied',
+                isOptional: config.optional,
+                testParamConfigStr: config.testParamConfigStr,
+                expectedOut: config.expectedOut
             };
 
-            let typeTest = TypeDefinitions.getTypeAccepted(outputConfig[0].type, testObject);
+            const typeTest = TypeDefinitions.getTypeAccepted(config.type, executionResult);
 
-            funcDetails.set('passedArguments', passedArguments);
             execTest.type = typeTest.type;
             execTest.typePassed = typeTest.typeAccepted;
             execTest.subType = typeTest.subType;
             execTest.subTypePassed = typeTest.subTypeAccepted;
-            execTest.testParamConfigStr = outputConfig[i].testParamConfigStr;
-            execTest.expectedOut = outputConfig[i].expectedOut;
 
-            if (execTest.typePassed && (outputConfig[i].type === 'undefined' || outputConfig[i].type === 'null')) {
+            execTest.passed = false;
+
+            // Fast-exit cases
+            if (execTest.typePassed && (config.type === 'undefined' || config.type === 'null')) {
                 execTest.passed = true;
             }
-            else {
-                if (TypeDefinitions.primitives.includes(outputConfig[i].type.toLowerCase())) {
+            else if (TypeDefinitions.primitives.includes(config.type.toLowerCase())) {
 
-                    if (outputConfig[i].expectedOut.length > 0) {
-                        if (~_.isEmpty(outputConfig[i].expectedOut)) {
-                            let testValue = UtilMethods.getConfiguredOutput(outputConfig[i].expectedOut,
-                                funcDetails.get('distinctParamNames'),
-                                funcDetails.get('passedArguments'));
+                if (Array.isArray(config.expectedOut) && config.expectedOut.length > 0) {
 
-                            if (testValue === funcDetails.get('executionResult')) {
-                                execTest.passed = true;
-                                execTest.resultMessage = testValue;
-                            }
-                            else {
-                                execTest.passed = false;
-                            }
-                        }
-                        else {
-                            execTest.resultMessage = funcDetails.get('executionResult');
-                            if (funcDetails.get('executionResult') === outputConfig[i].expectedOut[0]) {
-                                execTest.passed = true;
-                            }
-                            else {
-                                execTest.passed = false;
-                            }
-                        }
-                    }
-                    else {
-                        execTest.passed = false;
-                        if (execTest.typePassed && TypeDefinitions.typeTests[outputConfig[i].type].typeFn(testObject)) {
-                            execTest.passed = true;
-                            execTest.resultMessage = funcDetails.get('executionResult');
-                        }
-                    }
+                    const testValue = UtilMethods.getConfiguredOutput(
+                        config.expectedOut,
+                        distinctParamNames,
+                        passedArguments
+                    );
+
+                    execTest.passed = testValue === executionResult;
+                    execTest.resultMessage = testValue;
                 }
-                else {
-                    // still doesn't seem correct but works for now.
-                    let testOutputConfig = new TestParamDetails(funcDetails.get('testOutputConfig')[0]);
-                    testOutputConfig.set('jsType', execTest.type);
-                    this.testObject(funcDetails.get('testOutputConfig')[0], testOutputConfig, testObject, testObject);
-                    execTest.passed = testOutputConfig.get('passed');
+                else if (execTest.typePassed && TypeDefinitions.typeTests[config.type]?.typeFn(executionResult)) {
+                    execTest.passed = true;
+                    execTest.resultMessage = executionResult;
                 }
             }
+            else {
+                // Complex object comparison
+                const testOutputConfig = new TestParamDetails(outputConfig[0]);
+                testOutputConfig.set('jsType', execTest.type);
 
-            if (!execTest.passed) execTest.resultMessage = 'No matching output found.';
+                this.testObject(outputConfig[0], testOutputConfig, executionResult, executionResult);
+
+                execTest.passed = testOutputConfig.get('passed');
+            }
+
+            if (!execTest.passed) {
+                execTest.resultMessage ??= 'No matching output found.';
+            }
 
             outDetails.push(new TestExecutionDetails(execTest));
         }
@@ -443,8 +437,9 @@ module.exports = class ZoinxTest {
         }, 0);
         funcDetails.set('executionPassedTestCount', successCount);
         funcDetails.set('testedOutput', outDetails);
-        funcDetails.set('executionPassed', execTest.passed);
+        funcDetails.set('executionPassed', successCount === outDetails.length);
     }
+
 
     static testPrimitive(paramConfig, paramTest, passedArgument, testObject) {
         try {
@@ -476,91 +471,6 @@ module.exports = class ZoinxTest {
             Log.error(e.message);
         }
     }
-
-    // static testObject3(paramConfig, paramTest, passedArgument, testObject) {
-    //     let typeAccepted;
-    //
-    //     if (paramConfig.type === 'array') {
-    //         this.testArray(paramConfig, paramTest, passedArgument, testObject);
-    //     }
-    //     else {
-    //         typeAccepted = TypeDefinitions.getTypeAccepted(`${paramTest.get('jsType')}=:${paramTest.get('subType')}`, testObject);
-    //         paramTest.set('typePassed', typeAccepted.typeAccepted);
-    //         paramTest.set('passed', false);
-    //
-    //         try {
-    //             let successCount = 0,
-    //                 isOr = true,
-    //                 requiredItems = paramConfig.required;
-    //
-    //             if (_.isArray(paramConfig.required[0])) {
-    //                 requiredItems = paramConfig.required[0];
-    //                 isOr = false;
-    //             }
-    //
-    //             for (let j = 0; j < requiredItems.length; j++) {
-    //                 let objectPath = requiredItems[j].propName.split('.'),
-    //                     objectRef = passedArgument;
-    //
-    //                 // get the value of the property referred by dot notation i.e. object.someProp.toCheck
-    //                 for (let k = 0; k < objectPath.length; k++) {
-    //                     if (!_.isEmpty(objectRef[objectPath[k]]) || objectRef.hasOwnProperty(objectPath[k])) {
-    //                         objectRef = objectRef[objectPath[k]];
-    //                     }
-    //                     else {
-    //                         objectRef = undefined;
-    //                         break;
-    //                     }
-    //                 }
-    //
-    //                 let regexTest = requiredItems[j].regex?.test(objectRef),
-    //                     funcTest = undefined,
-    //                     dynaFunc = requiredItems[j].dynaFunc;
-    //
-    //                 if (dynaFunc && _.isFunction(dynaFunc)) {
-    //                     // let idx = global.testingConfig.functionExclusionList.indexOf(dynaFunc.name);
-    //                     funcTest = TypeDefinitions.toBoolean(dynaFunc(objectRef));
-    //                 }
-    //
-    //                 if (requiredItems[j].values.length > 0 && requiredItems[j].values.includes(objectRef)) {
-    //                     successCount++;
-    //                 }
-    //                 else if (regexTest) {
-    //                     successCount++;
-    //                 }
-    //                 else if (funcTest) {
-    //                     successCount++;
-    //                 }
-    //                 else if (requiredItems[j].values.length < 1 && _.isUndefined(regexTest) && _.isUndefined(funcTest) && TypeDefinitions.typeTests[requiredItems[j].type].typeFn(objectRef)) {
-    //                     successCount++;
-    //                 }
-    //
-    //                 if (requiredItems[j].maskValue && _.isString(objectRef)) {
-    //                     let endsCharCount = (objectPath.includes('password')) ? 0 : 1,
-    //                         maskRef = UtilMethods.maskValue(objectRef, endsCharCount),
-    //                         tmpObj = passedArgument;
-    //
-    //                     for (let i = 0; i < objectPath.length - 1; i++) {
-    //                         const key = objectPath[i];
-    //                         if (!tmpObj[key]) {
-    //                             tmpObj[key] = {};
-    //                         }
-    //                         tmpObj = tmpObj[key];
-    //                     }
-    //                     tmpObj[objectPath[objectPath.length - 1]] = maskRef;
-    //                     // Log.log(passedArgument);
-    //                 }
-    //             }
-    //             if (successCount === requiredItems.length || (isOr && successCount > 0)) {
-    //                 paramTest.set('passed', true);
-    //             }
-    //
-    //         }
-    //         catch (e) {
-    //             Log.error(e.message);
-    //         }
-    //     }
-    // }
 
     static testArray(paramConfig, paramTest, passedArgument, testObject) {
         let typeAccepted;
@@ -626,7 +536,7 @@ module.exports = class ZoinxTest {
 
             // 1. Validate input parameters
             if (!Object.hasOwn(paramTest.json, 'jsType') || !Object.hasOwn(paramTest.json, 'subType')) {
-                throw new Error('Missing required test parameters');
+                Log.error('Missing required test parameters');
             }
 
             // 2. Determine accepted type
@@ -649,7 +559,6 @@ module.exports = class ZoinxTest {
         catch (error) {
             Log.error(`Validation error: ${error.message}`);
             paramTest.set('passed', false);
-            // throw error; // Re-throw for caller handling
         }
     }
 
