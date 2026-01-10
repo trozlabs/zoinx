@@ -120,6 +120,7 @@ module.exports = class ParseFunctionConfig {
                 this.requiredPrefix
                 // value => (configObj.required = value)
             );
+            configObj.required = (configObj.required) ?? [];
 
             // ---- ACCEPTED ----
             configObj.acceptedValues = this.parseValueOrObjectPrefix(
@@ -127,6 +128,7 @@ module.exports = class ParseFunctionConfig {
                 this.acceptedPrefix,
                 configObj.type
             );
+            configObj.acceptedValues = (configObj.acceptedValues) ?? [];
 
             // ---- REJECTED ----
             configObj.rejectedValues = this.parseValueOrObjectPrefix(
@@ -134,6 +136,7 @@ module.exports = class ParseFunctionConfig {
                 this.rejectedPrefix,
                 configObj.type
             );
+            configObj.rejectedValues = (configObj.rejectedValues) ?? [];
 
             // ---- EXPECTED OUT ----
             configObj.expectedOut = this.parseValueOrObjectPrefix(
@@ -141,6 +144,7 @@ module.exports = class ParseFunctionConfig {
                 this.expectedOutPrefix,
                 configObj.type
             );
+            configObj.expectedOut = (configObj.expectedOut) ?? [];
 
         }
         catch (ex) {

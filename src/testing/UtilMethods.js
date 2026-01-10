@@ -23,15 +23,13 @@ module.exports = class UtilMethods {
 
         if (UtilMethods.getTestExceptionCount() < 1) {
             shouldTest = true;
-        }
-        else {
+        } else {
             if (!_.isUndefined(className) || !_.isUndefined(funcName)) {
                 let felCount = (_.isArray(global.testingConfig.functionExclusionList)) ? global.testingConfig.functionExclusionList.length : 0
 
                 if (UtilMethods.isInClassOnly(className) || UtilMethods.isInFuncOnly(funcName)) {
                     shouldTest = true;
-                }
-                else if (felCount > 0) {
+                } else if (felCount > 0) {
                     if (!UtilMethods.isClassExcluded(className)) shouldTest = true;
                     if (shouldTest && UtilMethods.isFuncExcluded(funcName)) shouldTest = false;
                 }
@@ -152,8 +150,7 @@ module.exports = class UtilMethods {
     static getToString(input) {
         try {
             return toString.call(input);
-        }
-        catch (e) {
+        } catch (e) {
             Log.error('getToString failed:\n', e);
         }
     }
@@ -172,8 +169,7 @@ module.exports = class UtilMethods {
 
             if (global.testingConfig.consoleOut) Log.info(logStr);
             // console.error(logStr)
-        }
-        catch (e) {
+        } catch (e) {
             Log.error('logTestResult failed:\n', e);
         }
     }
@@ -191,8 +187,8 @@ module.exports = class UtilMethods {
         // Have to catch it before the rest to ensure correct operation of the rest of the testing.
         try {
             tmpCaller = clazz.caller;
+        } catch (e) {
         }
-        catch (e) {}
 
         try {
             if (!_.isFunction(clazz.fn)) {
@@ -202,17 +198,15 @@ module.exports = class UtilMethods {
                 else if (typeof (clazz) === 'string')
                     return clazz;
 
-                else  {
+                else {
                     if (!_.isEmpty(clazz.name)) return clazz.name;
                     else if (!_.isEmpty(clazz.constructor?.name)) return clazz.constructor.name;
                     return 'NotFound';
                 }
-            }
-            else {
+            } else {
                 return 'Class is null/undefined';
             }
-        }
-        catch (e) {
+        } catch (e) {
             Log.error('getClassName failed:\n', e);
         }
     }
@@ -222,15 +216,12 @@ module.exports = class UtilMethods {
         try {
             if (typeof context === 'function') {
                 contextName = `${context.name}.`;
-            }
-            else if (context?.constructor?.name !== 'Object') {
+            } else if (context?.constructor?.name !== 'Object') {
                 contextName = `${context.constructor.name}.`;
-            }
-            else if (typeof context === 'object' && _.isBoolean(context.isStatic) && context.isStatic) {
+            } else if (typeof context === 'object' && _.isBoolean(context.isStatic) && context.isStatic) {
                 contextName = Object.keys(context)[0];
             }
-        }
-        catch (e) {
+        } catch (e) {
             Log.error('getMethodName failed:\n', e);
         }
 
@@ -252,16 +243,14 @@ module.exports = class UtilMethods {
                     returnObj.className = classMethodSplit[0];
                     returnObj.methodName = classMethodSplit[1];
                     returnObj.file = undefined;
-                }
-                else {
+                } else {
                     //static functions have a different error stack format
                     match = errorStack[2]?.match(/\s{1,2}at ([a-zA-Z0-9\-_$.]+)/);
                     classMethodSplit = (!_.isEmpty(match)) ? match[1]?.split('.') : undefined;
                     if (match) {
                         returnObj.className = classMethodSplit[0];
                         returnObj.methodName = classMethodSplit[1];
-                    }
-                    else {
+                    } else {
                         let pathParts = [];
                         for (let i = 2; i < errorStack.length; i++) {
                             pathParts = errorStack[i].split('/');
@@ -277,8 +266,7 @@ module.exports = class UtilMethods {
                     }
                 }
             }
-        }
-        catch (ex) {
+        } catch (ex) {
             Log.error(ex);
         }
         return returnObj;
@@ -298,26 +286,24 @@ module.exports = class UtilMethods {
                     // back to a string. This replaces that double comma if present.
                     signature = signature.replace(',,', ',');
                 }
-            }
-            else {
+            } else {
                 signature = 'Caller is null/undefined';
             }
 
             return signature;
-        }
-        catch (e) {
+        } catch (e) {
             Log.error('getCallerSignature failed:\n', e);
             return 'getCallerSignature failed';
         }
     }
 
-    static getExpectedConfig(className, methodName, config=[], configType='input') {
+    static getExpectedConfig(className, methodName, config = [], configType = 'input') {
         let expected = [],
             cacheSuffix = (_.isEmpty(configType) || !_.isString(configType)) ? 'INPUT' : configType.toUpperCase(),
             cacheKey, cacheResult;
 
         try {
-            for (let i=0; i<config.length; i++) {
+            for (let i = 0; i < config.length; i++) {
 
                 let tmpParamName = config[i].split('=>')[0],
                     tmpParams;
@@ -335,8 +321,7 @@ module.exports = class UtilMethods {
                     UtilMethods.setGlobalTestConfig(cacheKey, tmpParams);
                 }
             }
-        }
-        catch (e) {
+        } catch (e) {
             Log.error('getExpected failed:\n', e);
         }
 
@@ -369,7 +354,7 @@ module.exports = class UtilMethods {
         return rejectedFound;
     }
 
-    static getOutputTemplateStr (expectedOut, distinctParamNames, passedArguments) {
+    static getOutputTemplateStr(expectedOut, distinctParamNames, passedArguments) {
         let outputStrings = [],
             keyname, rxStr, rx, expectedOutCloned;
 
@@ -379,7 +364,7 @@ module.exports = class UtilMethods {
 
             expectedOutCloned = this.cloneObjectShallow(expectedOut);
 
-            for (let j=0; j<expectedOutCloned.length; j++) {
+            for (let j = 0; j < expectedOutCloned.length; j++) {
                 for (let i = 0; i < distinctParamNames.length; i++) {
                     keyname = distinctParamNames[i];
                     rxStr = `(\\$\\{*${keyname}*?\\})`;
@@ -412,19 +397,17 @@ module.exports = class UtilMethods {
             if (distinctParamNames.length !== passedArguments.length) console.error('Possible param and value mismatch.');
 
             try {
-                for (let i=0; i<distinctParamNames.length; i++) {
+                for (let i = 0; i < distinctParamNames.length; i++) {
                     expectedOutClone = expectedOutClone.replace(new RegExp(distinctParamNames[i], 'g'), `tmpObj.${distinctParamNames[i]}`);
                     tmpObj[distinctParamNames[i]] = passedArguments[i];
                 }
                 tmpObj.tpl = expectedOutClone;
                 let runIt = Function('tmpObj', `return ${tmpObj.tpl}`);
                 result = (runIt(tmpObj));
-            }
-            catch (ex) {
+            } catch (ex) {
                 console.error(ex);
             }
-        }
-        else {
+        } else {
             console.error('All 3 parameters for getConfiguredOutput must be present and be an array.');
         }
         return result;
@@ -451,12 +434,11 @@ module.exports = class UtilMethods {
         let passedCount = passedArguments.length;
 
         try {
-            for ( let i=0; i<passedArguments.length; i++) {
+            for (let i = 0; i < passedArguments.length; i++) {
                 if (_.isUndefined(passedArguments[i]) || !_.isNull(passedArguments[i]) && passedArguments[i]?.type === 'closureCaller')
                     passedCount--;
             }
-        }
-        catch (e) {
+        } catch (e) {
             passedCount = -1;
             Log.error('doesPassedCountEqualExpectedCount failed:\n', e);
         }
@@ -468,7 +450,7 @@ module.exports = class UtilMethods {
             params;
 
         if (!_.isEmpty(sig) && sig.includes('(') && sig.includes(')')) {
-            params = sig.substring((sig.indexOf('(')+1), sig.indexOf(')'));
+            params = sig.substring((sig.indexOf('(') + 1), sig.indexOf(')'));
             paramCount = params.split(',').length;
         }
 
@@ -481,9 +463,9 @@ module.exports = class UtilMethods {
         if (expectedParams.length < passedArguments.length) {
             let untested = [];
 
-            for (let i=expectedParams.length; i<passedArguments.length; i++) {
+            for (let i = expectedParams.length; i < passedArguments.length; i++) {
                 let paramTest = {
-                    name: `Param Position: ${i+1}`,
+                    name: `Param Position: ${i + 1}`,
                     testObject: passedArguments[i]
                 };
 
@@ -508,7 +490,7 @@ module.exports = class UtilMethods {
             foundType = 'unknown',
             tmpFn;
 
-        for (let i=0; i<TypeDefinitions.primitives.length; i++) {
+        for (let i = 0; i < TypeDefinitions.primitives.length; i++) {
             tmpFn = TypeDefinitions.typeTests[TypeDefinitions.primitives[i]].typeFn;
 
             if (_.isString(tmpFn)) typeFound = require(tmpFn)(untested);
@@ -521,7 +503,7 @@ module.exports = class UtilMethods {
         }
 
         if (foundType === 'unknown') {
-            for (let i=0; i<TypeDefinitions.objects.length; i++) {
+            for (let i = 0; i < TypeDefinitions.objects.length; i++) {
                 tmpFn = TypeDefinitions.typeTests[TypeDefinitions.objects[i]].typeFn;
 
                 if (_.isString(tmpFn)) typeFound = require(tmpFn)(untested);
@@ -542,19 +524,18 @@ module.exports = class UtilMethods {
             keys, values, tmpType;
 
         try {
-            if (!_.isEmpty(testObject) && typeof(testObject) === 'object') {
+            if (!_.isEmpty(testObject) && typeof (testObject) === 'object') {
 
                 keys = Object.keys(testObject);
                 values = Object.values(testObject);
 
-                for (let i=0; i<keys.length; i++) {
+                for (let i = 0; i < keys.length; i++) {
                     tmpObjPropertyArray.push(new TestRawObject({
                         objectKey: keys[i],
                         objectValue: values[i]
                     }));
                 }
-            }
-            else if (_.isEmpty(testObject.get('testObject'))) {
+            } else if (_.isEmpty(testObject.get('testObject'))) {
                 tmpType = 'object';
                 if (TypeDefinitions.isPrimitive(testObject.get('testObject')))
                     tmpType = 'Empty';
@@ -563,8 +544,7 @@ module.exports = class UtilMethods {
                     objectKey: tmpType,
                     objectValue: testObject.get('testObject')
                 }));
-            }
-            else {
+            } else {
                 tmpType = 'non-object';
                 if (TypeDefinitions.isPrimitive(testObject.get('testObject')))
                     tmpType = 'primitive';
@@ -575,14 +555,13 @@ module.exports = class UtilMethods {
                 }));
             }
             return tmpObjPropertyArray;
-        }
-        catch (e) {
+        } catch (e) {
             Log.error('getObjectKeyValuePairs failed:\n', e);
         }
     }
 
     static setFuncTestPassed(funcDetails) {
-        if ( (funcDetails.get('paramsPassedTestCount') >= funcDetails.get('paramsCount')) && funcDetails.get('executionPassedTestCount') > 0) {
+        if ((funcDetails.get('paramsPassedTestCount') >= funcDetails.get('paramsCount')) && funcDetails.get('executionPassedTestCount') > 0) {
             funcDetails.set('passed', true);
         }
     }
@@ -605,7 +584,7 @@ module.exports = class UtilMethods {
     }
 
     static getUpdatedTestConfig(target, clazz, testConfig) {
-        let targetName =  target?.name,
+        let targetName = target?.name,
             classTestConfig = {},
             updatedTestConfig = {};
 
@@ -613,8 +592,7 @@ module.exports = class UtilMethods {
             if (_.isUndefined(clazz.testConfig) || _.isNull(clazz.testConfig)) {
                 if (!_.isUndefined(clazz.constructor.testConfig) && !_.isNull(clazz.constructor.testConfig))
                     classTestConfig = clazz.constructor.testConfig;
-            }
-            else
+            } else
                 classTestConfig = clazz.testConfig;
 
             if (_.isEmpty(classTestConfig)) {
@@ -627,27 +605,23 @@ module.exports = class UtilMethods {
                     tmpObj.isStatic = true;
                     updatedTestConfig = tmpObj;
                 }
-            }
-            else if (!_.isEmpty(classTestConfig) && _.isEmpty(targetName)) {
+            } else if (!_.isEmpty(classTestConfig) && _.isEmpty(targetName)) {
                 let configKeys = Object.keys(classTestConfig);
                 if (_.isEmpty(configKeys[0])) {
                     testConfig.name;
-                }
-                else {
+                } else {
                     targetName = configKeys[0];
                     classTestConfig.isStatic = true;
                 }
                 updatedTestConfig = classTestConfig;
-            }
-            else {
+            } else {
                 updatedTestConfig = classTestConfig;
                 updatedTestConfig.isStatic = false;
             }
-        }
-        catch (ex) {
+        } catch (ex) {
             console.error(ex);
         }
-        return {targetName: targetName, updatedTestConfig: updatedTestConfig};
+        return { targetName: targetName, updatedTestConfig: updatedTestConfig };
     }
 
     static async getTestObjectWithoutModels(testObj) {
@@ -656,7 +630,7 @@ module.exports = class UtilMethods {
                 let paramJsonList = [],
                     testedParams = testObj.get('testedParams');
                 if (_.isArray(testedParams) && testedParams.length > 0) {
-                    for (let i=0; i<testedParams.length; i++) {
+                    for (let i = 0; i < testedParams.length; i++) {
                         if (!_.isUndefined(testedParams[i])) {
                             let tmpModel = testedParams[i];
                             if (TypeDefinitions.objects.includes(tmpModel.get('jsType'))) {
@@ -674,7 +648,7 @@ module.exports = class UtilMethods {
                 let untestedParamsJsonList = [],
                     untestedParams = testObj.get('untestedParams');
                 if (_.isArray(untestedParams) && untestedParams.length > 0) {
-                    for (let i=0; i<untestedParams.length; i++) {
+                    for (let i = 0; i < untestedParams.length; i++) {
                         if (!_.isUndefined(untestedParams[i]))
                             untestedParamsJsonList.push(untestedParams[i].getData());
                     }
@@ -683,6 +657,57 @@ module.exports = class UtilMethods {
             }
         }
         return testObj;
+    }
+
+    static removeCircularRefs(input, options = {}) {
+        const {
+            maxDepth = 6,
+            circularValue = '[CIRCULAR]'   // what to replace circular refs with
+        } = options;
+
+        const seen = new WeakMap();
+
+        function clone(value, depth) {
+            // Primitives & functions
+            if (value === null || typeof value !== 'object') {
+                return value;
+            }
+
+            // Depth guard (safety)
+            if (depth > maxDepth) {
+                return '[DEPTH_LIMIT]';
+            }
+
+            // Circular reference detected
+            if (seen.has(value)) {
+                return circularValue;
+            }
+
+            // Fast path for arrays
+            if (Array.isArray(value)) {
+                const arr = new Array(value.length);
+                seen.set(value, arr);
+
+                for (let i = 0; i < value.length; i++) {
+                    arr[i] = clone(value[i], depth + 1);
+                }
+                return arr;
+            }
+
+            // Plain object clone
+            const obj = {};
+            seen.set(value, obj);
+
+            for (const key in value) {
+                if (Object.prototype.hasOwnProperty.call(value, key)) {
+                    obj[key] = clone(value[key], depth + 1);
+                }
+            }
+
+            return obj;
+        }
+
+        return clone(input, 0);
     }
 
     static async getJsonWithoutCirculars(obj, depth = 0) {
@@ -706,25 +731,22 @@ module.exports = class UtilMethods {
                     originalObj[visitedMark] = true; // Mark current node as "seen" - will stop from going deeper into circulars
                     const nextDepth = depth + 1;
 
-                    let nextResult =  await this.getJsonWithoutCirculars(val, nextDepth);
+                    let nextResult = await this.getJsonWithoutCirculars(val, nextDepth);
                     if (!_.isEmpty(nextResult) && (nextResult !== 'CIRCULAR' && nextResult !== 'SYMBOL ERROR')) {
                         try {
                             nextResult = Object.fromEntries(Object.entries(nextResult));
                             // nextResult = Object.fromEntries(Object.entries(nextResult).sort());
-                        }
-                        catch (e) {
+                        } catch (e) {
                             // sort() this a symbol inside larger browser objects, not certain yet how to best handle
                             // so this is a temporary catch to ensure the UI shows data and doesn't lag.
                             nextResult = 'SYMBOL ERROR';
                         }
                     }
                     result[entry] = nextResult;
-                }
-                else {
+                } else {
                     result[entry] = val;
                 }
-            }
-            else {
+            } else {
                 result = 'CIRCULAR';
             }
         }
@@ -735,7 +757,7 @@ module.exports = class UtilMethods {
     static getPrimitive(obj) {
         if (obj === null) return 'null';
         if (obj === undefined) return 'undefined';
-        return _.isArray(obj) ? 'array' : typeof(obj);
+        return _.isArray(obj) ? 'array' : typeof (obj);
     }
 
     static async findObjectProperty(obj, propertyName, propertyValue) {
@@ -758,8 +780,7 @@ module.exports = class UtilMethods {
                         }
                     }
                 }
-            }
-            catch (e) {
+            } catch (e) {
                 Log.error(e.message);
             }
         }
@@ -770,8 +791,15 @@ module.exports = class UtilMethods {
 
     //this.queryObject(this.getJsonWithoutCirculars(automation.data, 8), {property: 'id'})
     //UtilMethods.queryObject(UtilMethods.getJsonWithoutCirculars(passedArguments[0],8), {property: paramConfig[0].required[0].propName})
-    static queryObject (obj, options) {
-        options = Object.assign({ value: undefined, property: undefined, fn: undefined, results: [], path: [], depth: 1 }, (options || {}));
+    static queryObject(obj, options) {
+        options = Object.assign({
+            value: undefined,
+            property: undefined,
+            fn: undefined,
+            results: [],
+            path: [],
+            depth: 1
+        }, (options || {}));
 
         let { value, property, fn, results, path, depth } = options;
 
@@ -792,9 +820,8 @@ module.exports = class UtilMethods {
                     path: path.concat(_.isNumber(key) ? `[${key}]` : `${key}`),
                     depth: depth + 1
                 });
-            }
-            else {
-                let useFn = typeof(fn) === 'function';
+            } else {
+                let useFn = typeof (fn) === 'function';
                 let propertyIsKey = property === key;
                 let match = useFn ? fn(property, value) : propertyIsKey;
                 if (match) {
@@ -813,12 +840,11 @@ module.exports = class UtilMethods {
     }
 
     static readFileAsync(path) {
-        return new Promise(function (resolve, reject) {
-            fs.readFile(path, 'utf8', function (error, result) {
+        return new Promise(function(resolve, reject) {
+            fs.readFile(path, 'utf8', function(error, result) {
                 if (error) {
                     reject(error);
-                }
-                else {
+                } else {
                     resolve(result);
                 }
             });
@@ -864,7 +890,7 @@ module.exports = class UtilMethods {
             for (const file of files) {
                 if (opts.ignore.includes(file)) continue;
 
-                const full  = resolve(path, file);
+                const full = resolve(path, file);
                 const stats = await statSync(full);
                 const isDir = stats.isDirectory();
                 const children = isDir && !maxDepthReached ? await tree(full, opts) : null;
@@ -884,74 +910,70 @@ module.exports = class UtilMethods {
                     list.set(file, meta);
                 }
             }
-        } catch(e) {
+        } catch (e) {
             console.error('Error:', e.message);
         }
 
         return list;
     }
 
-    static async isPropertyInObject(testObj={}, propertyPath='') {
+    static async isPropertyInObject(testObj = {}, propertyPath = '') {
         let propPresence = true,
             propPathParts = propertyPath.split('.');
 
         try {
             if (propPathParts.length > 0) {
                 let tmpObjProp = testObj;
-                for (let i=0; i<propPathParts.length; i++) {
+                for (let i = 0; i < propPathParts.length; i++) {
                     if (tmpObjProp[propPathParts[i]]) {
                         tmpObjProp = tmpObjProp[propPathParts[i]];
-                    }
-                    else {
+                    } else {
                         propPresence = false;
                         break;
                     }
                 }
             }
-        }
-        catch (e) {
+        } catch (e) {
             Log.error(e);
         }
 
         return propPresence;
     }
 
-    static async getPropertyFromObject(testObj={}, propertyPath='') {
+    static async getPropertyFromObject(testObj = {}, propertyPath = '') {
         let prop,
             propPathParts = propertyPath.split('.');
 
         try {
             if (propPathParts.length > 0) {
                 let tmpObjProp = testObj;
-                for (let i=0; i<propPathParts.length; i++) {
+                for (let i = 0; i < propPathParts.length; i++) {
                     if (tmpObjProp[propPathParts[i]]) {
                         tmpObjProp = tmpObjProp[propPathParts[i]];
                     }
                 }
                 prop = tmpObjProp;
             }
-        }
-        catch (e) {
+        } catch (e) {
             Log.error(e);
         }
 
         return prop;
     }
 
-    static getPassedParamsTypes(passedArguments=[]) {
+    static getPassedParamsTypes(passedArguments = []) {
         let typeList = [];
 
         try {
             if (passedArguments.length > 0) {
-                for (let i=0; i<passedArguments.length; i++) {
+                for (let i = 0; i < passedArguments.length; i++) {
                     if (_.isUndefined(passedArguments[i]))
                         typeList.push('undefined');
                     else
                         typeList.push(passedArguments[i].constructor.name);
                 }
             }
-        }
-        catch (e) {
+        } catch (e) {
             Log.error(e);
         }
 

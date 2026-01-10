@@ -169,8 +169,7 @@ module.exports = class ZoinxTest {
 
             if (_.isEmpty(testRec)) {
                 UtilMethods.logTestResult('noclass', 'nomethod', 'No matching test record found.');
-            }
-            else {
+            } else {
                 if (_.isDate(testRec.get('stopWatchStart')) && _.isDate(testRec.get('stopWatchEnd'))) {
                     testRec.set('runningTimeMillis', (+testRec.get('stopWatchEnd') - +testRec.get('stopWatchStart')));
                 }
@@ -195,8 +194,7 @@ module.exports = class ZoinxTest {
     static async reduceObjectOrArray(toReduce) {
         if (!_.isEmpty(toReduce) && _.isArray(toReduce) && toReduce.length >= 10) {
             return _.clone(toReduce).splice(10);
-        }
-        else if (!_.isEmpty(toReduce) && _.isObject(toReduce)) {
+        } else if (!_.isEmpty(toReduce) && _.isObject(toReduce)) {
             if (['IncomingMessage', 'ServerResponse'].includes(toReduce.constructor.name)) {
                 return await UtilMethods.getJsonWithoutCirculars(toReduce, 8);
             }
@@ -207,81 +205,78 @@ module.exports = class ZoinxTest {
     }
 
     static async functionTest(clazz, func, passedArguments, testRec) {
+        if (!global.testingConfig.isTestingEnabled) return;
 
-        if (global.testingConfig.isTestingEnabled) {
-            try {
-                if (testRec.get('distinctParamNames').length > 0) {
-                    this.execParamTests(clazz, func, passedArguments, testRec);
-                    this.execOutputTest(clazz, func, passedArguments, testRec);
-                    UtilMethods.setFuncTestPassed(testRec);
-                    if (!testRec.get('passed')) {
-                        let resultMessage = '';
-                        if (testRec.get('paramsPassedTestCount') !== testRec.get('paramsCount')) {
-                            resultMessage = `********** Function parameters for ${testRec.get('methodName')} passed ${testRec.get('paramsPassedTestCount')} of ${testRec.get('paramsCount')} tests.**********`;
-                            // caller: ${testRec.get('callerClassName')}.${testRec.get('callerMethodName')}
-                        }
-                        else if (!testRec.get('executionPassed')) {
-                            resultMessage = `********** Function OUTPUT test for ${testRec.get('methodName')} failed. **********`;
-                        }
+        try {
+            const distinctParams = testRec.get('distinctParamNames');
+            const hasParams = distinctParams && distinctParams.length > 0;
 
-                        testRec.set('resultMessage', resultMessage);
-                        UtilMethods.logTestResult(testRec.get('className'), testRec.get('methodName'), testRec.get('resultMessage'));
+            // ------------------------------
+            // Core test execution
+            // ------------------------------
+            if (hasParams) {
+                await this.execParamTests(clazz, func, passedArguments, testRec);
+                await this.execOutputTest(clazz, func, passedArguments, testRec);
+                UtilMethods.setFuncTestPassed(testRec);
+
+                if (!testRec.get('passed')) {
+                    const passedCount = testRec.get('paramsPassedTestCount');
+                    const totalCount = testRec.get('paramsCount');
+
+                    let msg;
+                    if (passedCount !== totalCount) {
+                        msg =
+                            `********** Function parameters for ${testRec.get('methodName')} passed ` +
+                            `${passedCount} of ${totalCount} tests. **********`;
+                    } else if (!testRec.get('executionPassed')) {
+                        msg =
+                            `********** Function OUTPUT test for ${testRec.get('methodName')} failed. **********`;
                     }
+
+                    testRec.set('resultMessage', msg);
+                    UtilMethods.logTestResult(testRec.get('className'), testRec.get('methodName'), msg);
                 }
-                else if (testRec.get('distinctParamNames').length < 1) {
-                    testRec.set('paramsCount', 0);
-                    testRec.set('paramsPassedTestCount', 0);
-                    testRec.set('passed', true);
-                    testRec.set('resultMessage', 'Function trace');
-                    this.execOutputTest(clazz, func, passedArguments, testRec);
-                }
+            }
+            else if (testRec.get('distinctParamNames').length < 1) {
+                testRec.set('paramsCount', 0);
+                testRec.set('paramsPassedTestCount', 0);
+                testRec.set('passed', true);
+                testRec.set('resultMessage', 'Function trace');
+                await this.execOutputTest(clazz, func, passedArguments, testRec);
+            }
 
-                // The REAL problem circular refs in JS objects!!!!
-
-                //getJsonWithoutCirculars modifies the passedArguments data this modification
-                //makes scenario testing hashes not work as needed. This is here to have
-                //a clean copy of the arguments, so they can be put back in.
-                let origPassedArguments = passedArguments.slice(),
-                    tmpReduced = [];
-
-                // There isn't a need to
-                for (let i = 0; i < origPassedArguments.length; i++) {
-                    tmpReduced.push(await this.reduceObjectOrArray(origPassedArguments[i]));
-                }
-                if (tmpReduced.length > 0) {
-                    testRec.set('passedArguments', tmpReduced);
-                }
-
-                testRec = await UtilMethods.getTestObjectWithoutModels(testRec);
-                testRec = await UtilMethods.getJsonWithoutCirculars(testRec.json, 6);
-
-                // getJsonWithoutCirculars is def causing problems that will need to be evaluated.
-                // Some objects are seriously big and many circular references and those objects
-                // have to have those circular ref removed. IncomingMessage and ServerResponse are
-                // 2 great examples. This is hopefully a temporary "fix".
-                let reassign = true,
-                    paramKeys = Object.keys(testRec.testedParams);
-                for (let i = 0; i < paramKeys.length; i++) {
-                    try {
-                        if (JSON.stringify(testRec.testedParams[i]).includes('CIRCULAR'))
-                            reassign = false;
-                    }
-                    catch (e) {
-                        reassign = false;
+            // ----------------------------------------
+            // OPTIONAL: sampled detection / metrics
+            // ----------------------------------------
+            const len = passedArguments.length;
+            if (this.shouldSample()) {
+                for (let i = 0; i < len; i++) {
+                    if (this.hasCircularRefFast(passedArguments[i])) {
+                        // metric/log hook here
                         break;
                     }
                 }
-
-                if (reassign)
-                    testRec.passedArguments = origPassedArguments;
-
-
-                new TestMsgProducer(testRec).send().catch();
-                return testRec;
             }
-            catch (e) {
-                Log.error('functionTest failed:\n', e);
+
+            testRec = await UtilMethods.getTestObjectWithoutModels(testRec);
+
+            const tmpReduced = [];
+            for (let i = 0; i < testRec.get('passedArguments').length; i++) {
+                tmpReduced.push(await UtilMethods.removeCircularRefs(testRec.get('passedArguments')[i]));
             }
+            if (tmpReduced.length > 0) {
+                testRec.set('testedParams', tmpReduced);
+            }
+
+            // ----------------------------------------
+            // Fire-and-forget
+            // ----------------------------------------
+            new TestMsgProducer(testRec.json).send().catch();
+            return testRec;
+
+        }
+        catch (e) {
+            Log.error('functionTest failed:', e);
         }
     }
 
@@ -367,11 +362,11 @@ module.exports = class ZoinxTest {
 
     static execOutputTest(clazz, func, passedArguments, funcDetails) {
         const outputConfig = funcDetails.get('testOutputConfig');
-        const executionResult = funcDetails.get('executionResult');
         const distinctParamNames = funcDetails.get('distinctParamNames');
 
         const outDetails = [];
-        let successCount = 0;
+        let successCount = 0,
+            executionResult = funcDetails.get('executionResult');
 
         funcDetails.set('passedArguments', passedArguments);
 
@@ -419,7 +414,12 @@ module.exports = class ZoinxTest {
                 const testOutputConfig = new TestParamDetails(outputConfig[0]);
                 testOutputConfig.set('jsType', execTest.type);
 
-                this.testObject(outputConfig[0], testOutputConfig, executionResult, executionResult);
+                this.testObject(
+                    outputConfig[0],
+                    testOutputConfig,
+                    executionResult,
+                    executionResult
+                );
 
                 execTest.passed = testOutputConfig.get('passed');
             }
@@ -427,6 +427,9 @@ module.exports = class ZoinxTest {
             if (!execTest.passed) {
                 execTest.resultMessage ??= 'No matching output found.';
             }
+
+            if (config.maskValue && _.isString(executionResult))
+                funcDetails.set('executionResult', UtilMethods.maskValue(executionResult));
 
             outDetails.push(new TestExecutionDetails(execTest));
         }
@@ -440,7 +443,6 @@ module.exports = class ZoinxTest {
         funcDetails.set('executionPassed', successCount === outDetails.length);
     }
 
-
     static testPrimitive(paramConfig, paramTest, passedArgument, testObject) {
         try {
             if (paramTest.get('typePassed') && !paramTest.get('isOptional')) {
@@ -452,22 +454,19 @@ module.exports = class ZoinxTest {
                     paramTest.set('passed', false);
                     if (_.isRegExp(paramConfig.acceptedValues[0]) && paramConfig.acceptedValues[0].test(testObject)) {
                         paramTest.set('passed', true);
-                    }
-                    else if (_.isFunction(paramConfig.acceptedValues[0])) {
+                    } else if (_.isFunction(paramConfig.acceptedValues[0])) {
                         let funcResults = paramConfig.acceptedValues[0](testObject);
                         paramTest.set('passed', TypeDefinitions.toBoolean(funcResults));
                     }
                 }
-            }
-            else if (paramConfig.rejectedValues.length > 0) {
+            } else if (paramConfig.rejectedValues.length > 0) {
                 if (paramConfig.rejectedValues.includes(testObject)) {
                     paramTest.set('passed', false);
                     if (_.isRegExp(paramConfig.rejectedValues[0]) && !paramConfig.rejectedValues[0].test(testObject))
                         paramTest.set('passed', true);
                 }
             }
-        }
-        catch (e) {
+        } catch (e) {
             Log.error(e.message);
         }
     }
@@ -484,19 +483,15 @@ module.exports = class ZoinxTest {
             if (typeAccepted.typeAccepted && typeAccepted.subType !== 'N/A') {
                 if (typeAccepted.subTypeAccepted) {
                     paramTest.set('passed', testObject.every(TypeDefinitions.typeTests[paramTest.get('subType')].typeFn));
-                }
-                else {
+                } else {
                     paramTest.set('passed', false);
                 }
-            }
-            else if (typeAccepted.typeAccepted && typeAccepted.subType === 'N/A') {
+            } else if (typeAccepted.typeAccepted && typeAccepted.subType === 'N/A') {
                 paramTest.set('passed', true);
-            }
-            else {
+            } else {
                 paramTest.set('passed', (typeAccepted.typeAccepted && typeAccepted.subTypeAccepted));
             }
-        }
-        catch (e) {
+        } catch (e) {
             Log.error(e.message);
         }
 
@@ -514,13 +509,11 @@ module.exports = class ZoinxTest {
             depthLevel = objectPath.length;
 
             propName = _.takeRight(objectPath)[0];
-            //options = Object.assign({ value: undefined, property: undefined, fn: undefined, results: [], path: [], depth: 1 }, (options || {}));
             objectQueryResponse = UtilMethods.queryObject(testObject, { property: propName, depth: depthLevel });
             if (objectQueryResponse) {
                 Log.log(objectQueryResponse);
-            }
-            else {
-                Log.warn(`Object query did not find ${propName}`);
+            } else {
+                console.warn(`Object query did not find ${propName}`);
             }
         }
 
@@ -536,7 +529,7 @@ module.exports = class ZoinxTest {
 
             // 1. Validate input parameters
             if (!Object.hasOwn(paramTest.json, 'jsType') || !Object.hasOwn(paramTest.json, 'subType')) {
-                Log.error('Missing required test parameters');
+                throw new Error('Missing required test parameters');
             }
 
             // 2. Determine accepted type
@@ -553,12 +546,12 @@ module.exports = class ZoinxTest {
             // 4. Handle masking if needed
             this.handleMasking(paramConfig, paramTest, passedArgument, testObject);
 
-            // TODO need to see if this is really needed anymore beyond the accumulator.
+            // TODO need to see if this is really needed anymore past the accumulator.
             paramTest.set('successCount', (_.isBoolean(paramTest.get('passed')) && paramTest.get('passed')) ? 1 : 0);
-        }
-        catch (error) {
+        } catch (error) {
             Log.error(`Validation error: ${error.message}`);
             paramTest.set('passed', false);
+            // throw error; // Re-throw for caller handling
         }
     }
 
@@ -567,22 +560,17 @@ module.exports = class ZoinxTest {
         let successCount = 0;
         const isOr = !Array.isArray(requiredItems[0]);
 
-        try {
-            for (const item of requiredItems) {
-                const objectRef = this.getNestedValue(passedArgument, item.propName);
-                if (!objectRef) continue; // Skip if path doesn't exist
+        for (const item of requiredItems) {
+            const objectRef = this.getNestedValue(passedArgument, item.propName);
+            if (!objectRef) continue; // Skip if path doesn't exist
 
-                this.validateItem(item, objectRef);
-                successCount++;
-            }
-
-            // Update test result based on validation
-            if (successCount === requiredItems.length || (isOr && successCount > 0)) {
-                paramTest.set('passed', true);
-            }
+            this.validateItem(item, objectRef);
+            successCount++;
         }
-        catch (error) {
-            Log.error(`Test.processRequiredItems error: ${error.message}`);
+
+        // Update test result based on validation
+        if (successCount === requiredItems.length || (isOr && successCount > 0)) {
+            paramTest.set('passed', true);
         }
     }
 
@@ -595,51 +583,46 @@ module.exports = class ZoinxTest {
         const parts = path.split('.');
         let current = obj;
 
-        try {
-            for (const part of parts) {
-                if (_.isEmpty(current) || (!current[part] && !Object.prototype.hasOwnProperty.call(current, part))) {
-                    return undefined;
-                }
-                current = current[part];
+        for (const part of parts) {
+            // if (current === null || current === undefined || !Object.prototype.hasOwnProperty.call(current, part)) {
+            if (_.isEmpty(current) || (!current[part] && !Object.prototype.hasOwnProperty.call(current, part))) {
+                return undefined;
             }
-        }
-        catch (error) {
-            Log.error(`Test.getNestedValue error: ${error.message}`);
+            current = current[part];
         }
 
         return current;
     }
 
     static validateItem(item, value) {
-        try {
-            // Handle regex, function, or value matching
-            if (item.regex?.test(value)) return;
-            if (typeof item.dynaFunc === 'function' && item.dynaFunc(value)) return;
-            if (item.values.length > 0 && item.values.includes(value)) return;
+        // Handle regex, function, or value matching
+        if (item.regex?.test(value)) return;
+        if (typeof item.dynaFunc === 'function' && item.dynaFunc(value)) return;
+        if (item.values.length > 0 && item.values.includes(value)) return;
 
-            // Fallback type check
-            TypeDefinitions.typeTests[item.type]?.typeFn(value);
-        }
-        catch (error) {
-            Log.error(`Test.validateItem error: ${error.message}`);
-        }
+        // Fallback type check
+        TypeDefinitions.typeTests[item.type]?.typeFn(value);
     }
 
     static handleMasking(paramConfig, paramTest, passedArgument, testObject) {
         if (!paramConfig.maskValue || !paramTest.get('passed')) return;
 
-        try {
-            const objectPath = paramConfig.maskValue.propName.split('.');
-            const value = this.getNestedValue(passedArgument, objectPath);
-            if (typeof value === 'string') {
-                const maskedValue = UtilMethods.maskValue(value);
-                // Update nested property in passedArgument
-                // (Implementation depends on how nested objects are handled)
-            }
+        const objectPath = paramConfig.maskValue.propName.split('.');
+        const value = this.getNestedValue(passedArgument, objectPath);
+        if (typeof value === 'string') {
+            const maskedValue = UtilMethods.maskValue(value, paramConfig.maskValue.maskCount);
+            // Update nested property in passedArgument
+            // (Implementation depends on how nested objects are handled)
         }
-        catch (error) {
-            Log.error(`Test.handleMasking error: ${error.message}`);
-        }
+    }
+
+    // Tune this: 16 = 1/16 calls, 32 = 1/32 calls, 64 = 1/64 calls
+    static SAMPLE_RATE = 16;
+    static _sampleCounter = 0;
+
+    static shouldSample() {
+        // Increment first call so can be skipped
+        return (++this._sampleCounter & (this.SAMPLE_RATE - 1)) === 0;
     }
 
 };
