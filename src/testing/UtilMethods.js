@@ -446,15 +446,43 @@ module.exports = class UtilMethods {
     }
 
     static getSignatureParamsCount(sig) {
-        let paramCount = -1,
-            params;
+        // Extract the text inside the first parentheses
+        const match = signature.match(/\((.*)\)/s);
+        if (!match) return 0;
 
-        if (!_.isEmpty(sig) && sig.includes('(') && sig.includes(')')) {
-            params = sig.substring((sig.indexOf('(') + 1), sig.indexOf(')'));
-            paramCount = params.split(',').length;
+        const params = match[1].trim();
+        if (!params) return 0;
+
+        let count = 1;
+        let depth = 0;
+        let inString = false;
+        let stringChar = '';
+
+        for (let i = 0; i < params.length; i++) {
+            const ch = params[i];
+
+            // Handle string literals
+            if ((ch === '"' || ch === "'") && params[i - 1] !== '\\') {
+                if (!inString) {
+                    inString = true;
+                    stringChar = ch;
+                } else if (ch === stringChar) {
+                    inString = false;
+                }
+                continue;
+            }
+
+            if (inString) continue;
+
+            // Track nested structures
+            if (ch === '(' || ch === '[' || ch === '{') depth++;
+            else if (ch === ')' || ch === ']' || ch === '}') depth--;
+
+            // Count commas only at top level
+            else if (ch === ',' && depth === 0) count++;
         }
 
-        return paramCount;
+        return count;
     }
 
     static getUntestedParams(passedArguments, expectedParams) {
