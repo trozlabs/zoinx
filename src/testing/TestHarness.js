@@ -23,10 +23,12 @@ class TestHarness {
 
                 let hrtTimer = new hrt(true);
                 // Executes actual method and catches returned output
-                if (TypeDefinitions.isFunctionAsync(target))
+                if (TypeDefinitions.isFunctionAsync(target)) {
                     retVal = target.apply(thisArg, argumentsList).then();
-                else
+                }
+                else {
                     retVal = target.apply(thisArg, argumentsList);
+                }
                 hrtTimer.stop();
 
                 if (!_.isEmpty(updatedTestConfig?.updatedTestConfig[targetName])) {

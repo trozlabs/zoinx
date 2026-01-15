@@ -447,7 +447,7 @@ module.exports = class UtilMethods {
 
     static getSignatureParamsCount(sig) {
         // Extract the text inside the first parentheses
-        const match = signature.match(/\((.*)\)/s);
+        const match = sig.match(/\((.*)\)/s);
         if (!match) return 0;
 
         const params = match[1].trim();
