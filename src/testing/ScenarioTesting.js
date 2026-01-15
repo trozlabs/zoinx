@@ -217,16 +217,16 @@ module.exports = class ScenarioTesting {
     }
 
     async #execScenario(scenarioContents, workingFile) {
-        let scenarioJson = JSON.parse(scenarioContents),
-            contentsPath = workingFile.fullPath,
-            methodKeys = Object.keys(scenarioJson),
-            pathDelimiter = (process.platform === 'win32') ? '\\' : '\/',
-            pathParts = contentsPath.split(pathDelimiter),
-            classFileExtention = 'js',
-            classFilePath = '',
-            tmpReq, tmpClass, normalFuncs, staticFuncs;
-
+        let contentsPath = workingFile.fullPath;
         try {
+            let scenarioJson = JSON.parse(scenarioContents),
+                methodKeys = Object.keys(scenarioJson),
+                pathDelimiter = (process.platform === 'win32') ? '\\' : '\/',
+                pathParts = contentsPath.split(pathDelimiter),
+                classFileExtention = 'js',
+                classFilePath = '',
+                tmpReq, tmpClass, normalFuncs, staticFuncs;
+
             if (methodKeys.length > 0) {
                 pathParts.splice((pathParts.length-2), 1);
                 classFilePath = pathParts.join(pathDelimiter);
