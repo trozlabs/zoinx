@@ -5,9 +5,9 @@ const { Log } = require('../log');
 const TypeDefinitions = require('./TypeDefinitions');
 const hrt = require('./HighResTimer');
 
-class TestHarness {
 
-    const PROXIED = Symbol('proxied');
+const PROXIED = Symbol('proxied');
+class TestHarness {
 
     static execFunctionCall(testConfig = {}) {
         return function(target, thisArg, argumentsList) {
@@ -71,7 +71,7 @@ class TestHarness {
 
         for (const fnName of testConfig) {
             let objRef = staticFuncs.includes(fnName)
-                ? trackedEntity
+                ? trackedEntity.constructor
                 : trackedEntity;
 
             const fn = objRef[fnName];
