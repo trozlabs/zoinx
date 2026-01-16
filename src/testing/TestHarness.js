@@ -7,14 +7,17 @@ const hrt = require('./HighResTimer');
 
 class TestHarness {
 
-    static execFunctionCall(testConfig={}) {
+    const PROXIED = Symbol('proxied');
+
+    static execFunctionCall(testConfig = {}) {
         return function(target, thisArg, argumentsList) {
 
             let newTestRec,
                 targetName = '',
                 retVal, updatedTestConfig;
 
-            if (!global.testingConfig.isTestingEnabled || !UtilMethods.shouldBeTested(UtilMethods.getClassName(thisArg), target.name)) {
+            if (!global.testingConfig.isTestingEnabled ||
+                !UtilMethods.shouldBeTested(UtilMethods.getClassName(thisArg), target.name)) {
                 retVal = target.apply(thisArg, argumentsList);
             }
             else {
@@ -59,64 +62,71 @@ class TestHarness {
     }
 
     static proxyFunctions(trackedEntity, testConfigs) {
-        // let normalFuncs = Object.getOwnPropertyNames(trackedEntity).filter(name => typeof trackedEntity[name] === 'function'),
-        let staticFuncs = Object.getOwnPropertyNames(trackedEntity.constructor).filter(name => typeof trackedEntity.constructor[name] === 'function'),
-            testConfig = (trackedEntity.constructor.testConfig) ? Object.keys(trackedEntity.constructor.testConfig) : [];
+        const staticFuncs = Object.getOwnPropertyNames(trackedEntity.constructor)
+            .filter(name => typeof trackedEntity.constructor[name] === 'function');
 
-        if (testConfig?.length > 0) {
-            for (let i=0; i<testConfig.length; i++) {
-                let objRef = trackedEntity;
-                if (staticFuncs.includes(testConfig[i])) {
-                    objRef = trackedEntity.constructor;
-                }
+        const testConfig = trackedEntity.constructor.testConfig
+            ? Object.keys(trackedEntity.constructor.testConfig)
+            : [];
 
-                if (_.isFunction(objRef[testConfig[i]])) {
-                    objRef[testConfig[i]] = new Proxy(objRef[testConfig[i]], {
-                        apply: this.execFunctionCall(testConfigs),
-                    });
-                }
-                else {
-                    Log.log('\n===============================');
-                    Log.warn(`${testConfig[i]} might be a private function`);
-                    Log.log('===============================\n');
-                }
+        for (const fnName of testConfig) {
+            let objRef = staticFuncs.includes(fnName)
+                ? trackedEntity
+                : trackedEntity;
+
+            const fn = objRef[fnName];
+
+            if (typeof fn !== 'function') {
+                Log.warn(`${fnName} might be a private function`);
+                continue;
             }
+
+            if (fn[PROXIED]) continue;
+
+            const proxy = new Proxy(fn, {
+                apply: this.execFunctionCall(testConfigs)
+            });
+
+            proxy[PROXIED] = true;
+            objRef[fnName] = proxy;
         }
     }
 
     static prepareObject(obj, testConfig, options = {}) {
-        const { trackFunctions } = options;
-        if (trackFunctions) {
+        if (options.trackFunctions) {
             this.proxyFunctions(obj, testConfig);
         }
         return obj;
     }
 
     static prepareClass(clazz, testConfig, options = {}) {
-        TestHarness.prepareObject(clazz.prototype, testConfig, options);
+        this.prepareObject(clazz.prototype, testConfig, options);
         clazz.prototype.constructor = clazz;
+
         return new Proxy(clazz, {
             apply: this.execFunctionCall(testConfig)
         });
     }
 
-    static handleFunction(trackedEntity, testConfig) {
-        if (typeof trackedEntity === 'function' && TypeDefinitions.getFunctionType(trackedEntity) !== 'class') {
-            trackedEntity = new Proxy(trackedEntity, {
-                apply: this.execFunctionCall(testConfig),
-            });
-        }
-        else {
-            TestHarness.proxyFunctions(trackedEntity, testConfig);
-        }
+    static handleFunction(fn, testConfig) {
+        if (fn[PROXIED]) return fn;
+
+        const proxy = new Proxy(fn, {
+            apply: this.execFunctionCall(testConfig)
+        });
+
+        proxy[PROXIED] = true;
+        return proxy;
     }
 }
 
-module.exports = function(entity, testConfig={}, options = {trackFunctions: true}) {
-    if (typeof entity === 'function' && TypeDefinitions.getFunctionType(entity) !== 'class')
-        return TestHarness.handleFunction(entity, testConfig);
-    else if (typeof entity === 'function')
+module.exports = function (entity, testConfig = {}, options = { trackFunctions: true }) {
+    if (typeof entity === 'function') {
+        if (TypeDefinitions.getFunctionType(entity) !== 'class') {
+            return TestHarness.handleFunction(entity, testConfig);
+        }
         return TestHarness.prepareClass(entity, testConfig, options);
+    }
 
     return TestHarness.prepareObject(entity, testConfig, options);
-}
+};
