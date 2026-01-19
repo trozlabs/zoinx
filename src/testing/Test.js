@@ -104,11 +104,13 @@ module.exports = class ZoinxTest {
             funcTestConfig.paramsCount = UtilMethods.getSignatureParamsCount(funcTestConfig.methodSignature);
             funcTestConfig.serverInstance = os.hostname();
 
-            if (!_.isString(methodInput) || methodInput.toLowerCase() !== 'trace')
+            if (!_.isString(methodInput) || methodInput.toLowerCase() !== 'trace') {
                 funcTestConfig.doArgumentCountsMatch = UtilMethods.doesPassedCountEqualExpectedCount(passedArguments, expectedParams);
+            }
 
-            if (!funcTestConfig.doArgumentCountsMatch && passedArguments.length > expectedParams.length)
+            if (!funcTestConfig.doArgumentCountsMatch && passedArguments.length > expectedParams.length) {
                 funcTestConfig.untestedParams = UtilMethods.getUntestedParams(passedArguments, expectedParams);
+            }
 
             // This is a workaround for closures or callbacks or async and might work for async/await.
             // This looks to see if the methodCaller is null or if it has a className property.
@@ -194,7 +196,8 @@ module.exports = class ZoinxTest {
     static async reduceObjectOrArray(toReduce) {
         if (!_.isEmpty(toReduce) && _.isArray(toReduce) && toReduce.length >= 10) {
             return _.clone(toReduce).splice(10);
-        } else if (!_.isEmpty(toReduce) && _.isObject(toReduce)) {
+        }
+        else if (!_.isEmpty(toReduce) && _.isObject(toReduce)) {
             if (['IncomingMessage', 'ServerResponse'].includes(toReduce.constructor.name)) {
                 return await UtilMethods.getJsonWithoutCirculars(toReduce, 8);
             }
@@ -228,7 +231,8 @@ module.exports = class ZoinxTest {
                         msg =
                             `********** Function parameters for ${testRec.get('methodName')} passed ` +
                             `${passedCount} of ${totalCount} tests. **********`;
-                    } else if (!testRec.get('executionPassed')) {
+                    }
+                    else if (!testRec.get('executionPassed')) {
                         msg =
                             `********** Function OUTPUT test for ${testRec.get('methodName')} failed. **********`;
                     }
@@ -266,6 +270,10 @@ module.exports = class ZoinxTest {
             }
             if (tmpReduced.length > 0) {
                 testRec.set('testedParams', tmpReduced);
+            }
+            // ensure untested params don't show up in testedParams
+            if (!testRec.get('doArgumentCountsMatch') && testRec.get('untestedParams')?.length > 0) {
+                testRec.set('testedParams', _.dropRight(testRec.get('testedParams'), testRec.get('untestedParams').length));
             }
 
             // ----------------------------------------
@@ -345,8 +353,10 @@ module.exports = class ZoinxTest {
             paramTest.set('isFunction', _.isFunction(testObject));
             paramTest.set('successCount', (_.isBoolean(paramTest.get('passed')) && paramTest.get('passed')) ? 1 : 0);
 
-            if (paramTest.get('maskValue') && _.isString(testObject))
-                paramTest.set('testObject', UtilMethods.maskValue(testObject));
+            if (paramTest.get('maskValue') && _.isString(testObject)) {
+                passedArguments[i] = UtilMethods.maskValue(testObject);
+                paramTest.set('testObject', passedArguments[i]);
+            }
 
             paramDetails.push(paramTest);
         }
