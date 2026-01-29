@@ -17,6 +17,7 @@ module.exports = class ParseFunctionConfig {
     static acceptedPrefix = 'acceptedValues=:';
     static rejectedPrefix = 'rejectedValues=:';
     static expectedOutPrefix = 'expectedOut=:';
+    static maskedPrefix = 'masked=:';
 
     static parse(inputStr, isOutputConfig=false) {
         let finalOutput = {type:'PARSE_ERROR'},

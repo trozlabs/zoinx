@@ -738,6 +738,21 @@ module.exports = class UtilMethods {
         return clone(input, 0);
     }
 
+    static hasCircularRefFast(obj, visited = new Set()) {
+        if (obj && typeof obj === 'object') {
+            if (visited.has(obj)) {
+                return true;
+            }
+            visited.add(obj);
+            for (const key in obj) {
+                if (hasCircularRefFast(obj[key], visited)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     static async getJsonWithoutCirculars(obj, depth = 0) {
         let visitedMark = Symbol('VISITED_MARK'),
             MAX_CLEANUP_DEPTH = 10;

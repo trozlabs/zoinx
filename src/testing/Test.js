@@ -255,7 +255,7 @@ module.exports = class ZoinxTest {
             const len = passedArguments.length;
             if (this.shouldSample()) {
                 for (let i = 0; i < len; i++) {
-                    if (this.hasCircularRefFast(passedArguments[i])) {
+                    if (UtilMethods.hasCircularRefFast(passedArguments[i])) {
                         // metric/log hook here
                         break;
                     }
