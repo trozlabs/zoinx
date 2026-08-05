@@ -27,8 +27,8 @@ module.exports = class ZoinxTest {
         try {
             if (_.isUndefined(global.kafka)) global.kafka = {};
             if (_.isUndefined(global.kafka.TestMsgProducer)) {
-                let kafkaClient = new KafkaClient('TestMsgProducer', [process.env.TESTING_MESSAGE_SERVERS]);
-                await kafkaClient.setClientConfig('TESTING_MESSAGE', process.env.TESTING_ENV, process.env.TESTING_USE_SSL);
+                let kafkaClient = new KafkaClient('TestMsgProducer', [process.env.TESTING_MESSAGE_SERVERS], process.env.TESTING_ENV);
+                await kafkaClient.setClientConfig('TESTING_KAFKA', process.env.TESTING_ENV, process.env.TESTING_USE_SSL);
                 global.kafka.TestMsgProducer = kafkaClient;
             }
         } catch (e) {

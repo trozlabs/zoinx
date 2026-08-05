@@ -60,8 +60,11 @@ module.exports = class KafkaSchema {
 
             this.#piiFields = await this.extractPIIFields(JSON.parse(this.#schema.schema));
 
-            switch (this.#schema.schemaType) {
-                case undefined:
+            let schemaType = this.#schema.schemaType;
+            if (_.isEmpty(schemaType)) schemaType = 'AVRO';
+
+            switch (schemaType) {
+                case 'AVRO':
                 {
                     serializer = new AvroSerializer(this.#registry, SerdeType.VALUE, { useLatestVersion: true });
                     deserializer = new AvroDeserializer(this.#registry, SerdeType.VALUE, { useLatestVersion: true });
@@ -141,6 +144,10 @@ module.exports = class KafkaSchema {
         return undefined;
     }
 
+    getSchemaId(topic) {
+        return this.#schema.id
+    }
+
     async #getSchemaIdByTopicFromCache(topic) {
         if (!_.isEmpty(topic) && _.isString(topic)) {
             try {
@@ -163,14 +170,18 @@ module.exports = class KafkaSchema {
     }
 
     async initByTopic(topic, options = {}) {
-        const { isKey = false, version = 'latest' } = options;
-        const subject = KafkaStatics.inferSubjectName(topic, isKey);
-        const schemaId = await this.#getSchemaIdByTopicFromCache(topic);
-        if (schemaId) {
-            return schemaId;
+        try {
+            const { isKey = false, version = 'latest' } = options;
+            const subject = KafkaStatics.inferSubjectName(topic, isKey);
+            const schemaId = await this.#getSchemaIdByTopicFromCache(topic);
+            if (schemaId) {
+                return schemaId;
+            } else {
+                return await this.#loadSchema(topic, subject, version);
+            }
         }
-        else {
-            return await this.#loadSchema(topic, subject, version);
+        catch (e) {
+            Log.error(e);
         }
     }
 
@@ -210,7 +221,7 @@ module.exports = class KafkaSchema {
         return serialized;
     }
 
-    async deserializeMessage(schemaId, serializedMessage=[]){
+    async deserializeMessage(schemaId, serializedMessage=''){
         let deserialized;
 
         try {
@@ -255,7 +266,7 @@ module.exports = class KafkaSchema {
                 // Avro "record"
                 if (field.type.type === 'record') {
                     piiPaths = piiPaths.concat(
-                        extractPIIFields(field.type, fieldPath)
+                        await this.extractPIIFields(field.type, fieldPath)
                     )
                 }
 
@@ -263,7 +274,7 @@ module.exports = class KafkaSchema {
                 if (field.type.type === 'array' && typeof field.type.items === 'object') {
                     if (field.type.items.type === 'record') {
                         piiPaths = piiPaths.concat(
-                            extractPIIFields(field.type.items, fieldPath + '[]')
+                            await this.extractPIIFields(field.type.items, fieldPath + '[]')
                         )
                     }
                 }
@@ -272,7 +283,7 @@ module.exports = class KafkaSchema {
                 if (field.type.type === 'map' && typeof field.type.values === 'object') {
                     if (field.type.values.type === 'record') {
                         piiPaths = piiPaths.concat(
-                            extractPIIFields(field.type.values, fieldPath + '{}')
+                            await this.extractPIIFields(field.type.values, fieldPath + '{}')
                         )
                     }
                 }

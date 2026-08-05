@@ -11,6 +11,7 @@ const tsfService = require('../routes/telemetrySendFails/service');
 const KafkaClient = require('../datastream/KafkaClient');
 const StaticUtil = require('../util/StaticUtil');
 const Encryption = require('../util/Encryption');
+const AppConfig = require('../../../../src/AppConfig');
 
 module.exports = class Telemetry {
 
@@ -37,7 +38,7 @@ module.exports = class Telemetry {
         try {
             if (_.isUndefined(global.kafka)) global.kafka = {};
             if (_.isUndefined(global.kafka.TelemetryProducer)) {
-                let kafkaClient = new KafkaClient('TelemetryProducer', [process.env.TELEMETRY_MESSAGE_SERVERS]);
+                let kafkaClient = new KafkaClient('TelemetryProducer', [process.env.TELEMETRY_MESSAGE_SERVERS], process.env.TELEMETRY_ENV);
                 await kafkaClient.setClientConfig('TELEMETRY_KAFKA', process.env.TELEMETRY_ENV, process.env.TELEMETRY_USE_SSL);
                 global.kafka.TelemetryProducer = kafkaClient;
             }
@@ -112,7 +113,7 @@ module.exports = class Telemetry {
     async send() {
         try {
             await this.#createTelemetryProducer();
-            let telemetryMsg = JSON.stringify(this.#telemetryModel.json),
+            let telemetryMsg = this.#telemetryModel.json, //JSON.stringify(this.#telemetryModel.json),
                 keyString = (process.env.SERVICE_NAME) ? process.env.SERVICE_NAME : 'DevApplication';
 
             if (StaticUtil.StringToBoolean(process.env.TELEMETRY_ENCRYPT)) {
@@ -124,9 +125,8 @@ module.exports = class Telemetry {
                 keyString = randomUUID();
 
             await global.kafka.TelemetryProducer.sendMessage({
-                key: keyString,
                 value: telemetryMsg
-            }, process.env.TELEMETRY_TOPIC_NAME);
+            }, process.env.TELEMETRY_TOPIC_NAME, keyString);
         }
         catch (e) {
             await this.saveTelemetrySendFail(this.#telemetryModel.json, e);
@@ -164,12 +164,11 @@ module.exports = class Telemetry {
                     ip_address: Network.getHostAddress(),
                     telemetry_obj: telemetryModel,
                     error_message: error.message
-                },
-                result;
+                };
 
             let service = new tsfService();
 
-            result = await service.save(saveObj, {user: 'SYSTEM'});
+            return await service.save(saveObj, {user: 'SYSTEM'});
         }
         catch (e) {
             Log.error(e);

@@ -48,7 +48,7 @@ module.exports = class KafkaDestination extends Destination {
             if (_.isUndefined(global.kafka)) global.kafka = {};
             if (_.isUndefined(global.kafka.LoggerProducer)) {
                 this.#env = process.env.LOGGER_ENV.toUpperCase();
-                let kafkaClient = new KafkaClient('LoggerProducer', [process.env['LOGGER_MESSAGE_SERVERS_' + this.#env]]);
+                let kafkaClient = new KafkaClient('LoggerProducer', [process.env['LOGGER_MESSAGE_SERVERS_' + this.#env]], this.#env);
                 await kafkaClient.setClientConfig('LOGGER_KAFKA', this.#env, process.env['LOGGER_USE_SSL_' + this.#env]);
                 global.kafka.LoggerProducer = kafkaClient;
             }
@@ -74,9 +74,8 @@ module.exports = class KafkaDestination extends Destination {
                         keyString = randomUUID();
 
                     await global.kafka.LoggerProducer.sendMessage({
-                        key: keyString,
-                        value: JSON.stringify(logMsg)
-                    }, process.env['LOGGER_TOPIC_NAME_' + this.#env]);
+                        value: logMsg
+                    }, process.env['LOGGER_TOPIC_NAME_' + this.#env], keyString);
                 }
             }
             catch (e) {
