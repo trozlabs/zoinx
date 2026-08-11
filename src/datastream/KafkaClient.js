@@ -346,7 +346,7 @@ module.exports = class KafkaClient {
     async prepareConsumer(topicName = 'dev-topic', fromBeginning = false) {
         if (_.isEmpty(this.#consumer)) await this.#createConsumer(fromBeginning);
         await this.#consumer.connect();
-        await this.#consumer.subscribe({topic: topicName, fromBeginning: fromBeginning});
+        await this.#consumer.subscribe({topic: topicName});
         return this.#consumer;
     }
 
